@@ -114,6 +114,17 @@ textarea.inp{padding:12px 14px;min-height:92px;resize:vertical;line-height:1.4}
 .chk{width:44px;height:44px;display:grid;place-items:center;flex:none}
 .chk i{width:24px;height:24px;border-radius:50%;border:2px solid var(--muted);display:grid;place-items:center;color:var(--accent-ink)}
 .chk i.on{background:var(--ok);border-color:var(--ok)}
+.bars{display:flex;gap:6px;align-items:flex-end;height:130px}
+.bc{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%}
+.bt{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.bt i{display:block;width:70%;max-width:34px;border-radius:6px 6px 2px 2px;background:var(--line)}
+.bt i.cur{background:var(--accent)}
+.bv{font:600 11px/1 var(--mono);color:var(--muted);height:12px}
+.bl{font-size:11px;color:var(--muted)}
+.dl{display:block;font-size:12px;margin-top:3px;color:var(--muted)}
+.rn2s{display:grid;gap:2px}
+.rn2{display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
+.rn2:first-child{border-top:0}
 .ib.del{width:38px;color:var(--muted);opacity:.75}
 .ib.del:active{color:var(--bad)}
 @media (hover:hover){.ib.del:hover{color:var(--bad);opacity:1}}
@@ -722,7 +733,94 @@ function viewFoco(){
   return h;
 }
 
+/* ---------- painel (analises) ---------- */
+var revMode='rev',dashRange='week';
+function periodList(mode){
+  var out=[],i,td=todayISO();
+  if(mode==='week'){
+    var w0=weekStart(td);
+    for(i=7;i>=0;i--){var a=addDays(w0,-7*i);out.push({from:a,to:addDays(a,6),label:parseISO(a).getDate()+' '+MONS[parseISO(a).getMonth()],cur:i===0})}
+  }else{
+    var n=new Date();
+    for(i=5;i>=0;i--){var d=new Date(n.getFullYear(),n.getMonth()-i,1),e=new Date(d.getFullYear(),d.getMonth()+1,0);
+      out.push({from:iso(d),to:iso(e),label:MONS[d.getMonth()],cur:i===0})}
+  }
+  return out;
+}
+function periodStats(p){
+  var f=p.from,e=p.to,done=[],planned=0,slips=0,estSum=0,realSum=0,estReal=0,nReal=0;
+  S.tasks.forEach(function(t){
+    if(t.day&&t.day>=f&&t.day<=e){planned++;slips+=t.slips||0}
+    if(isDone(t)&&t.doneAt){var dd=iso(new Date(t.doneAt));if(dd>=f&&dd<=e){
+      done.push(t);var est=t.est0||t.est;estSum+=est;
+      if((t.focus||0)>=60){realSum+=t.focus/60;estReal+=est;nReal++}}}
+  });
+  var focus=0,d=f;while(d<=e){focus+=S.log[d]||0;d=addDays(d,1)}
+  return {done:done.length,planned:planned,rate:planned?Math.round(done.length/planned*100):null,focus:focus/60,slips:slips,estSum:estSum,realSum:realSum,
+    ratio:estReal?realSum/estReal:null,nReal:nReal};
+}
+function deltaHTML(cur,prev,unit,goodUp){
+  if(prev==null||cur==null)return '';
+  var d=cur-prev;if(Math.abs(d)<(unit==='min'?1:0.5))return '<small class="dl">igual ao anterior</small>';
+  var up=d>0,good=goodUp?up:!up,txt=unit==='min'?(up?'+':'−')+fmt(Math.abs(d)):(up?'+':'−')+Math.round(Math.abs(d))+(unit==='pp'?' pp':'');
+  return '<small class="dl" style="color:var('+(good?'--ok':'--warn')+')">'+txt+' vs. anterior</small>';
+}
+function barsHTML(ps,vals,fmtv,title){
+  var mx=Math.max.apply(null,vals.concat([1]));
+  return '<div class="bars" role="img" aria-label="'+esc(title)+'">'+ps.map(function(p,i){
+    var v=vals[i],h=Math.max(v>0?4:0,Math.round(v/mx*100));
+    return '<div class="bc"><span class="bv">'+(v>0?fmtv(v):'')+'</span><div class="bt"><i class="'+(p.cur?'cur':'')+'" style="height:'+h+'%"></i></div><span class="bl">'+esc(p.label)+'</span></div>'}).join('')+'</div>';
+}
+function calibText(r){
+  if(r==null)return '';
+  if(r<0.85)return 'Você costuma <b>superestimar</b>: leva cerca de '+Math.round(r*100)+'% do tempo que prevê.';
+  if(r>1.15)return 'Você costuma <b>subestimar</b>: leva cerca de '+Math.round(r*100)+'% do tempo que prevê.';
+  return 'Suas estimativas estão <b>bem calibradas</b> ('+Math.round(r*100)+'% do previsto).';
+}
+function viewPainel(){
+  var ps=periodList(dashRange),st=ps.map(periodStats),cur=st[st.length-1],prev=st[st.length-2];
+  var wk=dashRange==='week';
+  var h='<header class="top"><div><div class="eyebrow">Revisão</div><h1 class="h1">Painel</h1></div></header>';
+  h+='<div class="chips" style="margin-bottom:10px">'+chip('Revisão',false,'data-act="rev" data-v="rev"')+chip('Painel',true,'data-act="rev" data-v="dash"')+'</div>';
+  h+='<div class="chips" style="margin-bottom:14px">'+chip('Por semana',wk,'data-act="drange" data-v="week"')+chip('Por mês',!wk,'data-act="drange" data-v="month"')+'</div>';
+  var any=st.some(function(s){return s.done||s.focus});
+  h+='<div class="cols"><div class="col">';
+  h+='<section class="panel"><div class="eyebrow">'+(wk?'Esta semana':'Este mês')+' (em andamento) contra '+(wk?'a anterior':'o anterior')+'</div><div class="nums">'+
+    '<div><b>'+cur.done+'</b><small>concluídas</small>'+deltaHTML(cur.done,prev.done,'n',true)+'</div>'+
+    '<div><b>'+fmt(cur.focus)+'</b><small>em foco</small>'+deltaHTML(cur.focus,prev.focus,'min',true)+'</div>'+
+    '<div><b>'+(cur.rate==null?'–':cur.rate+'%')+'</b><small>do planejado</small>'+deltaHTML(cur.rate,prev.rate,'pp',true)+'</div></div></section>';
+  h+=secHTML('Concluídas por '+(wk?'semana':'mês'))+'<section class="panel">'+barsHTML(ps,st.map(function(s){return s.done}),function(v){return v},'Tarefas concluídas')+'</section>';
+  h+=secHTML('Tempo em foco')+'<section class="panel">'+barsHTML(ps,st.map(function(s){return s.focus}),function(v){return v>=60?(Math.round(v/6)/10)+'h':Math.round(v)+'m'},'Minutos em foco')+'</section>';
+  h+=secHTML('Taxa de conclusão')+'<section class="panel">'+barsHTML(ps,st.map(function(s){return s.rate||0}),function(v){return v+'%'},'Percentual do planejado concluído')+'<p class="hint" style="margin:0">Das tarefas com data no período, quantas você concluiu.</p></section>';
+  if(!any)h+='<p class="hint" style="margin-top:12px">Ainda não há dados. Conclua tarefas e use o cronômetro para o painel começar a mostrar sua evolução.</p>';
+  h+='</div><div class="col">';
+  // estimativa vs real
+  var rs=S.tasks.filter(function(t){return isDone(t)&&(t.focus||0)>=60&&(t.est0||t.est)});
+  var eT=sum(rs,function(t){return t.est0||t.est}),rT=sum(rs,function(t){return t.focus/60});
+  h+=secHTML('Estimado contra real');
+  if(rs.length<5){
+    h+='<section class="panel"><p style="margin:0">'+rs.length+' de 5 tarefas com tempo real registrado.</p><div class="bar"><i style="width:'+Math.round(rs.length/5*100)+'%;background:var(--accent)"></i></div><p class="hint" style="margin:0">Use o cronômetro até concluir a tarefa, ou preencha o tempo real ao editá-la. Com 5 tarefas, o app mostra se você costuma subestimar ou superestimar.</p></section>';
+  }else{
+    var rat=rT/eT;
+    h+='<section class="panel"><p style="margin:0">'+calibText(rat)+'</p><div class="nums"><div><b>'+fmt(eT)+'</b><small>estimado</small></div><div><b>'+fmt(rT)+'</b><small>real</small></div><div><b>'+rs.length+'</b><small>tarefas</small></div></div>';
+    var grp=function(name,f){var l=rs.filter(f);if(l.length<2)return '';var e=sum(l,function(t){return t.est0||t.est}),r=sum(l,function(t){return t.focus/60});return '<div class="rn2"><span>'+name+'</span><span>'+l.length+' · '+Math.round(r/e*100)+'%</span></div>'};
+    var rows=CTX.map(function(c){return grp(esc(cname(c.id)),function(t){return t.ctx===c.id})}).join('')+
+      grp('Até 30 min',function(t){return (t.est0||t.est)<=30})+grp('31 a 120 min',function(t){var e=t.est0||t.est;return e>30&&e<=120})+grp('Mais de 2h',function(t){return (t.est0||t.est)>120})+
+      Object.keys(FW).map(function(k){return grp(esc(FW[k].name),function(t){return fwOf(t)===k})}).join('');
+    if(rows)h+='<div><span class="lab">Real em relação ao estimado (tarefas · %)</span><div class="rn2s">'+rows+'</div></div>';
+    h+='</section>';
+    var last=rs.slice().sort(function(a,b){return (b.doneAt||0)-(a.doneAt||0)}).slice(0,6);
+    h+=secHTML('Últimas tarefas')+'<div class="list">'+last.map(function(t){var e=t.est0||t.est,r=t.focus/60;return '<div class="row" style="display:block;padding:12px 16px"><div class="row-title">'+esc(t.title)+'</div><div class="row-meta"><span>estimado '+fmt(e)+'</span><span>real '+fmt(r)+'</span><span style="color:var('+(r>e*1.15?'--warn':'--ok')+')">'+(r>e*1.15?'+':(r<e*.85?'−':'≈'))+(Math.abs(Math.round((r/e-1)*100))>=15?Math.abs(Math.round((r/e-1)*100))+'%':'')+'</span></div></div>'}).join('')+'</div>';
+  }
+  var other=S.tasks.filter(function(t){return isDone(t)&&!((t.focus||0)>=60)}).length;
+  if(other)h+='<p class="hint" style="margin-top:10px">'+other+' tarefa'+(other>1?'s':'')+' concluída'+(other>1?'s':'')+' sem tempo real. Elas contam nas entregas, mas não na comparação de estimativa.</p>';
+  h+='<p class="hint" style="margin-top:10px">Os dados ficam guardados por 400 dias para você comparar meses.</p>';
+  h+='</div></div>';
+  return h;
+}
+
 function viewRevisao(){
+  if(revMode==='dash')return viewPainel();
   var wk=curWk(),wt=weekTasks(wk),dn=wt.filter(isDone),open=wt.filter(function(t){return !isDone(t)});
   var pct=wt.length?Math.round(dn.length/wt.length*100):0;
   var secs=sum([0,1,2,3,4,5,6],function(i){return S.log[addDays(wk,i)]||0});
@@ -731,6 +829,7 @@ function viewRevisao(){
   var rt=S.retro[wk]||{};
   var bl=[0,1,2,3,4,5,6].map(function(i){return addDays(wk,i)}).filter(function(d){return S.blockers[d]});
   var h='<header class="top"><div><div class="eyebrow">Revisão</div><h1 class="h1">'+rangeLabel(wk)+'</h1></div><div class="nav"><button class="ib" data-act="wk" data-d="-1" aria-label="Semana anterior">'+ic('left')+'</button><button class="ib" data-act="wk" data-d="1" aria-label="Próxima semana">'+ic('right')+'</button></div></header>';
+  h+='<div class="chips" style="margin-bottom:14px">'+chip('Revisão',true,'data-act="rev" data-v="rev"')+chip('Painel',false,'data-act="rev" data-v="dash"')+'</div>';
   h+='<div class="cols"><div class="col">';
   h+='<section class="panel"><div class="nums"><div><b>'+dn.length+'/'+wt.length+'</b><small>concluídas ('+pct+'%)</small></div><div><b>'+fmt(secs/60)+'</b><small>em foco</small></div>'+(pomos?'<div><b>'+pomos+'</b><small>pomodoros</small></div>':'')+'</div>'+(wt.length?'<div class="bar"><i style="width:'+pct+'%;background:var(--ok)"></i></div>':'')+(wkOff!==0?'<div class="btns"><button class="btn btn-s sm" data-act="wk" data-d="0">Voltar para esta semana</button></div>':'')+'</section>';
   h+=secHTML('Entregas da semana',dn.length);
@@ -791,6 +890,7 @@ function taskSheetHTML(){
     h+='<div><span class="lab">Como atacar</span><div class="fwgrid">'+Object.keys(FW).map(function(k){return '<button class="fwopt" data-act="sh-fw" data-v="'+k+'" aria-pressed="'+(cur===k)+'"><b>'+esc(FW[k].name)+'</b><small>'+esc(FW[k].best)+(k===sug?' · sugerido':'')+'</small></button>'}).join('')+'</div><p class="verdict">'+esc(FW[cur].how)+'<b id="pomo-n">'+pomoText(d,cur)+'</b></p></div>';
     h+='<div><label class="lab" for="f-dod">Pronto quando (uma linha por critério)</label><textarea id="f-dod" class="inp" data-in="dodText" rows="3" placeholder="Ex.: Arquivos exportados&#10;Cliente aprovou">'+esc(d.dodText)+'</textarea></div>';
   }
+  if(sh.mode==='edit'&&sh.more)h+='<div><label class="lab" for="f-real">Tempo real gasto, em minutos</label><input id="f-real" class="inp" data-in="real" type="number" inputmode="numeric" min="0" max="1440" placeholder="Preenche sozinho se usar o cronômetro" value="'+esc(d.real)+'"></div>';
   h+='<div class="sh-actions"><button class="btn btn-p" data-act="sh-save">'+(sh.mode==='new'?'Criar tarefa':'Salvar')+'</button>'+(sh.mode==='edit'?'<button class="btn btn-s" data-act="sh-del" style="color:var(--bad)">'+(sh.del?'Confirmar exclusão':'Excluir tarefa')+'</button>':'')+'</div>';
   return h;
 }
@@ -814,7 +914,7 @@ function renderSheet(){
 }
 function openTask(id,day){
   if(id){var t=byId(id);if(!t)return;
-    sh={kind:'task',mode:'edit',id:id,more:true,del:false,d:{title:t.title,ctx:t.ctx,est:t.est,day:t.day,urg:!!t.urg,imp:!!t.imp,fw:t.fw||null,dodText:(t.dod||[]).map(function(x){return x.t}).join('\n')}};
+    sh={kind:'task',mode:'edit',id:id,more:true,del:false,d:{title:t.title,ctx:t.ctx,est:t.est,day:t.day,urg:!!t.urg,imp:!!t.imp,fw:t.fw||null,dodText:(t.dod||[]).map(function(x){return x.t}).join('\n'),real:Math.round((t.focus||0)/60)||''}};
   }else sh={kind:'task',mode:'new',more:false,del:false,d:{title:'',ctx:lastCtx,est:30,day:day===undefined?todayISO():day,urg:false,imp:true,fw:null,dodText:''}};
   renderSheet();
   if(sh.mode==='new')setTimeout(function(){var i=$('#f-title');if(i)i.focus()},60);
@@ -823,12 +923,13 @@ function saveTask(){
   var d=sh.d,title=d.title.trim();
   if(!title){toast('Dê um nome à tarefa.');var i=$('#f-title');if(i)i.focus();return}
   var t;
-  if(sh.mode==='new'){t={id:uid(),status:'todo',slips:0,focus:0,pomos:0,mit:false,ex:false,created:Date.now()};S.tasks.push(t)}
+  if(sh.mode==='new'){t={id:uid(),status:'todo',slips:0,focus:0,pomos:0,mit:false,ex:false,created:Date.now(),est0:d.est};S.tasks.push(t)}
   else t=byId(sh.id);
   if(!t){sh=null;renderSheet();return}
   var old=t.dod||[],lines=d.dodText.split('\n').map(function(x){return x.trim()}).filter(Boolean).slice(0,12);
   Object.assign(t,{title:title,ctx:d.ctx,est:d.est,day:d.day,urg:d.urg,imp:d.imp,fw:d.fw,dod:lines.map(function(x){return {t:x,d:old.some(function(o){return o.t===x&&o.d})}})});
   if(!t.day)t.mit=false;
+  if(sh.mode==='edit'&&d.real!=null&&d.real!==''&&Number(d.real)!==Math.round((t.focus||0)/60)&&Number(d.real)>=0)t.focus=Math.round(Number(d.real))*60;
   lastCtx=d.ctx;var isNew=sh.mode==='new';
   sh=null;persist();renderSheet();render();toast(isNew?'Tarefa criada.':'Tarefa salva.');
 }
@@ -1023,6 +1124,8 @@ function act(a,el){
     case 'plan':sh={kind:'plan'};renderSheet();break;
     case 'cap':{var i=Number(el.dataset.i),dl=Number(el.dataset.d);S.cap[i]=Math.max(0,Math.min(720,(S.cap[i]||0)+dl));persist();renderSheet();render();break}
     case 'autoplan':autoPlan();break;
+    case 'rev':revMode=el.dataset.v;render();scrollTop();break;
+    case 'drange':dashRange=el.dataset.v;render();break;
     case 'rowdel':dropTask(el.dataset.id);break;
     case 'sh-close':sh=null;renderSheet();break;
     case 'sh-save':saveTask();break;
@@ -1065,6 +1168,7 @@ document.addEventListener('click',function(e){
 document.addEventListener('input',function(e){
   var el=e.target,k=el.dataset&&el.dataset.in;if(!k)return;
   if(k==='title'||k==='dodText'){if(sh&&sh.d)sh.d[k]=el.value}
+  else if(k==='real'){if(sh&&sh.d)sh.d.real=el.value}
   else if(k==='blk'){var td=todayISO();if(el.value.trim())S.blockers[td]=el.value;else delete S.blockers[td];persist()}
   else if(k==='retro'){var wk=curWk();S.retro[wk]=S.retro[wk]||{};S.retro[wk][el.dataset.f]=el.value;persist()}
   else if(k==='ctxname'){S.ctx=S.ctx||{};var v=el.value.trim();if(v)S.ctx[el.dataset.c]=v;else delete S.ctx[el.dataset.c];persist()}
@@ -1096,7 +1200,7 @@ document.addEventListener('keydown',function(e){
 
 /* ---------- boot ---------- */
 async function boot(){
-  prune(180);
+  prune(400);
   initSB();
   rebase();
   initNav();
