@@ -22,8 +22,10 @@ async function pushRefresh(){
   }catch(e){st='err';swOK='erro: '+(e&&e.message||e)}
   var vm=(navigator.userAgent.match(/OS (\d+)[_.](\d+)/)||[]);
   pushDiag='Instalado na tela de início: '+(STANDALONE?'sim':'não')+' · Push: '+(hasPM?'sim':'não')+' · Notificações: '+(hasN?'sim':'não')+' · Serviço do app: '+swOK+' · Permissão: '+(hasN?Notification.permission:'-')+(vm.length?' · iOS '+vm[1]+'.'+vm[2]:'');
-  if(st!==pushState){pushState=st;tmLast='-'}
-  if(tab==='revisao'&&!sh)render();
+  var changed=st!==pushState;
+  if(changed){pushState=st;tmLast='-'}
+  // o convite para ativar fica na tela Hoje: redesenha em qualquer aba quando o estado muda
+  if(!sh&&(changed||tab==='revisao'))softRender();
   if(st==='on'){timerSync(true);remSync()}
 }
 async function pushEnable(){

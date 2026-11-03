@@ -68,4 +68,12 @@ ok('persist does not delete test row',!c.slice(before+1).some(x=>x.tbl==='prumo_
 await ev(()=>document.querySelector('[data-act=push-off]').click());await sleep(500);
 c=await calls();
 ok('disable removes sub',c.some(x=>x.tbl==='prumo_push_subs'&&x.op==='delete'&&x.eq[1]==='https://push.example/abc'));
+// convite na tela Hoje: some assim que os avisos são ligados
+{const q=await b.newPage();await q.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+await q.evaluateOnNewDocument(FAKE);await q.goto(await url('e2e/pushtest.html'),{waitUntil:'domcontentloaded'});await sleep(1500);
+const has=()=>q.evaluate(()=>!!document.querySelector('#view .banner [data-act=push-on]'));
+ok('home: invite to enable push shown',await has());
+await q.evaluate(()=>document.querySelector('#view .banner [data-act=push-on]').click());await sleep(600);
+ok('home: invite disappears after enabling (no reload)',!(await has()));
+await q.close()}
 console.log(res.join('\n'));console.log(errs.length?'ERRORS '+errs:'NO PAGE ERRORS');await b.close()})();

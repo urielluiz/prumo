@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-1Qmcy4j6aNFgRwdLngcAKq/W1vScASZ8669jMVnaf3k=' 'sha256-FwLBHAQrHiaabsIJFhtm/0do5ALo0qa3zyN76T/AiiA=' 'sha256-M83SiRaxQw8WWPr1qdbElLabaNfhtC6YMMJDVWU3QNA=' 'sha256-fQ0Xsz44nEVdFw9XPu3NBpimjLUNCB3VU0tiCYKWWdI=' 'sha256-wNBm0LO9t0JKUloaWmeP9HoGpjFq3dG9AuBOcy/YQ4g='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.pwnedpasswords.com https://cpdeptlintjvdqcfrafg.supabase.co wss://cpdeptlintjvdqcfrafg.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-1Qmcy4j6aNFgRwdLngcAKq/W1vScASZ8669jMVnaf3k=' 'sha256-FwLBHAQrHiaabsIJFhtm/0do5ALo0qa3zyN76T/AiiA=' 'sha256-Kg7KFV5wbUl4sxzJ7wLWcPTLh3jkRaig78JhI2AV86Q=' 'sha256-M83SiRaxQw8WWPr1qdbElLabaNfhtC6YMMJDVWU3QNA=' 'sha256-wNBm0LO9t0JKUloaWmeP9HoGpjFq3dG9AuBOcy/YQ4g='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.pwnedpasswords.com https://cpdeptlintjvdqcfrafg.supabase.co wss://cpdeptlintjvdqcfrafg.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <meta name="referrer" content="no-referrer">
 <script>if(window.top!==window.self){window.stop();document.documentElement.innerHTML=''}</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -1383,7 +1383,7 @@ var pushState='boot',tmLast='-';
 var IOSDEV=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 var STANDALONE=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
 function b64u(s){var p='='.repeat((4-s.length%4)%4),b=(s+p).replace(/-/g,'+').replace(/_/g,'/'),r=atob(b),o=new Uint8Array(r.length);for(var i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o}
-var BUILD='03/11 15:50',pushDiag='';
+var BUILD='03/11 16:24',pushDiag='';
 function pushBanner(){
   if(pushState!=='off')return '';
   try{if(localStorage.getItem('prumo.pushno')==='1')return ''}catch(e){}
@@ -1402,8 +1402,10 @@ async function pushRefresh(){
   }catch(e){st='err';swOK='erro: '+(e&&e.message||e)}
   var vm=(navigator.userAgent.match(/OS (\d+)[_.](\d+)/)||[]);
   pushDiag='Instalado na tela de início: '+(STANDALONE?'sim':'não')+' · Push: '+(hasPM?'sim':'não')+' · Notificações: '+(hasN?'sim':'não')+' · Serviço do app: '+swOK+' · Permissão: '+(hasN?Notification.permission:'-')+(vm.length?' · iOS '+vm[1]+'.'+vm[2]:'');
-  if(st!==pushState){pushState=st;tmLast='-'}
-  if(tab==='revisao'&&!sh)render();
+  var changed=st!==pushState;
+  if(changed){pushState=st;tmLast='-'}
+  // o convite para ativar fica na tela Hoje: redesenha em qualquer aba quando o estado muda
+  if(!sh&&(changed||tab==='revisao'))softRender();
   if(st==='on'){timerSync(true);remSync()}
 }
 async function pushEnable(){

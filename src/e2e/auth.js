@@ -22,7 +22,7 @@ function login(u,email){const s={refresh_token:'x',user:{id:u.id,email}};LS.set(
 const E=(code,status,message)=>({error:{code,status,message:message||code}});
 function builder(tbl){const b={};b.select=()=>b;b.order=()=>b;b.range=()=>b;b.limit=()=>b;
  b.upsert=(r,o)=>{b._op='upsert';b._r=r;return b};b.delete=()=>{b._op='delete';return b};b.eq=(k,v)=>{b._eq=[k,v];return b};
- b.then=function(res,rej){return (async()=>{if(b._op){window.__calls.push({tbl,op:b._op,row:b._r,eq:b._eq});if(tbl==='prumo_push_subs'&&b._op==='delete')LS.set('fake-pushdel',b._eq);return {error:null}}return {data:[],error:null}})().then(res,rej)};return b}
+ b.then=function(res,rej){return (async()=>{const me=(sess()||{user:{}}).user.id,db=LS.get('fake-db')||{};if(tbl==='prumo_items'&&b._op==='upsert'&&me){(Array.isArray(b._r)?b._r:[b._r]).forEach(r=>{db[me]=db[me]||{};db[me][r.kind+'/'+r.id]=r});LS.set('fake-db',db)}if(tbl==='prumo_items'&&!b._op)return {data:Object.values((db[me])||{}),error:null};if(b._op){window.__calls.push({tbl,op:b._op,row:b._r,eq:b._eq});if(tbl==='prumo_push_subs'&&b._op==='delete')LS.set('fake-pushdel',b._eq);return {error:null}}return {data:[],error:null}})().then(res,rej)};return b}
 window.supabase={createClient(){return {from:t=>builder(t),channel(){const c={on(){return c},subscribe(){return c}};return c},removeChannel(){},
  auth:{
   onAuthStateChange(cb){subs.push(cb);setTimeout(()=>cb('INITIAL_SESSION',sess()),10);return {data:{subscription:{unsubscribe(){}}}}},
@@ -145,6 +145,14 @@ ok('second account never uploads the first one\'s data',!JSON.stringify(await ev
 await ev(()=>{const v=JSON.parse(localStorage.getItem('prumo.v1'));v.owner='u1';v.tasks.push({id:'x1',title:'Dado de outra conta',status:'todo',day:null,est:15,ctx:'trabalho'});localStorage.setItem('prumo.v1',JSON.stringify(v))});
 await p.reload({waitUntil:'domcontentloaded'});await reloaded();
 s=await st();ok('foreign local data wiped on account mismatch',!(s&&s.tasks.some(t=>t.title==='Dado de outra conta'))&&(!s||s.owner==='u2'));
+
+// sair não perde nada: ao entrar de novo, tudo volta do servidor
+await ev(()=>window.prumoLogout('local'));await reloaded();
+await set('#g-em','dono@example.com');await set('#g-pw','senha-do-dono-123');await submit();await sleep(1800);
+s=await st();
+ok('signing back in restores the account data from the server',!!s&&s.owner==='u1'&&s.tasks.some(t=>t.title==='Segredo do dono'));
+ok('restored account has no example tasks mixed in',!!s&&!s.tasks.some(t=>t.ex));
+ok('restored task is on screen',/Segredo do dono/.test(await ev(()=>document.body.innerText)));
 
 // sair com alteração não enviada: pede confirmação; cancelar mantém a sessão
 await ev(()=>{Object.defineProperty(navigator,'onLine',{get:()=>false,configurable:true})});
