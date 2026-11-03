@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer-core');
 const fs = require('fs');
 const S=require('path').resolve(__dirname,'..');
-const HASH = JSON.parse(fs.readFileSync(S + '/prumo/auth.json')).hash;
+const HASH = JSON.parse(fs.readFileSync(S + '/auth.json')).hash;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const res = []; const ok = (n, c) => res.push((c ? 'PASS ' : 'FAIL ') + n);
 const errs = [];
