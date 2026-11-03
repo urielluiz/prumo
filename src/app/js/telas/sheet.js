@@ -83,10 +83,12 @@ function helpSheetHTML(){
   return h+'<div class="sh-actions"><button class="btn btn-p" data-act="sh-close">Entendi</button></div>';
 }
 function pwSheetHTML(){
+  var pf=function(id,label,ac,ph){return '<div><label class="lab" for="'+id+'">'+label+'</label><input id="'+id+'" class="inp" type="password" autocomplete="'+ac+'" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="128"'+(ph?' placeholder="'+ph+'"':'')+'></div>'};
   return '<div class="sh-head"><h2 class="h2">Alterar senha</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>'+
-    '<div><label class="lab" for="pw1">Nova senha</label><input id="pw1" class="inp" type="password" autocomplete="new-password" placeholder="Mínimo de 10 caracteres"></div>'+
-    '<div><label class="lab" for="pw2">Repita a nova senha</label><input id="pw2" class="inp" type="password" autocomplete="new-password"></div>'+
-    '<p class="hint" id="pw-msg" style="margin:0">Use uma senha longa e única. O gerenciador de senhas do iPhone pode criar uma para você.</p>'+
+    pf('pw0','Senha atual','current-password')+
+    pf('pw1','Nova senha','new-password','Mínimo de 12 caracteres')+
+    pf('pw2','Repita a nova senha','new-password')+
+    '<p class="hint" id="pw-msg" style="margin:0" aria-live="polite">Use uma senha longa e única. Ao salvar, os outros aparelhos conectados saem da conta.</p>'+
     '<div class="sh-actions"><button class="btn btn-p" data-act="pw-save">Salvar nova senha</button><button class="btn btn-s" data-act="sh-close">Cancelar</button></div>';
 }
 function planSheetHTML(){
@@ -114,16 +116,28 @@ function openTask(id,day){
   renderSheet();
   if(sh.mode==='new')setTimeout(function(){var i=$('#f-title');if(i)i.focus()},60);
 }
+var pwBusy=false;
 async function savePw(){
-  var a=($('#pw1')||{}).value||'',b=($('#pw2')||{}).value||'',m=$('#pw-msg');
+  if(pwBusy)return;
+  var c=($('#pw0')||{}).value||'',a=($('#pw1')||{}).value||'',b=($('#pw2')||{}).value||'',m=$('#pw-msg');
   var say=function(t,bad){if(m){m.textContent=t;m.style.color=bad?'var(--bad)':''}};
-  if(a.length<10){say('Use pelo menos 10 caracteres.',true);return}
-  if(a!==b){say('As senhas não são iguais.',true);return}
-  if(!SB){say('Entre na conta para alterar a senha.',true);return}
-  try{var r=await SB.auth.updateUser({password:a});
-    if(r.error){say(/same|different/i.test(r.error.message||'')?'Escolha uma senha diferente da atual.':(/weak|pwned|compromised/i.test(r.error.message||'')?'Essa senha é fraca ou apareceu em vazamentos. Escolha outra.':'Não consegui alterar. Tente de novo.'),true);return}
-    sh=null;renderSheet();toast('Senha alterada.');
+  if(!SB||!SBU){say('Entre na conta para alterar a senha.',true);return}
+  if(!c){say('Informe a senha atual.',true);return}
+  if(a===c){say('Escolha uma senha diferente da atual.',true);return}
+  pwBusy=true;say('Verificando...');
+  try{
+    var u=await SB.auth.getUser(),me=u&&u.data&&u.data.user?u.data.user.email:'';
+    var bad=window.prumoPw?await window.prumoPw.check(a,b,me):(a.length<12?'Use pelo menos 12 caracteres.':(a!==b?'As senhas não são iguais.':''));
+    if(bad){say(bad,true);return}
+    // confirma a senha atual antes de trocar (quem pegar o aparelho desbloqueado não troca a senha)
+    var v=await SB.auth.signInWithPassword({email:me,password:c});
+    if(v.error){say(v.error.status===429?'Muitas tentativas. Aguarde alguns minutos.':'A senha atual não confere.',true);return}
+    var r=await SB.auth.updateUser({password:a});
+    if(r.error){say(r.error.code==='same_password'?'Escolha uma senha diferente da atual.':(r.error.code==='weak_password'?'Essa senha é fraca ou apareceu em vazamentos. Escolha outra.':'Não consegui alterar. Tente de novo.'),true);return}
+    try{await SB.auth.signOut({scope:'others'})}catch(e){}
+    sh=null;renderSheet();toast('Senha alterada. Os outros aparelhos saíram da conta.');
   }catch(e){say('Sem conexão. Tente de novo.',true)}
+  finally{pwBusy=false}
 }
 function saveTask(){
   var d=sh.d,title=d.title.trim();

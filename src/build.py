@@ -42,138 +42,43 @@ tail = '''
 </body>
 </html>
 '''
-# ---- tela de senha (so na versao hospedada) ----
-import json, secrets, hashlib
-AUTH = os.path.join(D, 'auth.json')
-ITER = 210000
-if not os.path.exists(AUTH):
-    alpha = 'abcdefghjkmnpqrstuvwxyz23456789'
-    pw = '-'.join(''.join(secrets.choice(alpha) for _ in range(4)) for _ in range(4))
-    salt = secrets.token_bytes(16)
-    dk = hashlib.pbkdf2_hmac('sha256', pw.encode(), salt, ITER, 32)
-    json.dump({'salt': salt.hex(), 'hash': dk.hex(), 'iter': ITER}, open(AUTH, 'w'))
-    print('SENHA NOVA (mostrar uma vez):', pw)
-A = json.load(open(AUTH))
-
-GATE = '''
-<style>
-#gate{position:fixed;inset:0;z-index:200;background:var(--bg);color:var(--ink);display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));font-family:var(--body)}
-#gate[hidden]{display:none!important}
-#gate form{width:100%;max-width:380px;display:grid;gap:14px}
-#gate .g-mark{width:44px;height:44px}
-#gate h1{font:800 36px/1.02 var(--display);letter-spacing:-.025em;margin:0}
-#gate p{margin:0;color:var(--muted);font-size:15px}
-#gate .g-err{color:var(--bad);min-height:20px;font-size:14px}
-#gate .g-u{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
-</style>
-<div id="gate" role="dialog" aria-modal="true" aria-labelledby="g-t">
-  <form id="g-f" autocomplete="on">
-    <svg class="g-mark" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="6" r="2.2" fill="currentColor"/><path d="M22 6v20" stroke="currentColor" stroke-width="2"/><path d="M22 24l7 9-7 11-7-11z" fill="var(--accent)"/></svg>
-    <h1 id="g-t">Prumo</h1>
-    <p>Acesso restrito. Digite a senha para entrar.</p>
-    <input class="g-u" type="text" name="username" value="prumo" autocomplete="username" tabindex="-1" aria-hidden="true">
-    <div><label class="lab" for="g-pw">Senha</label><input id="g-pw" class="inp" type="password" name="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="go" required></div>
-    <div class="g-err" id="g-e" role="alert"></div>
-    <button class="btn btn-p btn-full" id="g-b" type="submit">Entrar</button>
-  </form>
-</div>
-<script>
-(function(){
-var SALT="%SALT%",HASH="%HASH%",ITER=%ITER%,KEY="prumo.k",DAYS=30;
-var gate=document.getElementById('gate'),form=document.getElementById('g-f'),pw=document.getElementById('g-pw'),err=document.getElementById('g-e'),btn=document.getElementById('g-b');
-var LOCKABLE=['.wrap','#tabs','#sheet','#toast'];
-function setInert(v){LOCKABLE.forEach(function(s){var e=document.querySelector(s);if(e){if(v)e.setAttribute('inert','');else e.removeAttribute('inert')}})}
-function saved(){try{var r=JSON.parse(localStorage.getItem(KEY)||'null');return !!(r&&r.h===HASH&&Date.now()-r.t<DAYS*864e5)}catch(e){return false}}
-function unlock(){gate.hidden=true;setInert(false);pw.value='';try{var a=document.querySelector('#view button');}catch(e){}}
-function lock(){try{localStorage.removeItem(KEY)}catch(e){}gate.hidden=false;setInert(true);setTimeout(function(){pw.focus()},50)}
-window.prumoLock=lock;
-function hex(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return x.toString(16).padStart(2,'0')}).join('')}
-function bytes(h){var o=new Uint8Array(h.length/2);for(var i=0;i<o.length;i++)o[i]=parseInt(h.substr(i*2,2),16);return o}
-async function derive(s){
-  var k=await crypto.subtle.importKey('raw',new TextEncoder().encode(s),'PBKDF2',false,['deriveBits']);
-  return hex(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:bytes(SALT),iterations:ITER},k,256));
-}
-var fails=0,until=0;
-form.addEventListener('submit',async function(e){
-  e.preventDefault();
-  var wait=until-Date.now();
-  if(wait>0){err.textContent='Aguarde '+Math.ceil(wait/1000)+'s para tentar de novo.';return}
-  btn.disabled=true;err.textContent='';
-  try{
-    var h=await derive(pw.value.trim().toLowerCase());
-    if(h===HASH){fails=0;try{localStorage.setItem(KEY,JSON.stringify({h:HASH,t:Date.now()}))}catch(x){}unlock()}
-    else{fails++;until=Date.now()+Math.min(30,fails*3)*1000;err.textContent='Senha incorreta.';pw.select()}
-  }catch(x){err.textContent='Este navegador não consegue verificar a senha. Abra o endereço https no Safari.'}
-  btn.disabled=false;
-});
-if(saved()){unlock()}else{setInert(true);setTimeout(function(){pw.focus()},50)}
-})();
-</script>
-'''.replace('%SALT%', A['salt']).replace('%HASH%', A['hash']).replace('%ITER%', str(A['iter']))
-
-# ---- login real com Supabase (quando houver sb.json) ----
-import shutil
+# ---- login com Supabase (quando houver sb.json): tela de app/auth/ + cliente ----
+import json, shutil, hashlib, base64
 SBSCRIPTS = ''
+GATE = ''
 SBJ = os.path.join(D, 'sb.json')
 if os.path.exists(SBJ):
     sbcfg = json.load(open(SBJ))
     shutil.copy(os.path.join(D, 'vendor', 'supabase.js'), os.path.join(OUT, 'supabase.js'))
     SBSCRIPTS = '<script>window.PRUMO_SB=' + json.dumps(sbcfg) + ';</script>\n<script src="supabase.js"></script>\n'
-    GATE = r'''
-<style>
-#gate{position:fixed;inset:0;z-index:200;background:var(--bg);color:var(--ink);display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));font-family:var(--body)}
-#gate[hidden]{display:none!important}
-#gate form{width:100%;max-width:380px;display:grid;gap:14px}
-#gate .g-mark{width:44px;height:44px}
-#gate h1{font:800 36px/1.02 var(--display);letter-spacing:-.025em;margin:0}
-#gate p{margin:0;color:var(--muted);font-size:15px}
-#gate .g-err{color:var(--bad);min-height:20px;font-size:14px}
-</style>
-<div id="gate" role="dialog" aria-modal="true" aria-labelledby="g-t" hidden>
-  <form id="g-f" autocomplete="on" novalidate>
-    <svg class="g-mark" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="6" r="2.2" fill="currentColor"/><path d="M22 6v20" stroke="currentColor" stroke-width="2"/><path d="M22 24l7 9-7 11-7-11z" fill="var(--accent)"/></svg>
-    <h1 id="g-t">Prumo</h1>
-    <p>Entre com a sua conta para ver e sincronizar suas tarefas.</p>
-    <div><label class="lab" for="g-em">E-mail</label><input id="g-em" class="inp" type="email" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="email" required></div>
-    <div><label class="lab" for="g-pw">Senha</label><input id="g-pw" class="inp" type="password" name="password" autocomplete="current-password" required></div>
-    <div class="g-err" id="g-e" role="alert"></div>
-    <button class="btn btn-p btn-full" id="g-b" type="submit">Entrar</button>
-  </form>
-</div>
-<script>
-(function(){
-var gate=document.getElementById('gate'),form=document.getElementById('g-f'),em=document.getElementById('g-em'),pw=document.getElementById('g-pw'),err=document.getElementById('g-e'),btn=document.getElementById('g-b');
-var LOCKABLE=['.wrap','#tabs','#sheet','#toast'];
-function setInert(v){LOCKABLE.forEach(function(s){var e=document.querySelector(s);if(e){if(v)e.setAttribute('inert','');else e.removeAttribute('inert')}})}
-function stored(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k)){var v=JSON.parse(localStorage.getItem(k));if(v&&v.refresh_token)return true}}}catch(e){}return false}
-function unlock(){gate.hidden=true;setInert(false);pw.value=''}
-function lock(){gate.hidden=false;setInert(true);err.textContent='';setTimeout(function(){em.focus()},50)}
-window.prumoLock=async function(){try{await window.prumoSB.auth.signOut()}catch(e){}lock()};
-var sb=window.prumoSB;
-if(sb){
-  sb.auth.onAuthStateChange(function(ev){if(ev==='SIGNED_OUT')lock();else if(ev==='SIGNED_IN')unlock()});
-}
-form.addEventListener('submit',async function(e){
-  e.preventDefault();
-  if(!window.prumoSB){err.textContent='Não consegui carregar o login. Recarregue a página.';return}
-  var mail=em.value.trim(),pass=pw.value;
-  if(!mail||!pass){err.textContent='Informe e-mail e senha.';return}
-  btn.disabled=true;err.textContent='';
-  try{
-    var r=await window.prumoSB.auth.signInWithPassword({email:mail,password:pass});
-    if(r.error){
-      var m=(r.error.message||'');
-      err.textContent=/invalid login/i.test(m)?'E-mail ou senha incorretos.':(/not confirmed/i.test(m)?'Confirme o e-mail da conta antes de entrar.':(/fetch|network|retryable/i.test(m+r.error.name)?'Sem conexão. Tente de novo.':'Não consegui entrar. Tente de novo.'));
-    }else unlock();
-  }catch(x){err.textContent='Sem conexão. Tente de novo.'}
-  btn.disabled=false;
-});
-if(stored()){unlock()}else{lock()}
-})();
-</script>
-'''
+    GATE = re.sub(r'^[ \t]*/\* @include (\S+) \*/\n', include, open(os.path.join(APP, 'auth', 'gate.html'), encoding='utf-8').read(), flags=re.M)
 
-open(os.path.join(OUT, 'index.html'), 'w', encoding='utf-8').write(head + SBSCRIPTS + body + GATE + tail)
+page = head + SBSCRIPTS + body + GATE + tail
+
+# Dentro de iframe de outro site (clickjacking): para de carregar antes de qualquer outro script rodar.
+FRAMEBUST = "<script>if(window.top!==window.self){window.stop();document.documentElement.innerHTML=''}</script>\n"
+page = page.replace('<meta charset="utf-8">\n', '<meta charset="utf-8">\n' + FRAMEBUST, 1)
+# ---- CSP: scripts inline só com hash; rede só para o próprio site, o Supabase e a checagem de senha vazada ----
+# (GitHub Pages não permite cabeçalhos; frame-ancestors não vale em <meta>, por isso o bloqueio de iframe no tail)
+hashes = sorted({"'sha256-" + base64.b64encode(hashlib.sha256(s.encode('utf-8')).digest()).decode() + "'"
+                 for s in re.findall(r'<script>(.*?)</script>', page, flags=re.S)})
+sbhost = re.sub(r'^https://', '', json.load(open(SBJ))['url']).rstrip('/') if os.path.exists(SBJ) else ''
+CSP = '; '.join([
+    "default-src 'self'",
+    "script-src 'self' " + ' '.join(hashes),
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src https://fonts.gstatic.com",
+    "img-src 'self' data: blob:",
+    "connect-src 'self' https://api.pwnedpasswords.com" + (' https://' + sbhost + ' wss://' + sbhost if sbhost else ''),
+    "worker-src 'self' blob:",
+    "manifest-src 'self'",
+    "object-src 'none'",
+    "base-uri 'none'",
+    "form-action 'none'",
+    "frame-src 'none'",
+])
+page = page.replace('<meta charset="utf-8">\n', '<meta charset="utf-8">\n<meta http-equiv="Content-Security-Policy" content="' + CSP + '">\n<meta name="referrer" content="no-referrer">\n', 1)
+open(os.path.join(OUT, 'index.html'), 'w', encoding='utf-8').write(page)
 
 # ---- manifest ----
 open(os.path.join(OUT, 'manifest.webmanifest'), 'w', encoding='utf-8').write('''{

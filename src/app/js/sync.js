@@ -123,6 +123,22 @@ function subscribeRT(){
 }
 function startSync(){setSync('boot');syncNow(true).then(subscribeRT);pushRefresh()}
 function stopSync(){if(sbChan){try{SB.removeChannel(sbChan)}catch(e){}sbChan=null}setSync('out')}
+// Sair: envia o que falta, desliga o push deste aparelho, encerra a sessão e apaga os dados locais.
+// scope 'global' encerra a sessão em todos os aparelhos.
+async function logout(scope){
+  if(!SB)return;
+  if(Object.keys(S.dirty).length&&navigator.onLine!==false){try{await Promise.race([syncNow(false),new Promise(function(r){setTimeout(r,5000)})])}catch(e){}}
+  if(Object.keys(S.dirty).length&&!confirm('Há alterações que ainda não foram enviadas e serão perdidas neste aparelho. Sair mesmo assim?'))return;
+  try{
+    var reg=await Promise.race([navigator.serviceWorker.ready,new Promise(function(r){setTimeout(function(){r(null)},3000)})]);
+    var sub=reg&&await reg.pushManager.getSubscription();
+    if(sub){var ep=sub.endpoint;try{await SB.from('prumo_push_subs').delete().eq('endpoint',ep)}catch(e){}await sub.unsubscribe()}
+  }catch(e){}
+  stopSync();SBU=null;
+  try{await SB.auth.signOut({scope:scope==='global'?'global':'local'})}catch(e){}
+  wipeLocal();location.reload();
+}
+window.prumoLogout=logout;
 function initSB(){
   if(!SBCFG)return false;
   try{SB=window.supabase.createClient(SBCFG.url,SBCFG.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}})}
@@ -131,8 +147,13 @@ function initSB(){
   SB.auth.onAuthStateChange(function(ev,session){
     setTimeout(function(){
       var id=session&&session.user?session.user.id:null;
-      if(id){if(id!==SBU){SBU=id;startSync()}}
-      else if(ev==='SIGNED_OUT'){SBU=null;stopSync()}
+      if(id){
+        // dados locais de outra conta: apaga antes de qualquer sincronização
+        if(S.owner&&S.owner!==id){wipeLocal();location.reload();return}
+        if(!S.owner){S.owner=id;writeLocal()}
+        if(id!==SBU){SBU=id;startSync()}
+      }
+      else if(ev==='SIGNED_OUT'){SBU=null;stopSync();wipeLocal();location.reload()}
     },0);
   });
   window.addEventListener('online',function(){if(SBU)syncNow(true)});

@@ -6,3 +6,5 @@ src/e2e/*.png
 src/e2e/pushtest.html
 node_modules/
 src/e2e/sbtest.html
+src/e2e/authtest.html
+src/e2e/authframe.html

@@ -13,7 +13,8 @@ function builder(tbl){const b={};b.select=()=>b;b.order=()=>b;b.range=()=>b;
   if(b._op){window.__calls.push({tbl,op:b._op,row:b._r,eq:b._eq});return {error:null}}
   return {data:[],error:null}})().then(res,rej)};return b}
 window.supabase={createClient(){return {from(t){return builder(t)},channel(){const c={on(){return c},subscribe(){return c}};return c},removeChannel(){},
- auth:{updateUser(o){window.__pw=o.password;return Promise.resolve({error:null})},onAuthStateChange(cb){setTimeout(()=>cb('INITIAL_SESSION',{user:{id:'u1'}}),10);return {data:{subscription:{unsubscribe(){}}}}},signInWithPassword(){return Promise.resolve({error:null})},signOut(){return Promise.resolve({error:null})},getSession(){return Promise.resolve({data:{session:{user:{id:'u1'}}},error:null})}}}}};
+ auth:{updateUser(o){window.__pw=o.password;return Promise.resolve({error:null})},onAuthStateChange(cb){setTimeout(()=>cb('INITIAL_SESSION',{user:{id:'u1'}}),10);return {data:{subscription:{unsubscribe(){}}}}},signInWithPassword(o){window.__signin=o;return Promise.resolve({error:o.password==='senha-atual-certa'?null:{status:400,code:'invalid_credentials',message:'Invalid login credentials'}})},getUser(){return Promise.resolve({data:{user:{id:'u1',email:'eu@example.com'}}})},signOut(o){window.__signout=o;return Promise.resolve({error:null})},getSession(){return Promise.resolve({data:{session:{user:{id:'u1'}}},error:null})}}}}};
+const _f=window.fetch;window.fetch=function(u,o){if(String(u).indexOf('api.pwnedpasswords.com')>=0){window.__hibp=String(u);return Promise.resolve(new Response('0000000000000000000000000000000000A:0'))}return _f.apply(this,arguments)};
 window.PRUMO_SB={url:'x',key:'y',vapid:'BAai8ZUcouidJgwKeiS0zLvXUBK2PccmgBD-40hw0Dr1_VoXYS0vw3FaK7PpXlNNpcmAjH1B_5WvIMnHlzkP0Wc'};
 try{localStorage.setItem('sb-test-auth-token','{"refresh_token":"x"}')}catch(e){}
 // fake push stack
@@ -105,9 +106,16 @@ ok('help guide opens',/Guia do Prumo/.test(await ev(()=>document.querySelector('
 await p.screenshot({path:S+'/e2e/help.png'});
 await click('[data-act=sh-close]');await sleep(100);
 await click('[data-act=pw-open]');await sleep(150);
-await p.type('#pw1','curta');await p.type('#pw2','curta');await click('[data-act=pw-save]');await sleep(100);
-ok('short password rejected',/pelo menos 10/.test(await ev(()=>document.querySelector('#pw-msg').innerText)));
-await ev(()=>{document.querySelector('#pw1').value='';document.querySelector('#pw2').value=''});
-await p.type('#pw1','uma-senha-bem-longa-1');await p.type('#pw2','uma-senha-bem-longa-1');await click('[data-act=pw-save]');await sleep(200);
+const pwMsg=()=>ev(()=>document.querySelector('#pw-msg').innerText);
+const pwFill=async(c,a,b2)=>{await ev((c,a,b2)=>{document.querySelector('#pw0').value=c;document.querySelector('#pw1').value=a;document.querySelector('#pw2').value=b2},c,a,b2);await click('[data-act=pw-save]');await sleep(250)};
+await pwFill('','uma-senha-bem-longa-1','uma-senha-bem-longa-1');
+ok('password change requires current password',/senha atual/.test(await pwMsg()));
+await pwFill('senha-atual-certa','curta','curta');
+ok('short password rejected (12+)',/pelo menos 12/.test(await pwMsg()));
+await pwFill('senha-errada','uma-senha-bem-longa-1','uma-senha-bem-longa-1');
+ok('wrong current password blocks change',/não confere/.test(await pwMsg())&&!(await ev(()=>window.__pw)));
+await pwFill('senha-atual-certa','uma-senha-bem-longa-1','uma-senha-bem-longa-1');
 ok('password sent to auth.updateUser',(await ev(()=>window.__pw))==='uma-senha-bem-longa-1');
+ok('leak check sends only 5 hash chars',/\/range\/[0-9A-F]{5}$/.test(await ev(()=>window.__hibp||'')));
+ok('other devices signed out after change',(await ev(()=>window.__signout&&window.__signout.scope))==='others');
 console.log(res.join('\n'));console.log(errs.length?'ERRORS '+errs:'NO PAGE ERRORS');await b.close()})();

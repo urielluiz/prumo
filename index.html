@@ -2,6 +2,9 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-1Qmcy4j6aNFgRwdLngcAKq/W1vScASZ8669jMVnaf3k=' 'sha256-FwLBHAQrHiaabsIJFhtm/0do5ALo0qa3zyN76T/AiiA=' 'sha256-M83SiRaxQw8WWPr1qdbElLabaNfhtC6YMMJDVWU3QNA=' 'sha256-fQ0Xsz44nEVdFw9XPu3NBpimjLUNCB3VU0tiCYKWWdI=' 'sha256-wNBm0LO9t0JKUloaWmeP9HoGpjFq3dG9AuBOcy/YQ4g='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.pwnedpasswords.com https://cpdeptlintjvdqcfrafg.supabase.co wss://cpdeptlintjvdqcfrafg.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta name="referrer" content="no-referrer">
+<script>if(window.top!==window.self){window.stop();document.documentElement.innerHTML=''}</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Prumo</title>
 <meta name="theme-color" content="#EEF0F4" media="(prefers-color-scheme: light)">
@@ -414,10 +417,14 @@ function ic(n,s,w){s=s||22;return '<svg class="ic" width="'+s+'" height="'+s+'" 
 
 /* ---------- estado e persistencia ---------- */
 var LS='prumo.v1';
-function blank(){return {v:1,upd:0,seeded:false,tasks:[],rec:{},cap:[0,300,300,300,300,300,120],ctx:{},retro:{},blockers:{},log:{},session:null,u:{},dirty:{},del:{},synced:false}}
+function blank(){return {v:1,upd:0,owner:null,seeded:false,tasks:[],rec:{},cap:[0,300,300,300,300,300,120],ctx:{},retro:{},blockers:{},log:{},session:null,u:{},dirty:{},del:{},synced:false}}
 function readLocal(){try{var r=localStorage.getItem(LS);if(r){return Object.assign(blank(),JSON.parse(r))}}catch(e){}return blank()}
 var S=readLocal();
-function writeLocal(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+function writeLocal(){if(wiped)return;try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+// Apaga tudo que o app guardou neste aparelho (dados, preferências, retrôs vistas). Usado ao sair
+// e ao trocar de conta, para que os dados de uma pessoa nunca fiquem para a próxima.
+var wiped=false;
+function wipeLocal(){wiped=true;try{Object.keys(localStorage).forEach(function(k){if(k.indexOf('prumo.')===0)localStorage.removeItem(k)})}catch(e){}}
 var saveT=null,pushing=false,again=false,remote=null,sync='boot',booted=false;
 function kidsOf(id){return S.tasks.filter(function(c){return c.parent===id})}
 function isGrp(t){return S.tasks.some(function(c){return c.parent===t.id})}
@@ -610,6 +617,22 @@ function subscribeRT(){
 }
 function startSync(){setSync('boot');syncNow(true).then(subscribeRT);pushRefresh()}
 function stopSync(){if(sbChan){try{SB.removeChannel(sbChan)}catch(e){}sbChan=null}setSync('out')}
+// Sair: envia o que falta, desliga o push deste aparelho, encerra a sessão e apaga os dados locais.
+// scope 'global' encerra a sessão em todos os aparelhos.
+async function logout(scope){
+  if(!SB)return;
+  if(Object.keys(S.dirty).length&&navigator.onLine!==false){try{await Promise.race([syncNow(false),new Promise(function(r){setTimeout(r,5000)})])}catch(e){}}
+  if(Object.keys(S.dirty).length&&!confirm('Há alterações que ainda não foram enviadas e serão perdidas neste aparelho. Sair mesmo assim?'))return;
+  try{
+    var reg=await Promise.race([navigator.serviceWorker.ready,new Promise(function(r){setTimeout(function(){r(null)},3000)})]);
+    var sub=reg&&await reg.pushManager.getSubscription();
+    if(sub){var ep=sub.endpoint;try{await SB.from('prumo_push_subs').delete().eq('endpoint',ep)}catch(e){}await sub.unsubscribe()}
+  }catch(e){}
+  stopSync();SBU=null;
+  try{await SB.auth.signOut({scope:scope==='global'?'global':'local'})}catch(e){}
+  wipeLocal();location.reload();
+}
+window.prumoLogout=logout;
 function initSB(){
   if(!SBCFG)return false;
   try{SB=window.supabase.createClient(SBCFG.url,SBCFG.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}})}
@@ -618,8 +641,13 @@ function initSB(){
   SB.auth.onAuthStateChange(function(ev,session){
     setTimeout(function(){
       var id=session&&session.user?session.user.id:null;
-      if(id){if(id!==SBU){SBU=id;startSync()}}
-      else if(ev==='SIGNED_OUT'){SBU=null;stopSync()}
+      if(id){
+        // dados locais de outra conta: apaga antes de qualquer sincronização
+        if(S.owner&&S.owner!==id){wipeLocal();location.reload();return}
+        if(!S.owner){S.owner=id;writeLocal()}
+        if(id!==SBU){SBU=id;startSync()}
+      }
+      else if(ev==='SIGNED_OUT'){SBU=null;stopSync();wipeLocal();location.reload()}
     },0);
   });
   window.addEventListener('online',function(){if(SBU)syncNow(true)});
@@ -979,7 +1007,7 @@ function viewRevisao(){
   h+=secHTML('Retrospectiva')+'<div class="stack">'+
     [['worked','O que funcionou?'],['stuck','O que travou?'],['tweak','O que muda na próxima semana?']].map(function(x){return '<div><label class="lab" for="rt-'+x[0]+'">'+x[1]+'</label><textarea id="rt-'+x[0]+'" class="inp" data-in="retro" data-f="'+x[0]+'" rows="2">'+esc(rt[x[0]]||'')+'</textarea></div>'}).join('')+'</div>';
   h+='<div class="btns" style="margin-top:14px"><button class="btn btn-p btn-full" data-act="copy-summary">Copiar resumo da semana</button></div>';
-  h+=secHTML('Ajustes')+'<div class="panel">'+timerSettings()+'<div><span class="lab">Nome dos contextos</span><div class="stack">'+CTX.map(function(c){return '<div class="rn"><i class="dot" style="background:var('+c.v+')"></i><input class="inp" id="cn-'+c.id+'" data-in="ctxname" data-c="'+c.id+'" value="'+esc(cname(c.id))+'" aria-label="Nome do contexto" autocomplete="off"></div>'}).join('')+'</div></div><div><span class="lab">Dados</span><p class="sync" id="sync" style="margin:0 0 10px">'+syncText()+'</p><div class="btns"><button class="btn btn-s sm" data-act="copy-backup">Copiar backup</button>'+(window.prumoLock?'<button class="btn btn-s sm" data-act="pw-open">Alterar senha</button><button class="btn btn-s sm" data-act="lock">Sair da conta</button>':'')+'<button class="btn btn-s sm" data-act="help">Guia do Prumo</button>'+'</div></div><div><label class="lab" for="restore">Restaurar backup</label><textarea id="restore" class="inp" data-in="restore" rows="2" placeholder="Cole aqui o backup copiado antes">'+esc(restoreTxt)+'</textarea><div class="btns" style="margin-top:10px"><button class="btn btn-s sm" data-act="restore">Restaurar</button></div></div></div>';
+  h+=secHTML('Ajustes')+'<div class="panel">'+timerSettings()+'<div><span class="lab">Nome dos contextos</span><div class="stack">'+CTX.map(function(c){return '<div class="rn"><i class="dot" style="background:var('+c.v+')"></i><input class="inp" id="cn-'+c.id+'" data-in="ctxname" data-c="'+c.id+'" value="'+esc(cname(c.id))+'" aria-label="Nome do contexto" autocomplete="off"></div>'}).join('')+'</div></div><div><span class="lab">Dados</span><p class="sync" id="sync" style="margin:0 0 10px">'+syncText()+'</p><div class="btns"><button class="btn btn-s sm" data-act="copy-backup">Copiar backup</button>'+(SB?'<button class="btn btn-s sm" data-act="pw-open">Alterar senha</button><button class="btn btn-s sm" data-act="lock">Sair da conta</button><button class="btn btn-s sm" data-act="lock-all">Sair de todos os aparelhos</button>':'')+'<button class="btn btn-s sm" data-act="help">Guia do Prumo</button>'+'</div></div><div><label class="lab" for="restore">Restaurar backup</label><textarea id="restore" class="inp" data-in="restore" rows="2" placeholder="Cole aqui o backup copiado antes">'+esc(restoreTxt)+'</textarea><div class="btns" style="margin-top:10px"><button class="btn btn-s sm" data-act="restore">Restaurar</button></div></div></div>';
   h+='</div></div>';
   return h;
 }
@@ -1212,10 +1240,12 @@ function helpSheetHTML(){
   return h+'<div class="sh-actions"><button class="btn btn-p" data-act="sh-close">Entendi</button></div>';
 }
 function pwSheetHTML(){
+  var pf=function(id,label,ac,ph){return '<div><label class="lab" for="'+id+'">'+label+'</label><input id="'+id+'" class="inp" type="password" autocomplete="'+ac+'" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="128"'+(ph?' placeholder="'+ph+'"':'')+'></div>'};
   return '<div class="sh-head"><h2 class="h2">Alterar senha</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>'+
-    '<div><label class="lab" for="pw1">Nova senha</label><input id="pw1" class="inp" type="password" autocomplete="new-password" placeholder="Mínimo de 10 caracteres"></div>'+
-    '<div><label class="lab" for="pw2">Repita a nova senha</label><input id="pw2" class="inp" type="password" autocomplete="new-password"></div>'+
-    '<p class="hint" id="pw-msg" style="margin:0">Use uma senha longa e única. O gerenciador de senhas do iPhone pode criar uma para você.</p>'+
+    pf('pw0','Senha atual','current-password')+
+    pf('pw1','Nova senha','new-password','Mínimo de 12 caracteres')+
+    pf('pw2','Repita a nova senha','new-password')+
+    '<p class="hint" id="pw-msg" style="margin:0" aria-live="polite">Use uma senha longa e única. Ao salvar, os outros aparelhos conectados saem da conta.</p>'+
     '<div class="sh-actions"><button class="btn btn-p" data-act="pw-save">Salvar nova senha</button><button class="btn btn-s" data-act="sh-close">Cancelar</button></div>';
 }
 function planSheetHTML(){
@@ -1243,16 +1273,28 @@ function openTask(id,day){
   renderSheet();
   if(sh.mode==='new')setTimeout(function(){var i=$('#f-title');if(i)i.focus()},60);
 }
+var pwBusy=false;
 async function savePw(){
-  var a=($('#pw1')||{}).value||'',b=($('#pw2')||{}).value||'',m=$('#pw-msg');
+  if(pwBusy)return;
+  var c=($('#pw0')||{}).value||'',a=($('#pw1')||{}).value||'',b=($('#pw2')||{}).value||'',m=$('#pw-msg');
   var say=function(t,bad){if(m){m.textContent=t;m.style.color=bad?'var(--bad)':''}};
-  if(a.length<10){say('Use pelo menos 10 caracteres.',true);return}
-  if(a!==b){say('As senhas não são iguais.',true);return}
-  if(!SB){say('Entre na conta para alterar a senha.',true);return}
-  try{var r=await SB.auth.updateUser({password:a});
-    if(r.error){say(/same|different/i.test(r.error.message||'')?'Escolha uma senha diferente da atual.':(/weak|pwned|compromised/i.test(r.error.message||'')?'Essa senha é fraca ou apareceu em vazamentos. Escolha outra.':'Não consegui alterar. Tente de novo.'),true);return}
-    sh=null;renderSheet();toast('Senha alterada.');
+  if(!SB||!SBU){say('Entre na conta para alterar a senha.',true);return}
+  if(!c){say('Informe a senha atual.',true);return}
+  if(a===c){say('Escolha uma senha diferente da atual.',true);return}
+  pwBusy=true;say('Verificando...');
+  try{
+    var u=await SB.auth.getUser(),me=u&&u.data&&u.data.user?u.data.user.email:'';
+    var bad=window.prumoPw?await window.prumoPw.check(a,b,me):(a.length<12?'Use pelo menos 12 caracteres.':(a!==b?'As senhas não são iguais.':''));
+    if(bad){say(bad,true);return}
+    // confirma a senha atual antes de trocar (quem pegar o aparelho desbloqueado não troca a senha)
+    var v=await SB.auth.signInWithPassword({email:me,password:c});
+    if(v.error){say(v.error.status===429?'Muitas tentativas. Aguarde alguns minutos.':'A senha atual não confere.',true);return}
+    var r=await SB.auth.updateUser({password:a});
+    if(r.error){say(r.error.code==='same_password'?'Escolha uma senha diferente da atual.':(r.error.code==='weak_password'?'Essa senha é fraca ou apareceu em vazamentos. Escolha outra.':'Não consegui alterar. Tente de novo.'),true);return}
+    try{await SB.auth.signOut({scope:'others'})}catch(e){}
+    sh=null;renderSheet();toast('Senha alterada. Os outros aparelhos saíram da conta.');
   }catch(e){say('Sem conexão. Tente de novo.',true)}
+  finally{pwBusy=false}
 }
 function saveTask(){
   var d=sh.d,title=d.title.trim();
@@ -1341,7 +1383,7 @@ var pushState='boot',tmLast='-';
 var IOSDEV=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 var STANDALONE=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
 function b64u(s){var p='='.repeat((4-s.length%4)%4),b=(s+p).replace(/-/g,'+').replace(/_/g,'/'),r=atob(b),o=new Uint8Array(r.length);for(var i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o}
-var BUILD='03/11 14:24',pushDiag='';
+var BUILD='03/11 15:50',pushDiag='';
 function pushBanner(){
   if(pushState!=='off')return '';
   try{if(localStorage.getItem('prumo.pushno')==='1')return ''}catch(e){}
@@ -1410,7 +1452,7 @@ function remBuild(){
     if(!l.length)continue;
     var by={};l.forEach(function(t){var par=t.parent&&byId(t.parent),k=par?par.title:t.title;by[k]=(by[k]||0)+t.est});
     var ks=Object.keys(by).sort(function(a,b){return by[b]-by[a]});
-    out.push({day:d,kind:'day',fire_at:p.toISOString(),title:'Prumo · Hoje: '+l.length+(l.length>1?' tarefas':' tarefa')+', '+fmt(sum(l,function(t){return t.est})),body:ks.slice(0,3).map(function(k){return fmt(by[k])+' em '+k}).join(' · ')+(ks.length>3?' · +'+(ks.length-3):''),sent:false});
+    out.push({day:d,kind:'day',fire_at:p.toISOString(),title:'Prumo · Hoje: '+l.length+(l.length>1?' tarefas':' tarefa')+', '+fmt(sum(l,function(t){return t.est})),body:(ks.slice(0,3).map(function(k){return fmt(by[k])+' em '+k}).join(' · ')+(ks.length>3?' · +'+(ks.length-3):'')).slice(0,1000),sent:false});
   }
   return out;
 }
@@ -1432,7 +1474,7 @@ function timerSync(force){
   tmLast=sig;
   if(!run){SB.from('prumo_timers').delete().eq('user_id',SBU).then(function(){},function(){});return}
   var t=se.tid?byId(se.tid):null,brk=se.phase==='break';
-  SB.from('prumo_timers').upsert({user_id:SBU,ends_at:new Date(se.endsAt).toISOString(),title:brk?'Prumo · A pausa acabou':(se.fw==='pomodoro'?'Prumo · Pomodoro completo':'Prumo · Tempo esgotado'),body:brk?'Volte ao foco quando estiver pronto.':((t?t.title+'. ':'')+'Toque para abrir.'),sent:false},{onConflict:'user_id'}).then(function(){},function(){});
+  SB.from('prumo_timers').upsert({user_id:SBU,ends_at:new Date(se.endsAt).toISOString(),title:brk?'Prumo · A pausa acabou':(se.fw==='pomodoro'?'Prumo · Pomodoro completo':'Prumo · Tempo esgotado'),body:(brk?'Volte ao foco quando estiver pronto.':((t?t.title+'. ':'')+'Toque para abrir.')).slice(0,1000),sent:false},{onConflict:'user_id'}).then(function(){},function(){});
 }
 function notify(se,t){
   try{
@@ -1797,11 +1839,12 @@ function act(a,el){
     case 'pip':openPip();break;
     case 'pip-auto':try{localStorage.setItem('prumo.pip',pipAuto()?'off':'on')}catch(e){}render();break;
     case 'notif':try{Notification.requestPermission().then(function(){render()})}catch(e){}break;
-    case 'lock':if(window.prumoLock)window.prumoLock();break;
+    case 'lock':logout('local');break;
+    case 'lock-all':if(confirm('Encerrar a sessão em todos os aparelhos? Você vai precisar entrar de novo em cada um.'))logout('global');break;
     case 'copy-summary':copyText(summaryText(),'Resumo copiado.');break;
     case 'copy-backup':copyText(JSON.stringify(Object.assign({},S,{session:null})),'Backup copiado.');break;
     case 'restore':{
-      try{var o=JSON.parse(restoreTxt);if(!o||!Array.isArray(o.tasks))throw 0;S=Object.assign(blank(),o,{session:null},{u:S.u,dirty:S.dirty,del:S.del,synced:S.synced});restoreTxt='';persist();render();toast('Backup restaurado.')}
+      try{var o=JSON.parse(restoreTxt);if(!o||!Array.isArray(o.tasks))throw 0;S=Object.assign(blank(),o,{session:null},{u:S.u,dirty:S.dirty,del:S.del,synced:S.synced,owner:S.owner});restoreTxt='';persist();render();toast('Backup restaurado.')}
       catch(e){toast('Esse texto não parece um backup do Prumo.')}
       break}
     case 'toast-act':{var fn=toastFn;toastFn=null;$('#toast').hidden=true;if(fn)fn();break}
@@ -1868,56 +1911,242 @@ async function boot(){
 boot();
 })();
 </script>
-
 <style>
-#gate{position:fixed;inset:0;z-index:200;background:var(--bg);color:var(--ink);display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));font-family:var(--body)}
+#gate{position:fixed;inset:0;z-index:200;background:var(--bg);color:var(--ink);display:grid;place-items:center;overflow-y:auto;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));font-family:var(--body)}
 #gate[hidden]{display:none!important}
 #gate form{width:100%;max-width:380px;display:grid;gap:14px}
+#gate #g-body{display:grid;gap:14px}
 #gate .g-mark{width:44px;height:44px}
 #gate h1{font:800 36px/1.02 var(--display);letter-spacing:-.025em;margin:0}
 #gate p{margin:0;color:var(--muted);font-size:15px}
+#gate p b{color:var(--ink);font-weight:600;word-break:break-all}
 #gate .g-err{color:var(--bad);min-height:20px;font-size:14px}
+#gate .g-err.ok{color:var(--muted)}
+#gate .g-pw{position:relative}
+#gate .g-pw .inp{padding-right:84px}
+#gate .g-eye{position:absolute;right:6px;bottom:6px;height:36px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--muted);font:600 13px var(--body);cursor:pointer}
+#gate .g-eye:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+#gate .g-hint{font-size:13px;color:var(--muted);margin:6px 0 0}
+#gate .g-code{font:500 24px/1 var(--mono);letter-spacing:.3em;text-align:center}
+#gate .g-links{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px}
+#gate .g-link{border:0;background:none;padding:6px 0;color:var(--ink);font:600 14px var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+#gate .g-link:disabled{color:var(--muted);text-decoration:none;cursor:default}
+#gate .g-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 </style>
 <div id="gate" role="dialog" aria-modal="true" aria-labelledby="g-t" hidden>
   <form id="g-f" autocomplete="on" novalidate>
     <svg class="g-mark" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="6" r="2.2" fill="currentColor"/><path d="M22 6v20" stroke="currentColor" stroke-width="2"/><path d="M22 24l7 9-7 11-7-11z" fill="var(--accent)"/></svg>
     <h1 id="g-t">Prumo</h1>
-    <p>Entre com a sua conta para ver e sincronizar suas tarefas.</p>
-    <div><label class="lab" for="g-em">E-mail</label><input id="g-em" class="inp" type="email" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="email" required></div>
-    <div><label class="lab" for="g-pw">Senha</label><input id="g-pw" class="inp" type="password" name="password" autocomplete="current-password" required></div>
-    <div class="g-err" id="g-e" role="alert"></div>
+    <div id="g-body"></div>
+    <div class="g-err" id="g-e" role="alert" aria-live="assertive"></div>
     <button class="btn btn-p btn-full" id="g-b" type="submit">Entrar</button>
+    <div class="g-links" id="g-l"></div>
   </form>
 </div>
 <script>
 (function(){
-var gate=document.getElementById('gate'),form=document.getElementById('g-f'),em=document.getElementById('g-em'),pw=document.getElementById('g-pw'),err=document.getElementById('g-e'),btn=document.getElementById('g-b');
-var LOCKABLE=['.wrap','#tabs','#sheet','#toast'];
+'use strict';
+var $g=function(id){return document.getElementById(id)};
+var gate=$g('gate'),form=$g('g-f'),body=$g('g-body'),err=$g('g-e'),btn=$g('g-b'),links=$g('g-l');
+var sb=window.prumoSB;
+var APPURL=location.origin+location.pathname.replace(/index\.html$/,'');
+var LOCKABLE=['.wrap','#tabs','#sheet','#toast','#mini'];
+var view='in',email='',otp='',busy=false,fails=0,until=0,resendAt=0,resendT=null;
+
+/* ---------- senha: regras locais e checagem de vazamento (k-anonimato) ---------- */
+var PW_MIN=12,PW_MAXB=72;
+function pwProblem(pw,mail){
+  if(pw.length<PW_MIN)return 'Use pelo menos '+PW_MIN+' caracteres.';
+  if(new TextEncoder().encode(pw).length>PW_MAXB)return 'Use no máximo 72 caracteres.';
+  var lp=String(mail||'').split('@')[0].toLowerCase();
+  if(lp.length>=4&&pw.toLowerCase().indexOf(lp)>=0)return 'Não use o seu e-mail na senha.';
+  if(/^(.)\1+$/.test(pw))return 'Evite repetir o mesmo caractere.';
+  return '';
+}
+// Só os 5 primeiros caracteres do SHA-1 saem do aparelho; a resposta vem com preenchimento.
+// Se o serviço não responder, não bloqueia.
+async function pwPwned(pw){
+  try{
+    var h=new Uint8Array(await crypto.subtle.digest('SHA-1',new TextEncoder().encode(pw)));
+    var hex=Array.prototype.map.call(h,function(x){return x.toString(16).padStart(2,'0')}).join('').toUpperCase();
+    var ctl=new AbortController(),t=setTimeout(function(){ctl.abort()},4000);
+    var r=await fetch('https://api.pwnedpasswords.com/range/'+hex.slice(0,5),{headers:{'Add-Padding':'true'},signal:ctl.signal,credentials:'omit',referrerPolicy:'no-referrer'});
+    clearTimeout(t);
+    if(!r.ok)return false;
+    var rest=hex.slice(5);
+    return (await r.text()).split('\n').some(function(l){var p=l.trim().split(':');return p[0]===rest&&Number(p[1])>0});
+  }catch(e){return false}
+}
+async function pwCheck(pw,pw2,mail){
+  var p=pwProblem(pw,mail);if(p)return p;
+  if(pw2!==undefined&&pw!==pw2)return 'As senhas não são iguais.';
+  if(await pwPwned(pw))return 'Essa senha apareceu em vazamentos de dados. Escolha outra.';
+  return '';
+}
+window.prumoPw={check:pwCheck,min:PW_MIN};
+
+/* ---------- mensagens: genéricas para não revelar se um e-mail tem conta ---------- */
+function msgOf(e){
+  var c=(e&&(e.code||''))+'',m=(e&&(e.message||''))+'',st=e&&e.status;
+  if(st===429||/rate_limit/.test(c))return 'Muitas tentativas. Aguarde alguns minutos e tente de novo.';
+  if(c==='invalid_credentials'||/invalid login/i.test(m))return 'E-mail ou senha incorretos.';
+  if(c==='otp_expired'||/expired|invalid.*(otp|token)/i.test(m))return 'Código inválido ou expirado. Peça um novo.';
+  if(c==='weak_password'||/weak|pwned/i.test(m))return 'Essa senha é fraca ou apareceu em vazamentos. Escolha outra.';
+  if(c==='same_password')return 'Escolha uma senha diferente da atual.';
+  if(c==='signup_disabled'||c==='unexpected_failure'||/database error saving new user/i.test(m))return 'Cadastro indisponível no momento.';
+  if(/fetch|network|retryable/i.test(m+(e&&e.name)))return 'Sem conexão. Tente de novo.';
+  return 'Não consegui concluir. Tente de novo.';
+}
+function say(t,ok){err.textContent=t||'';err.className='g-err'+(ok?' ok':'')}
+
+/* ---------- telas ---------- */
+function field(id,label,type,ac,extra){
+  return '<div><label class="lab" for="'+id+'">'+label+'</label><input id="'+id+'" class="inp" type="'+type+'" autocomplete="'+ac+'" autocapitalize="none" autocorrect="off" spellcheck="false" '+(extra||'')+'></div>';
+}
+function pwField(id,label,ac,hint){
+  return '<div class="g-pw"><label class="lab" for="'+id+'">'+label+'</label><input id="'+id+'" class="inp" type="password" autocomplete="'+ac+'" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="128"'+(hint?' aria-describedby="'+id+'-h"':'')+'>'+
+    '<button type="button" class="g-eye" data-eye="'+id+'" aria-pressed="false" aria-label="Mostrar senha">Mostrar</button></div>'+(hint?'<p class="g-hint" id="'+id+'-h">'+hint+'</p>':'');
+}
+var EMAIL=function(){return field('g-em','E-mail','email','username','inputmode="email" maxlength="254"')};
+var V={
+  in:{t:'Entrar',b:'Entrar',p:'Entre com a sua conta para ver e sincronizar suas tarefas.',f:function(){return EMAIL()+pwField('g-pw','Senha','current-password')},
+    l:[['up','Criar conta'],['forgot','Esqueci minha senha']]},
+  up:{t:'Criar conta',b:'Criar conta',p:'Use um e-mail que você acessa: vamos mandar um código para confirmar.',
+    f:function(){return EMAIL()+pwField('g-pw','Senha','new-password','Pelo menos '+PW_MIN+' caracteres. Uma frase longa funciona bem, ou deixe o gerenciador de senhas criar uma.')+pwField('g-pw2','Repita a senha','new-password')},
+    l:[['in','Já tenho conta']]},
+  forgot:{t:'Recuperar acesso',b:'Enviar código',p:'Informe o e-mail da conta. Se ele estiver cadastrado, você recebe um código para criar uma nova senha.',f:function(){return EMAIL()},l:[['in','Voltar']]},
+  code:{t:'Confira seu e-mail',b:'Confirmar',p:'',f:function(){return field('g-code','Código','text','one-time-code','inputmode="numeric" maxlength="10" enterkeyhint="done"')},
+    l:[['resend','Reenviar código'],['in','Voltar']]},
+  newpw:{t:'Nova senha',b:'Salvar e entrar',p:'Crie uma nova senha para a sua conta. Os outros aparelhos conectados serão desconectados.',
+    f:function(){return pwField('g-pw','Nova senha','new-password','Pelo menos '+PW_MIN+' caracteres.')+pwField('g-pw2','Repita a nova senha','new-password')},l:[]},
+  wait:{t:'Prumo',b:'Aguarde',p:'Confirmando...',f:function(){return ''},l:[]}
+};
+function go(v,keepMsg){
+  view=v;var d=V[v];
+  $g('g-t').textContent=d.t;
+  body.innerHTML='<p id="g-p"></p>'+d.f();
+  var p=$g('g-p');
+  if(v==='code'){
+    p.appendChild(document.createTextNode(otp==='signup'?'Enviamos um código para ':'Se houver uma conta para '));
+    var b=document.createElement('b');b.textContent=email;p.appendChild(b);
+    p.appendChild(document.createTextNode(otp==='signup'?'. Digite o código ou toque no link do e-mail.':', enviamos um código. Digite-o abaixo.'));
+  }else p.textContent=d.p;
+  var c=$g('g-code');if(c)c.className='inp g-code';
+  btn.textContent=d.b;btn.hidden=v==='wait';
+  links.innerHTML=d.l.map(function(x){return '<button type="button" class="g-link" data-go="'+x[0]+'">'+x[1]+'</button>'}).join('');
+  var em=$g('g-em');if(em&&email)em.value=email;
+  if(!keepMsg)say('');
+  tickResend();
+  setTimeout(function(){var f=body.querySelector('input:not([value])')||body.querySelector('input');if(f&&!gate.hidden)f.focus()},50);
+}
+function tickResend(){
+  clearTimeout(resendT);
+  var b=links.querySelector('[data-go=resend]');if(!b)return;
+  var s=Math.ceil((resendAt-Date.now())/1000);
+  if(s>0){b.disabled=true;b.textContent='Reenviar em '+s+'s';resendT=setTimeout(tickResend,1000)}
+  else{b.disabled=false;b.textContent='Reenviar código'}
+}
+
+/* ---------- mostrar/esconder ---------- */
 function setInert(v){LOCKABLE.forEach(function(s){var e=document.querySelector(s);if(e){if(v)e.setAttribute('inert','');else e.removeAttribute('inert')}})}
 function stored(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k)){var v=JSON.parse(localStorage.getItem(k));if(v&&v.refresh_token)return true}}}catch(e){}return false}
-function unlock(){gate.hidden=true;setInert(false);pw.value=''}
-function lock(){gate.hidden=false;setInert(true);err.textContent='';setTimeout(function(){em.focus()},50)}
-window.prumoLock=async function(){try{await window.prumoSB.auth.signOut()}catch(e){}lock()};
-var sb=window.prumoSB;
-if(sb){
-  sb.auth.onAuthStateChange(function(ev){if(ev==='SIGNED_OUT')lock();else if(ev==='SIGNED_IN')unlock()});
+function unlock(){gate.hidden=true;setInert(false);body.innerHTML='';email='';otp=''}
+function lock(v){gate.hidden=false;setInert(true);go(v||'in')}
+
+/* ---------- ações ---------- */
+function val(id){var e=$g(id);return e?e.value:''}
+function readEmail(){var m=val('g-em').trim().toLowerCase();email=m;return m}
+function okEmail(m){return m.length<=254&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m)}
+async function submit(){
+  if(view==='in'){
+    var m=readEmail(),pw=val('g-pw');
+    if(!m||!pw)return say('Informe e-mail e senha.');
+    var wait=until-Date.now();if(wait>0)return say('Aguarde '+Math.ceil(wait/1000)+'s para tentar de novo.');
+    var r=await sb.auth.signInWithPassword({email:m,password:pw});
+    if(!r.error){fails=0;unlock();return}
+    if(r.error.code==='email_not_confirmed'){otp='signup';go('code');say('Confirme o e-mail antes de entrar. Se o código venceu, peça outro.',true);return}
+    fails++;var m0=msgOf(r.error);
+    if(fails>=3&&r.error.code==='invalid_credentials'){var w=Math.min(60,(fails-2)*5);until=Date.now()+w*1000;m0+=' Aguarde '+w+'s para tentar de novo.'}
+    return say(m0);
+  }
+  if(view==='up'){
+    var m2=readEmail(),a=val('g-pw'),b=val('g-pw2');
+    if(!okEmail(m2))return say('Informe um e-mail válido.');
+    var bad=await pwCheck(a,b,m2);if(bad)return say(bad);
+    var r2=await sb.auth.signUp({email:m2,password:a,options:{emailRedirectTo:APPURL}});
+    if(r2.error)return say(msgOf(r2.error));
+    if(r2.data&&r2.data.session){unlock();return}
+    otp='signup';resendAt=Date.now()+60000;go('code');return;
+  }
+  if(view==='forgot'){
+    var m3=readEmail();if(!okEmail(m3))return say('Informe um e-mail válido.');
+    var r3=await sb.auth.resetPasswordForEmail(m3,{redirectTo:APPURL});
+    if(r3.error&&(r3.error.status===429||/rate_limit|fetch|network/i.test((r3.error.code||'')+r3.error.message)))return say(msgOf(r3.error));
+    otp='recovery';resendAt=Date.now()+60000;go('code');return;
+  }
+  if(view==='code'){
+    var tk=val('g-code').replace(/\D/g,'');
+    if(tk.length<6)return say('Digite o código que chegou no e-mail.');
+    var r4=await sb.auth.verifyOtp({email:email,token:tk,type:otp==='recovery'?'recovery':'email'});
+    if(r4.error)return say(msgOf(r4.error));
+    if(otp==='recovery')go('newpw');else unlock();
+    return;
+  }
+  if(view==='newpw'){
+    var n1=val('g-pw'),n2=val('g-pw2'),u=await sb.auth.getUser(),me=u&&u.data&&u.data.user?u.data.user.email:'';
+    var bad2=await pwCheck(n1,n2,me);if(bad2)return say(bad2);
+    var r5=await sb.auth.updateUser({password:n1});
+    if(r5.error)return say(msgOf(r5.error));
+    try{await sb.auth.signOut({scope:'others'})}catch(e){}
+    unlock();return;
+  }
+}
+async function resend(){
+  if(Date.now()<resendAt)return;
+  resendAt=Date.now()+60000;tickResend();
+  var r=otp==='recovery'?await sb.auth.resetPasswordForEmail(email,{redirectTo:APPURL}):await sb.auth.resend({type:'signup',email:email,options:{emailRedirectTo:APPURL}});
+  if(r.error&&(r.error.status===429||/rate_limit|fetch|network/i.test((r.error.code||'')+r.error.message)))say(msgOf(r.error));
+  else say('Se o e-mail puder receber, um novo código foi enviado.',true);
 }
 form.addEventListener('submit',async function(e){
   e.preventDefault();
-  if(!window.prumoSB){err.textContent='Não consegui carregar o login. Recarregue a página.';return}
-  var mail=em.value.trim(),pass=pw.value;
-  if(!mail||!pass){err.textContent='Informe e-mail e senha.';return}
-  btn.disabled=true;err.textContent='';
-  try{
-    var r=await window.prumoSB.auth.signInWithPassword({email:mail,password:pass});
-    if(r.error){
-      var m=(r.error.message||'');
-      err.textContent=/invalid login/i.test(m)?'E-mail ou senha incorretos.':(/not confirmed/i.test(m)?'Confirme o e-mail da conta antes de entrar.':(/fetch|network|retryable/i.test(m+r.error.name)?'Sem conexão. Tente de novo.':'Não consegui entrar. Tente de novo.'));
-    }else unlock();
-  }catch(x){err.textContent='Sem conexão. Tente de novo.'}
-  btn.disabled=false;
+  if(busy)return;
+  if(!sb){say('Não consegui carregar o login. Recarregue a página.');return}
+  busy=true;btn.disabled=true;say('');
+  try{await submit()}catch(x){say(msgOf(x))}
+  busy=false;btn.disabled=false;
 });
-if(stored()){unlock()}else{lock()}
+gate.addEventListener('click',function(e){
+  var t=e.target.closest('button');if(!t)return;
+  if(t.dataset.eye){var i=$g(t.dataset.eye),sh=i.type==='password';i.type=sh?'text':'password';t.textContent=sh?'Ocultar':'Mostrar';t.setAttribute('aria-pressed',String(sh));t.setAttribute('aria-label',sh?'Ocultar senha':'Mostrar senha');return}
+  if(t.dataset.go==='resend'){resend();return}
+  if(t.dataset.go){var em=$g('g-em');if(em)email=em.value.trim().toLowerCase();go(t.dataset.go)}
+});
+
+/* ---------- links do e-mail: #token_hash=...&type=... (funciona em qualquer navegador) ---------- */
+async function fromLink(){
+  var q=new URLSearchParams(location.hash.slice(1));
+  var th=q.get('token_hash'),ty=q.get('type'),er=q.get('error_description')||q.get('error');
+  if(!th&&!er)return false;
+  try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}
+  if(er||!/^(email|signup|recovery)$/.test(ty||'')){lock('in');say('O link é inválido ou expirou. Entre com sua senha ou peça um novo código.');return true}
+  lock('wait');
+  var r=await sb.auth.verifyOtp({token_hash:th,type:ty==='signup'?'email':ty});
+  if(r.error){go('in');say(msgOf(r.error)==='Código inválido ou expirado. Peça um novo.'?'O link é inválido ou expirou. Entre com sua senha ou peça um novo código.':msgOf(r.error));return true}
+  if(ty==='recovery')go('newpw');else unlock();
+  return true;
+}
+
+if(sb){
+  sb.auth.onAuthStateChange(function(ev){
+    if(ev==='SIGNED_OUT')lock('in');
+    else if(ev==='PASSWORD_RECOVERY'){if(view!=='newpw')lock('newpw')}
+    else if(ev==='SIGNED_IN'&&!gate.hidden&&view!=='newpw'&&!(view==='code'&&otp==='recovery'))unlock();
+  });
+}
+if(sb&&/token_hash=|error=/.test(location.hash))fromLink();
+else if(stored())unlock();
+else lock('in');
 })();
 </script>
 

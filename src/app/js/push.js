@@ -72,7 +72,7 @@ function remBuild(){
     if(!l.length)continue;
     var by={};l.forEach(function(t){var par=t.parent&&byId(t.parent),k=par?par.title:t.title;by[k]=(by[k]||0)+t.est});
     var ks=Object.keys(by).sort(function(a,b){return by[b]-by[a]});
-    out.push({day:d,kind:'day',fire_at:p.toISOString(),title:'Prumo · Hoje: '+l.length+(l.length>1?' tarefas':' tarefa')+', '+fmt(sum(l,function(t){return t.est})),body:ks.slice(0,3).map(function(k){return fmt(by[k])+' em '+k}).join(' · ')+(ks.length>3?' · +'+(ks.length-3):''),sent:false});
+    out.push({day:d,kind:'day',fire_at:p.toISOString(),title:'Prumo · Hoje: '+l.length+(l.length>1?' tarefas':' tarefa')+', '+fmt(sum(l,function(t){return t.est})),body:(ks.slice(0,3).map(function(k){return fmt(by[k])+' em '+k}).join(' · ')+(ks.length>3?' · +'+(ks.length-3):'')).slice(0,1000),sent:false});
   }
   return out;
 }
@@ -94,5 +94,5 @@ function timerSync(force){
   tmLast=sig;
   if(!run){SB.from('prumo_timers').delete().eq('user_id',SBU).then(function(){},function(){});return}
   var t=se.tid?byId(se.tid):null,brk=se.phase==='break';
-  SB.from('prumo_timers').upsert({user_id:SBU,ends_at:new Date(se.endsAt).toISOString(),title:brk?'Prumo · A pausa acabou':(se.fw==='pomodoro'?'Prumo · Pomodoro completo':'Prumo · Tempo esgotado'),body:brk?'Volte ao foco quando estiver pronto.':((t?t.title+'. ':'')+'Toque para abrir.'),sent:false},{onConflict:'user_id'}).then(function(){},function(){});
+  SB.from('prumo_timers').upsert({user_id:SBU,ends_at:new Date(se.endsAt).toISOString(),title:brk?'Prumo · A pausa acabou':(se.fw==='pomodoro'?'Prumo · Pomodoro completo':'Prumo · Tempo esgotado'),body:(brk?'Volte ao foco quando estiver pronto.':((t?t.title+'. ':'')+'Toque para abrir.')).slice(0,1000),sent:false},{onConflict:'user_id'}).then(function(){},function(){});
 }

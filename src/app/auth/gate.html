@@ -1,0 +1,16 @@
+<style>
+/* @include auth/gate.css */
+</style>
+<div id="gate" role="dialog" aria-modal="true" aria-labelledby="g-t" hidden>
+  <form id="g-f" autocomplete="on" novalidate>
+    <svg class="g-mark" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="6" r="2.2" fill="currentColor"/><path d="M22 6v20" stroke="currentColor" stroke-width="2"/><path d="M22 24l7 9-7 11-7-11z" fill="var(--accent)"/></svg>
+    <h1 id="g-t">Prumo</h1>
+    <div id="g-body"></div>
+    <div class="g-err" id="g-e" role="alert" aria-live="assertive"></div>
+    <button class="btn btn-p btn-full" id="g-b" type="submit">Entrar</button>
+    <div class="g-links" id="g-l"></div>
+  </form>
+</div>
+<script>
+/* @include auth/gate.js */
+</script>

@@ -1,0 +1,8 @@
+<!-- Supabase > Authentication > Emails > Confirm signup. Assunto: Seu código do Prumo: {{ .Token }} -->
+<div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#12141F">
+  <h1 style="font-size:24px;margin:0 0 12px">Confirme seu e-mail</h1>
+  <p style="font-size:15px;line-height:1.5;margin:0 0 16px">Use este código no Prumo para concluir o cadastro:</p>
+  <p style="font:600 32px/1 ui-monospace,Menlo,monospace;letter-spacing:6px;margin:0 0 20px">{{ .Token }}</p>
+  <p style="font-size:15px;line-height:1.5;margin:0 0 16px">Ou toque aqui: <a href="{{ .SiteURL }}/#token_hash={{ .TokenHash }}&type=email">confirmar meu e-mail</a>.</p>
+  <p style="font-size:13px;line-height:1.5;color:#5B6070;margin:0">O código vale por pouco tempo e só pode ser usado uma vez. Se você não pediu este cadastro, ignore este e-mail: nenhuma conta será ativada.</p>
+</div>

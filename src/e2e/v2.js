@@ -2,7 +2,6 @@ const puppeteer = require('puppeteer-core');
 const fs = require('fs');
 const url=require('./lib/serve');
 const S=require('path').resolve(__dirname,'..');
-const HASH = JSON.parse(fs.readFileSync(S + '/auth.json')).hash;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const res = []; const ok = (n, c) => res.push((c ? 'PASS ' : 'FAIL ') + n);
 const errs = [];
@@ -19,7 +18,7 @@ async function mk(browser, vp, opts = {}) {
       window.Notification = N;
       document.hasFocus = () => false;
     }
-  }, HASH, !!opts.stub);
+  }, null, !!opts.stub);
   page.on('pageerror', e => errs.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error' && !/fonts\.g|ERR_|Failed to load resource|manifest/.test(m.text())) errs.push('console: ' + m.text()); });
   await page.goto(await url('pwa/index.html'), { waitUntil: 'domcontentloaded' });

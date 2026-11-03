@@ -1,9 +1,13 @@
 /* ---------- estado e persistencia ---------- */
 var LS='prumo.v1';
-function blank(){return {v:1,upd:0,seeded:false,tasks:[],rec:{},cap:[0,300,300,300,300,300,120],ctx:{},retro:{},blockers:{},log:{},session:null,u:{},dirty:{},del:{},synced:false}}
+function blank(){return {v:1,upd:0,owner:null,seeded:false,tasks:[],rec:{},cap:[0,300,300,300,300,300,120],ctx:{},retro:{},blockers:{},log:{},session:null,u:{},dirty:{},del:{},synced:false}}
 function readLocal(){try{var r=localStorage.getItem(LS);if(r){return Object.assign(blank(),JSON.parse(r))}}catch(e){}return blank()}
 var S=readLocal();
-function writeLocal(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+function writeLocal(){if(wiped)return;try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+// Apaga tudo que o app guardou neste aparelho (dados, preferências, retrôs vistas). Usado ao sair
+// e ao trocar de conta, para que os dados de uma pessoa nunca fiquem para a próxima.
+var wiped=false;
+function wipeLocal(){wiped=true;try{Object.keys(localStorage).forEach(function(k){if(k.indexOf('prumo.')===0)localStorage.removeItem(k)})}catch(e){}}
 var saveT=null,pushing=false,again=false,remote=null,sync='boot',booted=false;
 function kidsOf(id){return S.tasks.filter(function(c){return c.parent===id})}
 function isGrp(t){return S.tasks.some(function(c){return c.parent===t.id})}

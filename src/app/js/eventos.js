@@ -70,11 +70,12 @@ function act(a,el){
     case 'pip':openPip();break;
     case 'pip-auto':try{localStorage.setItem('prumo.pip',pipAuto()?'off':'on')}catch(e){}render();break;
     case 'notif':try{Notification.requestPermission().then(function(){render()})}catch(e){}break;
-    case 'lock':if(window.prumoLock)window.prumoLock();break;
+    case 'lock':logout('local');break;
+    case 'lock-all':if(confirm('Encerrar a sessão em todos os aparelhos? Você vai precisar entrar de novo em cada um.'))logout('global');break;
     case 'copy-summary':copyText(summaryText(),'Resumo copiado.');break;
     case 'copy-backup':copyText(JSON.stringify(Object.assign({},S,{session:null})),'Backup copiado.');break;
     case 'restore':{
-      try{var o=JSON.parse(restoreTxt);if(!o||!Array.isArray(o.tasks))throw 0;S=Object.assign(blank(),o,{session:null},{u:S.u,dirty:S.dirty,del:S.del,synced:S.synced});restoreTxt='';persist();render();toast('Backup restaurado.')}
+      try{var o=JSON.parse(restoreTxt);if(!o||!Array.isArray(o.tasks))throw 0;S=Object.assign(blank(),o,{session:null},{u:S.u,dirty:S.dirty,del:S.del,synced:S.synced,owner:S.owner});restoreTxt='';persist();render();toast('Backup restaurado.')}
       catch(e){toast('Esse texto não parece um backup do Prumo.')}
       break}
     case 'toast-act':{var fn=toastFn;toastFn=null;$('#toast').hidden=true;if(fn)fn();break}
