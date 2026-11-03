@@ -114,6 +114,10 @@ textarea.inp{padding:12px 14px;min-height:92px;resize:vertical;line-height:1.4}
 .chk{width:44px;height:44px;display:grid;place-items:center;flex:none}
 .chk i{width:24px;height:24px;border-radius:50%;border:2px solid var(--muted);display:grid;place-items:center;color:var(--accent-ink)}
 .chk i.on{background:var(--ok);border-color:var(--ok)}
+.ib.del{width:38px;color:var(--muted);opacity:.75}
+.ib.del:active{color:var(--bad)}
+@media (hover:hover){.ib.del:hover{color:var(--bad);opacity:1}}
+.sugg{background:var(--soft);border-radius:14px;padding:12px 14px}
 .ib{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;color:var(--muted);flex:none}
 .ib.on{color:var(--accent)}
 .ib.on .ic{fill:currentColor}
@@ -296,7 +300,8 @@ var ICON={
   left:'<path d="M14.5 5.5L8 12l6.5 6.5"/>',
   right:'<path d="M9.5 5.5L16 12l-6.5 6.5"/>',
   pause:'<path d="M8.5 5.5v13M15.5 5.5v13"/>',
-  x:'<path d="M6 6l12 12M18 6L6 18"/>'
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  trash:'<path d="M4.5 7h15M9.5 7V4.8h5V7M6.5 7l.9 12.2h9.2L17.5 7M10 10.5v5.5M14 10.5v5.5"/>'
 };
 function ic(n,s,w){s=s||22;return '<svg class="ic" width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(w||1.9)+'" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[n]+'</svg>'}
 
@@ -517,7 +522,18 @@ var isDone=function(t){return t.status==='done'};
 var cname=function(id){return (S.ctx&&S.ctx[id])||(CTX.find(function(c){return c.id===id})||CTX[0]).name};
 var ctxOf=function(id){return CTX.find(function(c){return c.id===id})||CTX[0]};
 var quad=function(t){return t.urg&&t.imp?1:(!t.urg&&t.imp?2:(t.urg&&!t.imp?3:4))};
-function suggestFw(t){if((t.slips||0)>=2)return 'cinco';if(t.est<=2)return 'dois';if(t.est>=60)return 'pomodoro';return 'timebox'}
+function suggestion(t){
+  var e=t.est||0,q=quad(t),n=(t.dodText?String(t.dodText).split('\n').filter(function(x){return x.trim()}).length:(t.dod||[]).length),slips=t.slips||0;
+  if(slips>=2)return {fw:'cinco',why:'Você já adiou esta tarefa '+slips+' vezes. Comece só por 5 minutos e decida depois se continua.'};
+  if(e<=2)return {fw:'dois',why:'Leva até 2 minutos: faça agora e tire da cabeça.'};
+  if(e>=240)return {fw:'pomodoro',why:'Tarefa de '+fmt(e)+'. Pomodoro mantém o ritmo ao longo do dia; vale quebrar em entregas menores.'};
+  if(e>=50)return {fw:'pomodoro',why:'Trabalho longo ('+fmt(e)+'): blocos de 25 minutos com pausa evitam o cansaço e o perfeccionismo.'};
+  if(e>=30&&n>=3)return {fw:'pomodoro',why:'Tem '+n+' critérios de pronto, então é complexa para o tempo. Divida em blocos de 25 minutos.'};
+  if(q===2&&e>=30)return {fw:'cinco',why:'Importante e sem urgência é o que mais se adia. Comece por 5 minutos.'};
+  if(e<=15)return {fw:'timebox',why:'Tarefa curta: o tempo estimado é o teto. Acabou, entregue o que tem.'};
+  return {fw:'timebox',why:'Cabe em um bloco de '+fmt(e)+'. Defina o teto e entregue quando acabar.'};
+}
+function suggestFw(t){return suggestion(t).fw}
 var fwOf=function(t){return t.fw||suggestFw(t)};
 var byPrio=function(a,b){return quad(a)-quad(b)||b.est-a.est};
 var tasksOn=function(d){return S.tasks.filter(function(t){return t.day===d})};
@@ -588,6 +604,7 @@ function rowHTML(t,o){
     if(o.play)right+='<button class="ib play" data-act="start" data-id="'+t.id+'" aria-label="Começar">'+ic('play')+'</button>';
     if(o.pull)right+='<button class="btn btn-s sm" data-act="pull" data-id="'+t.id+'">Puxar</button>';
   }
+  right+='<button class="ib del" data-act="rowdel" data-id="'+t.id+'" aria-label="Excluir tarefa">'+ic('trash',18)+'</button>';
   return '<div class="row'+(done?' is-done':'')+'"><button class="chk" data-act="toggle" data-id="'+t.id+'" aria-label="'+(done?'Reabrir':'Concluir')+' tarefa"><i class="'+(done?'on':'')+'">'+(done?ic('check',15,2.6):'')+'</i></button>'+
     '<button class="row-main" data-act="edit" data-id="'+t.id+'"><div class="row-title">'+esc(t.title)+'</div><div class="row-meta">'+meta+'</div>'+(tags.length?'<div class="tags">'+tags.join('')+'</div>':'')+'</button>'+right+'</div>';
 }
@@ -753,6 +770,10 @@ function scrollTop(){try{window.scrollTo(0,0)}catch(e){}}
 
 /* ---------- sheet ---------- */
 function chip(label,pressed,attrs,extra){return '<button class="chip" aria-pressed="'+pressed+'" '+attrs+'>'+(extra||'')+label+'</button>'}
+function sugInner(d){
+  var g=suggestion(d),cur=d.fw||g.fw;
+  return '<span class="lab">Método sugerido</span><p class="verdict" style="margin-top:0"><b>'+esc(FW[g.fw].name)+'.</b> '+esc(g.why)+'</p>'+(cur!==g.fw?'<button class="btn btn-s sm" data-act="sh-usesug" style="margin-top:8px">Usar '+esc(FW[g.fw].name)+' (você escolheu '+esc(FW[cur].name)+')</button>':'');
+}
 function taskSheetHTML(){
   var d=sh.d,td=todayISO(),tm=addDays(td,1),sug=suggestFw(d),cur=d.fw||sug,q=quad(d);
   var custom=d.day&&d.day!==td&&d.day!==tm;
@@ -762,6 +783,7 @@ function taskSheetHTML(){
   h+='<div><span class="lab">Quando</span><div class="chips">'+chip('Hoje',d.day===td,'data-act="sh-day" data-v="'+td+'"')+chip('Amanhã',d.day===tm,'data-act="sh-day" data-v="'+tm+'"')+
     '<label class="chip" aria-pressed="'+(!!custom)+'">'+(custom?esc(shortDate(d.day)):'Outra data')+'<input type="date" id="f-date" data-in="date" aria-label="Escolher outra data" value="'+(custom?d.day:'')+'"></label>'+chip('Sem data',!d.day,'data-act="sh-day" data-v="none"')+'</div></div>';
   h+='<div><span class="lab">Estimativa</span><div class="chips">'+[2,5,15,30,45,60,90,120,180,240,360,480].map(function(m){return chip(fmt(m),d.est===m,'data-act="sh-est" data-v="'+m+'"')}).join('')+'</div><div class="est-in"><label class="lab" for="f-est" style="margin:0">Outro valor, em minutos</label><input id="f-est" class="inp" data-in="est" type="number" inputmode="numeric" min="1" max="960" placeholder="ex.: 200" value="'+([2,5,15,30,45,60,90,120,180,240,360,480].indexOf(d.est)<0?d.est:'')+'"></div></div>';
+  h+='<div id="sug-box" class="sugg">'+sugInner(d)+'</div>';
   if(!sh.more){
     h+='<button class="btn btn-s" data-act="sh-more">Mais opções: prioridade, framework e critério de pronto</button>';
   }else{
@@ -836,7 +858,7 @@ function dropTask(id){
   var t=S.tasks.splice(i,1)[0];
   if(S.session&&S.session.tid===id){S.session=null;unlock()}
   persist();render();
-  toast('Tarefa solta.','Desfazer',function(){S.tasks.push(t);persist();render()});
+  toast('Tarefa excluída.','Desfazer',function(){S.tasks.push(t);persist();render()});
 }
 function autoPlan(){
   var wk=curWk(),td=todayISO();
@@ -1001,9 +1023,11 @@ function act(a,el){
     case 'plan':sh={kind:'plan'};renderSheet();break;
     case 'cap':{var i=Number(el.dataset.i),dl=Number(el.dataset.d);S.cap[i]=Math.max(0,Math.min(720,(S.cap[i]||0)+dl));persist();renderSheet();render();break}
     case 'autoplan':autoPlan();break;
+    case 'rowdel':dropTask(el.dataset.id);break;
     case 'sh-close':sh=null;renderSheet();break;
     case 'sh-save':saveTask();break;
     case 'sh-del':if(!sh.del){sh.del=true;renderSheet()}else{var did=sh.id;sh=null;renderSheet();dropTask(did)}break;
+    case 'sh-usesug':sh.d.fw=null;renderSheet();break;
     case 'sh-more':sh.more=true;renderSheet();break;
     case 'sh-ctx':sh.d.ctx=el.dataset.v;renderSheet();break;
     case 'sh-day':sh.d.day=el.dataset.v==='none'?null:el.dataset.v;renderSheet();break;
@@ -1045,7 +1069,7 @@ document.addEventListener('input',function(e){
   else if(k==='retro'){var wk=curWk();S.retro[wk]=S.retro[wk]||{};S.retro[wk][el.dataset.f]=el.value;persist()}
   else if(k==='ctxname'){S.ctx=S.ctx||{};var v=el.value.trim();if(v)S.ctx[el.dataset.c]=v;else delete S.ctx[el.dataset.c];persist()}
   else if(k==='restore'){restoreTxt=el.value}
-  else if(k==='est'){var n=Math.round(Number(el.value));if(n>=1&&n<=960&&sh&&sh.d){sh.d.est=n;Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-est"]'),function(b){b.setAttribute('aria-pressed',String(Number(b.dataset.v)===n))});var pn=document.getElementById('pomo-n');if(pn)pn.textContent=pomoText(sh.d,sh.d.fw||suggestFw(sh.d))}}
+  else if(k==='est'){var n=Math.round(Number(el.value));if(n>=1&&n<=960&&sh&&sh.d){sh.d.est=n;Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-est"]'),function(b){b.setAttribute('aria-pressed',String(Number(b.dataset.v)===n))});var pn=document.getElementById('pomo-n');if(pn)pn.textContent=pomoText(sh.d,sh.d.fw||suggestFw(sh.d));var sb=document.getElementById('sug-box');if(sb)sb.innerHTML=sugInner(sh.d);var cf=sh.d.fw||suggestFw(sh.d);Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-fw"]'),function(b){b.setAttribute('aria-pressed',String(b.dataset.v===cf))})}}
 });
 document.addEventListener('change',function(e){
   var el=e.target;if(el.dataset&&el.dataset.in==='date'&&sh&&sh.d){sh.d.day=el.value||null;renderSheet()}
