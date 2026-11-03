@@ -7,4 +7,4 @@ PRUMO - como instalar no iPhone
 3. Toque em Compartilhar e depois em "Adicionar à Tela de Início".
 4. Abra pelo ícone. O app roda em tela cheia e funciona offline.
 
-Seus dados ficam salvos no aparelho. Use Revisão > Ajustes > Copiar backup de vez em quando.
+Entre com seu e-mail e senha: as tarefas sincronizam entre iPhone e Mac (Supabase). Também funciona offline; use Revisão > Ajustes > Copiar backup de vez em quando.
