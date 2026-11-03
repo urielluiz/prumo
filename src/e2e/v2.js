@@ -21,7 +21,7 @@ async function mk(browser, vp, opts = {}) {
   }, HASH, !!opts.stub);
   page.on('pageerror', e => errs.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error' && !/fonts\.g|ERR_|Failed to load resource|manifest/.test(m.text())) errs.push('console: ' + m.text()); });
-  await page.goto('file://' + S + '/prumo/pwa/index.html', { waitUntil: 'domcontentloaded' });
+  await page.goto('file://' + S + '/pwa/index.html', { waitUntil: 'domcontentloaded' });
   await sleep(900);
   return page;
 }

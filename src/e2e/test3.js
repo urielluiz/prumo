@@ -1,7 +1,7 @@
 const puppeteer=require('puppeteer-core');const fs=require('fs');
 const S=require('path').resolve(__dirname,'..');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const res=[];const ok=(n,c)=>res.push((c?'PASS ':'FAIL ')+n);
-let html=fs.readFileSync(S+"/prumo/pwa/index.html","utf8");
+let html=fs.readFileSync(S+"/pwa/index.html","utf8");
 html=html.replace(/<script>window\.PRUMO_SB=.*?<\/script>\n?/,'').replace('<script src="supabase.js"></script>\n','');
 fs.writeFileSync(S+'/e2e/pushtest.html',html);
 const FAKE=`

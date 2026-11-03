@@ -6,7 +6,7 @@ const res = []; const ok = (n, c) => res.push((c ? 'PASS ' : 'FAIL ') + n);
 const errs = [];
 
 // test page = real build without the config/lib tags (the fake client is injected instead)
-let html = fs.readFileSync(S + '/prumo/pwa/index.html', 'utf8');
+let html = fs.readFileSync(S + '/pwa/index.html', 'utf8');
 html = html.replace(/<script>window\.PRUMO_SB=.*?<\/script>\n?/, '').replace('<script src="supabase.js"></script>\n', '');
 fs.writeFileSync(S + '/e2e/sbtest.html', html);
 
