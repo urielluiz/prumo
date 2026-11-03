@@ -1,6 +1,6 @@
 /* ---------- estado e persistencia ---------- */
 var LS='prumo.v1';
-function blank(){return {v:1,upd:0,owner:null,seeded:false,tasks:[],rec:{},cap:[0,300,300,300,300,300,120],ctx:{},retro:{},blockers:{},log:{},session:null,u:{},dirty:{},del:{},synced:false}}
+function blank(){return {v:1,upd:0,owner:null,prof:{},seeded:false,tasks:[],rec:{},cap:[0,300,300,300,300,300,120],ctx:{},retro:{},blockers:{},log:{},session:null,u:{},dirty:{},del:{},synced:false}}
 function readLocal(){try{var r=localStorage.getItem(LS);if(r){return Object.assign(blank(),JSON.parse(r))}}catch(e){}return blank()}
 var S=readLocal();
 function writeLocal(){if(wiped)return;try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}

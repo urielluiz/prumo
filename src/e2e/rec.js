@@ -100,7 +100,7 @@ await click('[data-act=sh-save]');await sleep(400);
 s=await st();const tr=s.tasks.filter(t=>t.title==='Treino');
 ok('weekly rule respects chosen days',tr.length>=1&&tr.every(t=>{const w=new Date(t.day+'T12:00:00').getDay();return [new Date().getDay(),3,5].includes(w)}));
 // help sheet and password
-await click('.tab[data-t=revisao]');await sleep(200);
+await ev(()=>{document.querySelector('.tab[data-t=hoje]').click();document.querySelector('[data-act=perfil]').click()});await sleep(200);
 await click('[data-act=help]');await sleep(150);
 ok('help guide opens',/Guia do Prumo/.test(await ev(()=>document.querySelector('.sheet').innerText))&&/Pomodoro/.test(await ev(()=>document.querySelector('.sheet').innerText)));
 await p.screenshot({path:S+'/e2e/help.png'});

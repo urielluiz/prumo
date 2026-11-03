@@ -13,6 +13,7 @@ function itemsOf(){
   Object.keys(S.retro||{}).forEach(function(k){m['retro/'+k]=S.retro[k]});
   Object.keys(S.blockers||{}).forEach(function(k){m['blk/'+k]={t:S.blockers[k]}});
   Object.keys(S.log||{}).forEach(function(k){m['log/'+k]={s:S.log[k]}});
+  if(S.prof&&(S.prof.name||S.prof.avk||S.prof.av))m['prof/me']=S.prof;
   return m;
 }
 function rebase(){base={};var m=itemsOf();Object.keys(m).forEach(function(k){base[k]=jstr(m[k])})}
@@ -30,6 +31,7 @@ function applyItem(k,data){
   else if(kind==='retro')S.retro[id]=data;
   else if(kind==='blk')S.blockers[id]=data.t;
   else if(kind==='log')S.log[id]=data.s;
+  else if(kind==='prof'&&id==='me')S.prof={name:cleanName(data.name).trim(),avk:typeof data.avk==='string'?data.avk:'',av:Number(data.av)||0};
 }
 function dropItem(k){
   var kind=kindOf(k),id=idOf(k);
@@ -39,6 +41,7 @@ function dropItem(k){
   else if(kind==='blk')delete S.blockers[id];
   else if(kind==='log')delete S.log[id];
   else if(kind==='ctx')S.ctx={};
+  else if(kind==='prof')S.prof={};
 }
 function mergeRemote(rows){
   var changed=false,rem={};
@@ -147,6 +150,7 @@ function initSB(){
   SB.auth.onAuthStateChange(function(ev,session){
     setTimeout(function(){
       var id=session&&session.user?session.user.id:null;
+      if(session&&session.user&&session.user.email)meEmail=session.user.email;
       if(id){
         // dados locais de outra conta: apaga antes de qualquer sincronização
         if(S.owner&&S.owner!==id){wipeLocal();location.reload();return}

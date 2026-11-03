@@ -84,7 +84,7 @@ ok('paused time does not run',left1===left2);
 await ev(()=>document.querySelector('#mini [data-act=resume]').click());await sleep(1300);
 ok('resume continues from paused value',await ev(()=>{const s=JSON.parse(localStorage.getItem('prumo.v1')).session;return s.running&&s.endsAt-Date.now()<=s.left*1000+50}));
 // brief setting
-await ev(()=>document.querySelector('.tab[data-t=revisao]').click());await sleep(200);
+await ev(()=>{document.querySelector('.tab[data-t=hoje]').click();document.querySelector('[data-act=perfil]').click()});await sleep(200);
 await ev(()=>[...document.querySelectorAll('[data-act=brief]')].find(x=>x.dataset.v==='off').click());await sleep(500);
 c=await calls();
 ok('turning briefing off deletes unsent',c.filter(x=>x.tbl==='prumo_reminders'&&x.op==='delete').length>=2);

@@ -30,7 +30,7 @@ const errs=[];p.on('pageerror',e=>errs.push(e.message));
 await p.evaluateOnNewDocument(FAKE);
 await p.goto(await url('e2e/pushtest.html'),{waitUntil:'domcontentloaded'});await sleep(1500);
 const ev=(f,...a)=>p.evaluate(f,...a);const calls=()=>ev(()=>window.__calls.slice());
-await ev(()=>document.querySelector('.tab[data-t=revisao]').click());await sleep(300);
+await ev(()=>{document.querySelector('.tab[data-t=hoje]').click();document.querySelector('[data-act=perfil]').click()});await sleep(300);
 let txt=await ev(()=>document.querySelector('#view').innerText);
 ok('settings shows off state + enable button',/aviso com a tela bloqueada/i.test(txt)&&!!(await ev(()=>document.querySelector('[data-act=push-on]'))));
 await p.screenshot({path:S+'/e2e/push-set.png',fullPage:true});
@@ -56,7 +56,7 @@ c=await calls();up=c.filter(x=>x.tbl==='prumo_timers'&&x.op==='upsert');
 ok('timer row re-upserted on resume',up.length>n1);
 // test button
 await ev(()=>document.querySelector('[data-act=stop]').click());await sleep(300);
-await ev(()=>document.querySelector('.tab[data-t=revisao]').click());await sleep(200);
+await ev(()=>{document.querySelector('.tab[data-t=hoje]').click();document.querySelector('[data-act=perfil]').click()});await sleep(200);
 const before=(await calls()).length;
 await ev(()=>document.querySelector('[data-act=push-test]').click());await sleep(400);
 c=await calls();const t=c.filter(x=>x.tbl==='prumo_timers'&&x.op==='upsert').pop();

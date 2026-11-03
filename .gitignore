@@ -8,3 +8,4 @@ node_modules/
 src/e2e/sbtest.html
 src/e2e/authtest.html
 src/e2e/authframe.html
+src/e2e/profiletest.html

@@ -70,12 +70,18 @@ function act(a,el){
     case 'pip':openPip();break;
     case 'pip-auto':try{localStorage.setItem('prumo.pip',pipAuto()?'off':'on')}catch(e){}render();break;
     case 'notif':try{Notification.requestPermission().then(function(){render()})}catch(e){}break;
+    case 'perfil':if(tab!=='perfil')prevTab=tab;tab='perfil';render();scrollTop();break;
+    case 'perfil-back':tab=prevTab||'hoje';render();scrollTop();break;
+    case 'photo-del':removePhoto();break;
+    case 'export':exportData();break;
+    case 'del-open':sh={kind:'del'};renderSheet();setTimeout(function(){var i=$('#del-pw');if(i)i.focus()},50);break;
+    case 'del-go':deleteAccount();break;
     case 'lock':logout('local');break;
     case 'lock-all':if(confirm('Encerrar a sessão em todos os aparelhos? Você vai precisar entrar de novo em cada um.'))logout('global');break;
     case 'copy-summary':copyText(summaryText(),'Resumo copiado.');break;
     case 'copy-backup':copyText(JSON.stringify(Object.assign({},S,{session:null})),'Backup copiado.');break;
     case 'restore':{
-      try{var o=JSON.parse(restoreTxt);if(!o||!Array.isArray(o.tasks))throw 0;S=Object.assign(blank(),o,{session:null},{u:S.u,dirty:S.dirty,del:S.del,synced:S.synced,owner:S.owner});restoreTxt='';persist();render();toast('Backup restaurado.')}
+      try{var o=JSON.parse(restoreTxt);if(!o||!Array.isArray(o.tasks))throw 0;S=Object.assign(blank(),o,{session:null},{u:S.u,dirty:S.dirty,del:S.del,synced:S.synced,owner:S.owner,prof:S.prof});restoreTxt='';persist();render();toast('Backup restaurado.')}
       catch(e){toast('Esse texto não parece um backup do Prumo.')}
       break}
     case 'toast-act':{var fn=toastFn;toastFn=null;$('#toast').hidden=true;if(fn)fn();break}
@@ -94,10 +100,12 @@ document.addEventListener('input',function(e){
   else if(k==='retro'){var wk=curWk();S.retro[wk]=S.retro[wk]||{};S.retro[wk][el.dataset.f]=el.value;persist()}
   else if(k==='ctxname'){S.ctx=S.ctx||{};var v=el.value.trim();if(v)S.ctx[el.dataset.c]=v;else delete S.ctx[el.dataset.c];persist()}
   else if(k==='restore'){restoreTxt=el.value}
+  else if(k==='pname'){S.prof=Object.assign({},S.prof,{name:cleanName(el.value).trim()});persist()}
   else if(k==='est'){var n=Math.round(Number(el.value));if(n>=1&&n<=960&&sh&&sh.d){sh.d.est=n;Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-est"]'),function(b){b.setAttribute('aria-pressed',String(Number(b.dataset.v)===n))});var pn=document.getElementById('pomo-n');if(pn)pn.textContent=pomoText(sh.d,sh.d.fw||suggestFw(sh.d));var sb=document.getElementById('sug-box');if(sb)sb.innerHTML=sugInner(sh.d);var cf=sh.d.fw||suggestFw(sh.d);Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-fw"]'),function(b){b.setAttribute('aria-pressed',String(b.dataset.v===cf))})}}
 });
 document.addEventListener('change',function(e){
   var el=e.target;if(el.dataset&&el.dataset.in==='date'&&sh&&sh.d){sh.d.day=el.value||null;renderSheet()}
+  if(el.dataset&&el.dataset.in==='photo'&&el.files&&el.files[0]){var f=el.files[0];el.value='';setPhoto(f)}
 });
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&sh){sh=null;renderSheet()}

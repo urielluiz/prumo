@@ -199,6 +199,7 @@ if(sb){
   });
 }
 if(sb&&/token_hash=|error=/.test(location.hash))fromLink();
+else if(location.hash==='#conta-excluida'){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}lock('in');say('Sua conta foi excluída, com todos os dados. Obrigado por ter usado o Prumo.',true)}
 else if(stored())unlock();
 else lock('in');
 })();

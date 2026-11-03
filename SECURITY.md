@@ -22,6 +22,12 @@ Abra uma issue **sem detalhes técnicos** pedindo um contato privado, ou use o "
 - Trocar a senha exige a senha atual. Depois de trocar ou recuperar a senha, as outras sessões são encerradas.
 - "Sair de todos os aparelhos" encerra todas as sessões da conta.
 
+**Perfil e privacidade**
+- Foto em bucket privado: cada conta só lê e grava o próprio arquivo, com nome fixo, até 256 KB, só JPEG/WebP. O app reduz para 256 px e regrava a imagem antes de enviar, então os metadados do arquivo original (como a localização do GPS) não saem do aparelho.
+- Nome limitado a 60 caracteres, sem caracteres de controle nem de inversão de direção do texto; sempre exibido como texto.
+- Exportar meus dados: um arquivo JSON com tudo o que a conta guarda (itens, lembretes, perfil e foto). Dos aparelhos com aviso, só o serviço e a data, nunca o endereço de push.
+- Excluir minha conta: pede a senha e uma confirmação. A Edge Function confere no servidor que houve login com senha nos últimos 5 minutos (pela claim `amr`, que não muda quando o token é renovado), aceita chamadas só da origem do app, apaga a foto e a conta; as tabelas caem junto por cascade.
+
 **Aparelho**
 - Os dados locais têm dono. Ao sair, o app envia o que falta (ou pede confirmação se estiver sem rede), desliga o aviso push deste aparelho e apaga tudo o que guardou. Se aparecerem dados de outra conta, eles são apagados antes de qualquer sincronização.
 - Content Security Policy: só rodam os scripts do próprio app (inline liberado por hash, calculado no build) e a rede só alcança o próprio site, o Supabase e a checagem de senha vazada. `object-src`, `base-uri`, `form-action` e `frame-src` bloqueados.
@@ -30,7 +36,7 @@ Abra uma issue **sem detalhes técnicos** pedindo um contato privado, ou use o "
 - Todo texto vindo do usuário entra na tela escapado ou por `textContent`.
 
 **Testes**
-`src/e2e/auth.js` cobre cadastro, código, recuperação, link do e-mail, isolamento entre contas, saída com dados pendentes, CSP bloqueando script injetado e o bloqueio de iframe.
+`src/e2e/auth.js` cobre cadastro, código, recuperação, link do e-mail, isolamento entre contas, sair e voltar sem perder dados, saída com dados pendentes, CSP bloqueando script injetado e o bloqueio de iframe. `src/e2e/profile.js` cobre nome, foto (redimensionada e sem EXIF/GPS), exportação e exclusão de conta.
 
 ## Ajustes no painel do Supabase (não dá para fazer por código)
 
@@ -40,6 +46,7 @@ Antes de abrir o cadastro (`update prumo_private set value = 'true' where key = 
 - [ ] **Leaked password protection** ligado (plano Pro). O app já checa no aparelho, mas a checagem no servidor não pode ser contornada.
 - [ ] **SMTP próprio** (Resend, Postmark, Amazon SES...) com SPF, DKIM e DMARC no domínio. O SMTP padrão do Supabase só entrega para membros da organização e tem limite muito baixo: sem isso, quem se cadastrar não recebe o código.
 - [ ] **Emails > Templates**: colar `supabase/templates/confirmar-cadastro.html` em "Confirm signup" e `recuperar-senha.html` em "Reset password" (assuntos no comentário de cada arquivo).
+- [ ] Ao trocar de domínio: atualizar `ORIGINS` em `supabase/functions/prumo-delete-account/index.ts` e o assunto VAPID em `prumo-push`.
 - [ ] **URL Configuration**: Site URL `https://urielluiz.github.io/prumo` (sem barra no fim) e Redirect URLs só com `https://urielluiz.github.io/prumo/**`.
 - [ ] **Rate limits**: revisar envio de e-mail e verificação de código.
 - [ ] **Sessions**: considerar "Time-box user sessions" e "Inactivity timeout".

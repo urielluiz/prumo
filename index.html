@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-1Qmcy4j6aNFgRwdLngcAKq/W1vScASZ8669jMVnaf3k=' 'sha256-FwLBHAQrHiaabsIJFhtm/0do5ALo0qa3zyN76T/AiiA=' 'sha256-Kg7KFV5wbUl4sxzJ7wLWcPTLh3jkRaig78JhI2AV86Q=' 'sha256-M83SiRaxQw8WWPr1qdbElLabaNfhtC6YMMJDVWU3QNA=' 'sha256-wNBm0LO9t0JKUloaWmeP9HoGpjFq3dG9AuBOcy/YQ4g='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.pwnedpasswords.com https://cpdeptlintjvdqcfrafg.supabase.co wss://cpdeptlintjvdqcfrafg.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-1Qmcy4j6aNFgRwdLngcAKq/W1vScASZ8669jMVnaf3k=' 'sha256-G/HVKgGmeVxu2dFqCzvncbYNCxzizccPcmBBBcPacZ4=' 'sha256-M83SiRaxQw8WWPr1qdbElLabaNfhtC6YMMJDVWU3QNA=' 'sha256-WSaTyIcG/4A0XRG5I5akAXJUOUO9a1HHpUzWTQFnc5s=' 'sha256-wNBm0LO9t0JKUloaWmeP9HoGpjFq3dG9AuBOcy/YQ4g='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.pwnedpasswords.com https://cpdeptlintjvdqcfrafg.supabase.co wss://cpdeptlintjvdqcfrafg.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <meta name="referrer" content="no-referrer">
 <script>if(window.top!==window.self){window.stop();document.documentElement.innerHTML=''}</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -221,6 +221,20 @@ html.hasmini .wrap{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 150px)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:14px;font-weight:500;font-size:15px;max-width:min(92vw,440px);display:flex;align-items:center;gap:14px}
 .toast button{font-weight:700;color:var(--accent-text);color:inherit;text-decoration:underline;white-space:nowrap}
 
+/* perfil */
+.hd-r{display:flex;align-items:center;gap:10px}
+.avbtn{border:0;padding:0;background:none;border-radius:50%;cursor:pointer}
+.avbtn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.av{width:44px;height:44px;border-radius:50%;background:var(--soft);color:var(--ink);display:grid;place-items:center;font:600 16px/1 var(--body);overflow:hidden;flex:none;box-shadow:inset 0 0 0 1px var(--line,rgba(0,0,0,.08))}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.av.lg{width:88px;height:88px;font-size:32px}
+.pf-me{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.pf-file{position:relative;overflow:hidden;cursor:pointer}
+.pf-file input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
+.pf-file:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.btn-d{background:transparent;color:var(--bad);box-shadow:inset 0 0 0 1.5px currentColor}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:15px;line-height:1.35}
+.chk input{width:20px;height:20px;margin:0;flex:none;accent-color:var(--bad)}
 /* retrô */
 .rwrap{position:fixed;inset:0;z-index:90;color:#fff;font-family:var(--body);overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none;animation:wrin .35s ease-out}
 .wr-bg{position:absolute;inset:0;transition:background .4s}
@@ -417,7 +431,7 @@ function ic(n,s,w){s=s||22;return '<svg class="ic" width="'+s+'" height="'+s+'" 
 
 /* ---------- estado e persistencia ---------- */
 var LS='prumo.v1';
-function blank(){return {v:1,upd:0,owner:null,seeded:false,tasks:[],rec:{},cap:[0,300,300,300,300,300,120],ctx:{},retro:{},blockers:{},log:{},session:null,u:{},dirty:{},del:{},synced:false}}
+function blank(){return {v:1,upd:0,owner:null,prof:{},seeded:false,tasks:[],rec:{},cap:[0,300,300,300,300,300,120],ctx:{},retro:{},blockers:{},log:{},session:null,u:{},dirty:{},del:{},synced:false}}
 function readLocal(){try{var r=localStorage.getItem(LS);if(r){return Object.assign(blank(),JSON.parse(r))}}catch(e){}return blank()}
 var S=readLocal();
 function writeLocal(){if(wiped)return;try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
@@ -507,6 +521,7 @@ function itemsOf(){
   Object.keys(S.retro||{}).forEach(function(k){m['retro/'+k]=S.retro[k]});
   Object.keys(S.blockers||{}).forEach(function(k){m['blk/'+k]={t:S.blockers[k]}});
   Object.keys(S.log||{}).forEach(function(k){m['log/'+k]={s:S.log[k]}});
+  if(S.prof&&(S.prof.name||S.prof.avk||S.prof.av))m['prof/me']=S.prof;
   return m;
 }
 function rebase(){base={};var m=itemsOf();Object.keys(m).forEach(function(k){base[k]=jstr(m[k])})}
@@ -524,6 +539,7 @@ function applyItem(k,data){
   else if(kind==='retro')S.retro[id]=data;
   else if(kind==='blk')S.blockers[id]=data.t;
   else if(kind==='log')S.log[id]=data.s;
+  else if(kind==='prof'&&id==='me')S.prof={name:cleanName(data.name).trim(),avk:typeof data.avk==='string'?data.avk:'',av:Number(data.av)||0};
 }
 function dropItem(k){
   var kind=kindOf(k),id=idOf(k);
@@ -533,6 +549,7 @@ function dropItem(k){
   else if(kind==='blk')delete S.blockers[id];
   else if(kind==='log')delete S.log[id];
   else if(kind==='ctx')S.ctx={};
+  else if(kind==='prof')S.prof={};
 }
 function mergeRemote(rows){
   var changed=false,rem={};
@@ -641,6 +658,7 @@ function initSB(){
   SB.auth.onAuthStateChange(function(ev,session){
     setTimeout(function(){
       var id=session&&session.user?session.user.id:null;
+      if(session&&session.user&&session.user.email)meEmail=session.user.email;
       if(id){
         // dados locais de outra conta: apaga antes de qualquer sincronização
         if(S.owner&&S.owner!==id){wipeLocal();location.reload();return}
@@ -788,7 +806,8 @@ function viewHoje(){
   var rest=open.filter(function(t){return !t.mit&&t.status!=='doing'}).sort(byPrio);
   var over=overdue(),st=streak();
   var yest=S.tasks.filter(function(t){return isDone(t)&&t.doneAt&&iso(new Date(t.doneAt))===addDays(td,-1)}).length;
-  var h='<header class="top"><div><div class="eyebrow">'+DAYS[d.getDay()]+', '+d.getDate()+' de '+MONF[d.getMonth()]+'</div><h1 class="h1">Hoje</h1></div>'+ringHTML(done.length,all.length)+'</header>';
+  var nm=profName().split(' ')[0];
+  var h='<header class="top"><div><div class="eyebrow">'+(nm?'Olá, '+esc(nm)+' · ':'')+DAYS[d.getDay()]+', '+d.getDate()+' de '+MONF[d.getMonth()]+'</div><h1 class="h1">Hoje</h1></div><div class="hd-r">'+ringHTML(done.length,all.length)+avatarBtn()+'</div></header>';
   h+='<div class="cols"><div class="col stick">';
   if(S.tasks.some(function(t){return t.ex}))h+='<div class="banner"><span>Estas são tarefas de exemplo para você ver o app funcionando.</span><button class="btn btn-s sm" data-act="clear-ex">Limpar</button></div>';
   h+='<section class="checkin"><label class="lab" for="blk">Check-in'+(yest?' · ontem você concluiu '+yest:'')+(st>1?' · sequência de '+st+' dias':'')+'</label><input id="blk" class="inp" data-in="blk" enterkeyhint="done" autocomplete="off" placeholder="O que pode te travar hoje?" value="'+esc(S.blockers[td]||'')+'"></section>';
@@ -1007,11 +1026,37 @@ function viewRevisao(){
   h+=secHTML('Retrospectiva')+'<div class="stack">'+
     [['worked','O que funcionou?'],['stuck','O que travou?'],['tweak','O que muda na próxima semana?']].map(function(x){return '<div><label class="lab" for="rt-'+x[0]+'">'+x[1]+'</label><textarea id="rt-'+x[0]+'" class="inp" data-in="retro" data-f="'+x[0]+'" rows="2">'+esc(rt[x[0]]||'')+'</textarea></div>'}).join('')+'</div>';
   h+='<div class="btns" style="margin-top:14px"><button class="btn btn-p btn-full" data-act="copy-summary">Copiar resumo da semana</button></div>';
-  h+=secHTML('Ajustes')+'<div class="panel">'+timerSettings()+'<div><span class="lab">Nome dos contextos</span><div class="stack">'+CTX.map(function(c){return '<div class="rn"><i class="dot" style="background:var('+c.v+')"></i><input class="inp" id="cn-'+c.id+'" data-in="ctxname" data-c="'+c.id+'" value="'+esc(cname(c.id))+'" aria-label="Nome do contexto" autocomplete="off"></div>'}).join('')+'</div></div><div><span class="lab">Dados</span><p class="sync" id="sync" style="margin:0 0 10px">'+syncText()+'</p><div class="btns"><button class="btn btn-s sm" data-act="copy-backup">Copiar backup</button>'+(SB?'<button class="btn btn-s sm" data-act="pw-open">Alterar senha</button><button class="btn btn-s sm" data-act="lock">Sair da conta</button><button class="btn btn-s sm" data-act="lock-all">Sair de todos os aparelhos</button>':'')+'<button class="btn btn-s sm" data-act="help">Guia do Prumo</button>'+'</div></div><div><label class="lab" for="restore">Restaurar backup</label><textarea id="restore" class="inp" data-in="restore" rows="2" placeholder="Cole aqui o backup copiado antes">'+esc(restoreTxt)+'</textarea><div class="btns" style="margin-top:10px"><button class="btn btn-s sm" data-act="restore">Restaurar</button></div></div></div>';
   h+='</div></div>';
   return h;
 }
 
+/* ---------- perfil ---------- */
+function avatarBtn(){
+  return '<button class="avbtn" data-act="perfil" aria-label="Abrir perfil'+(profName()?' de '+esc(profName()):'')+'">'+avatarHTML()+'</button>';
+}
+function viewPerfil(){
+  var p=S.prof||{},h='<header class="top"><div><div class="eyebrow">Perfil</div><h1 class="h1">'+(profName()?esc(profName()):'Você')+'</h1></div><div class="nav"><button class="ib" data-act="perfil-back" aria-label="Voltar">'+ic('left')+'</button></div></header>';
+  h+='<div class="cols"><div class="col">';
+  // você
+  h+='<div class="panel"><div class="pf-me">'+avatarHTML('lg')+'<div class="btns">'+
+    (SB?'<label class="btn btn-s sm pf-file">'+(p.avk?'Trocar foto':'Adicionar foto')+'<input type="file" id="pf-photo" data-in="photo" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"></label>'+(p.avk?'<button class="btn btn-s sm" data-act="photo-del">Remover</button>':''):'')+
+    '</div></div>'+
+    '<div><label class="lab" for="pf-name">Como quer ser chamado</label><input id="pf-name" class="inp" data-in="pname" maxlength="60" autocomplete="nickname" value="'+esc(profName())+'" placeholder="Seu nome ou apelido"></div>'+
+    (SB?'<p class="hint" style="margin:0">A foto é reduzida e regravada no aparelho antes de ser enviada: informações escondidas no arquivo, como o local onde foi tirada, não saem do seu celular.</p>':'')+'</div>';
+  // conta
+  if(SB)h+=secHTML('Conta')+'<div class="panel"><div><span class="lab">E-mail</span><p style="margin:0;word-break:break-all">'+esc(meEmail||'...')+'</p></div><div class="btns"><button class="btn btn-s sm" data-act="pw-open">Alterar senha</button><button class="btn btn-s sm" data-act="lock">Sair da conta</button><button class="btn btn-s sm" data-act="lock-all">Sair de todos os aparelhos</button></div><p class="hint" style="margin:0">Ao sair, suas tarefas continuam guardadas na sua conta. Este aparelho só apaga a cópia local.</p></div>';
+  // preferências
+  h+=secHTML('Preferências')+'<div class="panel">'+timerSettings()+'<div><span class="lab">Nome dos contextos</span><div class="stack">'+CTX.map(function(c){return '<div class="rn"><i class="dot" style="background:var('+c.v+')"></i><input class="inp" id="cn-'+c.id+'" data-in="ctxname" data-c="'+c.id+'" value="'+esc(cname(c.id))+'" aria-label="Nome do contexto" autocomplete="off"></div>'}).join('')+'</div></div></div>';
+  h+='</div><div class="col">';
+  // dados
+  h+=secHTML('Dados')+'<div class="panel"><div><span class="lab">Sincronização</span><p class="sync" id="sync" style="margin:0 0 10px">'+syncText()+'</p><div class="btns"><button class="btn btn-s sm" data-act="copy-backup">Copiar backup</button></div></div><div><label class="lab" for="restore">Restaurar backup</label><textarea id="restore" class="inp" data-in="restore" rows="2" placeholder="Cole aqui o backup copiado antes">'+esc(restoreTxt)+'</textarea><div class="btns" style="margin-top:10px"><button class="btn btn-s sm" data-act="restore">Restaurar</button></div></div></div>';
+  // privacidade
+  if(SB)h+=secHTML('Privacidade')+'<div class="panel"><div><span class="lab">Seus dados</span><p class="hint" style="margin:0 0 10px">Baixe tudo o que a sua conta guarda, num arquivo que você pode abrir em qualquer lugar.</p><div class="btns"><button class="btn btn-s sm" data-act="export">Exportar meus dados</button></div></div><div><span class="lab">Excluir conta</span><p class="hint" style="margin:0 0 10px">Apaga a conta e tudo o que ela guarda, em todos os aparelhos.</p><div class="btns"><button class="btn btn-d sm" data-act="del-open">Excluir minha conta</button></div></div></div>';
+  // ajuda
+  h+=secHTML('Ajuda')+'<div class="panel"><div class="btns"><button class="btn btn-s sm" data-act="help">Guia do Prumo</button></div><p class="hint" style="margin:0">Versão '+esc(BUILD)+'</p></div>';
+  h+='</div></div>';
+  return h;
+}
 /* ---------- render ---------- */
 function initNav(){
   var T=[['hoje','target','Hoje'],['semana','cal','Semana'],null,['foco','timer','Foco'],['revisao','bars','Revisão']];
@@ -1030,7 +1075,7 @@ function renderMini(){
   m.hidden=!h;document.documentElement.classList.toggle('hasmini',!!h);
 }
 function render(){
-  var V={hoje:viewHoje,semana:viewSemana,foco:viewFoco,revisao:viewRevisao};
+  var V={hoje:viewHoje,semana:viewSemana,foco:viewFoco,revisao:viewRevisao,perfil:viewPerfil};
   $('#view').innerHTML=V[tab]();
   Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(b){b.setAttribute('aria-current',b.dataset.t===tab?'page':'false')});
   var p=$('#pip');if(p)p.hidden=!(S.session&&S.session.alerted&&tab!=='foco');
@@ -1262,7 +1307,7 @@ function renderSheet(){
   var host=$('#sheet');
   if(!sh){host.innerHTML='';document.documentElement.classList.remove('lock');return}
   var old=host.querySelector('.sheet'),sc=old?old.scrollTop:0;
-  host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+(sh.kind==='plan'?planSheetHTML():(sh.kind==='help'?helpSheetHTML():(sh.kind==='pw'?pwSheetHTML():taskSheetHTML())))+'</div></div>';
+  host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+(sh.kind==='plan'?planSheetHTML():(sh.kind==='help'?helpSheetHTML():(sh.kind==='pw'?pwSheetHTML():(sh.kind==='del'?delSheetHTML():taskSheetHTML()))))+'</div></div>';
   document.documentElement.classList.add('lock');
   var n=host.querySelector('.sheet');if(n)n.scrollTop=sc;
 }
@@ -1383,7 +1428,7 @@ var pushState='boot',tmLast='-';
 var IOSDEV=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 var STANDALONE=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
 function b64u(s){var p='='.repeat((4-s.length%4)%4),b=(s+p).replace(/-/g,'+').replace(/_/g,'/'),r=atob(b),o=new Uint8Array(r.length);for(var i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o}
-var BUILD='03/11 16:24',pushDiag='';
+var BUILD='03/11 16:45',pushDiag='';
 function pushBanner(){
   if(pushState!=='off')return '';
   try{if(localStorage.getItem('prumo.pushno')==='1')return ''}catch(e){}
@@ -1604,6 +1649,133 @@ function summaryTextFor(wk){
   var r=S.retro[wk];
   if(r&&(r.worked||r.stuck||r.tweak)){L.push('','Retrospectiva');if(r.worked)L.push('Funcionou: '+r.worked);if(r.stuck)L.push('Travou: '+r.stuck);if(r.tweak)L.push('Muda: '+r.tweak)}
   return L.join('\n');
+}
+
+/* ---------- perfil: nome, foto, exportar e excluir conta ---------- */
+var meEmail='',prevTab='hoje',avLoading='',AVKEY='prumo.avatar';
+function profName(){return (S.prof&&S.prof.name)||''}
+function cleanName(s){return String(s||'').replace(/[\u0000-\u001f\u007f​-‏‪-‮⁦-⁩]/g,'').replace(/\s+/g,' ').slice(0,60)}
+function initials(){
+  var n=profName().trim();
+  if(n){var p=n.split(' ');return ((p[0]||'')[0]+(p.length>1?(p[p.length-1]||'')[0]:'')).toUpperCase()}
+  return (meEmail[0]||'?').toUpperCase();
+}
+// foto: cópia local (data URL) para funcionar offline; baixa do Storage quando outro aparelho trocou
+function avCache(){try{return JSON.parse(localStorage.getItem(AVKEY)||'null')}catch(e){return null}}
+function avSrc(){
+  var p=S.prof||{};if(!p.avk)return '';
+  var c=avCache();if(c&&c.v===p.av&&c.k===p.avk&&/^data:image\/(jpeg|webp);base64,/.test(c.d))return c.d;
+  avFetch(p);return '';
+}
+async function avFetch(p){
+  if(!SB||!SBU||avLoading===p.avk+p.av)return;
+  avLoading=p.avk+p.av;
+  try{
+    var r=await SB.storage.from('avatars').download(p.avk);
+    if(r.error||!r.data)return;
+    var d=await blobURL(r.data);
+    if(S.prof&&S.prof.av===p.av){try{localStorage.setItem(AVKEY,JSON.stringify({v:p.av,k:p.avk,d:d}))}catch(e){}softRender()}
+  }catch(e){}
+  finally{avLoading=''}
+}
+function blobURL(b){return new Promise(function(ok,no){var f=new FileReader();f.onload=function(){ok(f.result)};f.onerror=no;f.readAsDataURL(b)})}
+function avatarHTML(cls){
+  var s=avSrc();
+  return '<span class="av'+(cls?' '+cls:'')+'" aria-hidden="true">'+(s?'<img src="'+esc(s)+'" alt="">':esc(initials()))+'</span>';
+}
+
+// Reduz para 256 px e regrava a imagem: some tudo que vinha no arquivo original (inclusive a localização do GPS).
+async function photoBlob(file){
+  if(!file||!/^image\//.test(file.type||'image/'))throw 'tipo';
+  if(file.size>20*1024*1024)throw 'grande';
+  var img;
+  try{img=await createImageBitmap(file)}
+  catch(e){img=await new Promise(function(ok,no){var u=URL.createObjectURL(file),i=new Image();i.onload=function(){URL.revokeObjectURL(u);ok(i)};i.onerror=function(){URL.revokeObjectURL(u);no('ler')};i.src=u})}
+  var w=img.width,h=img.height;if(!w||!h||w>12000||h>12000)throw 'ler';
+  var s=Math.min(w,h),c=document.createElement('canvas');c.width=c.height=256;
+  var x=c.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(img,(w-s)/2,(h-s)/2,s,s,0,0,256,256);
+  if(img.close)img.close();
+  var tb=function(t){return new Promise(function(ok){c.toBlob(ok,t,.85)})};
+  var b=await tb('image/webp');if(!b||b.type!=='image/webp')b=await tb('image/jpeg');
+  if(!b)throw 'ler';
+  return b;
+}
+async function setPhoto(file){
+  if(!SB||!SBU){toast('Entre na conta para trocar a foto.');return}
+  var b;
+  try{b=await photoBlob(file)}catch(e){toast(e==='grande'?'Essa imagem é grande demais. Escolha outra.':'Não consegui ler essa imagem. Tente uma foto JPEG ou PNG.');return}
+  var ext=b.type==='image/webp'?'webp':'jpg',path=SBU+'/avatar.'+ext,old=S.prof&&S.prof.avk;
+  try{
+    var r=await SB.storage.from('avatars').upload(path,b,{upsert:true,contentType:b.type,cacheControl:'3600'});
+    if(r.error)throw r.error;
+    if(old&&old!==path)await SB.storage.from('avatars').remove([old]);
+  }catch(e){toast(navigator.onLine===false?'Sem conexão. Tente de novo quando voltar.':'Não consegui enviar a foto. Tente de novo.');return}
+  S.prof=Object.assign({},S.prof,{avk:path,av:Date.now()});
+  try{localStorage.setItem(AVKEY,JSON.stringify({v:S.prof.av,k:path,d:await blobURL(b)}))}catch(e){}
+  persist();render();toast('Foto atualizada.');
+}
+async function removePhoto(){
+  var k=S.prof&&S.prof.avk;if(!k)return;
+  try{var r=await SB.storage.from('avatars').remove([k]);if(r&&r.error)throw r.error}
+  catch(e){toast('Não consegui remover a foto agora. Tente de novo.');return}
+  S.prof=Object.assign({},S.prof,{avk:'',av:Date.now()});
+  try{localStorage.removeItem(AVKEY)}catch(e){}
+  persist();render();toast('Foto removida.');
+}
+
+// Exportar: tudo o que a conta tem no servidor, mais o que está só neste aparelho. Vai para o compartilhar do iPhone ou baixa.
+async function exportData(){
+  var out={app:'Prumo',formato:1,exportado_em:new Date().toISOString(),conta:{id:SBU,email:meEmail||null},perfil:{nome:profName()||null,foto:(avCache()||{}).d||null},neste_aparelho:itemsOf()};
+  if(SB&&SBU){
+    try{
+      out.no_servidor=(await sbFetchAll()).map(function(r){return {tipo:r.kind,id:r.id,dados:r.data,excluido:r.deleted,atualizado_em:new Date(Number(r.updated_at)).toISOString()}});
+      var rm=await SB.from('prumo_reminders').select('day,kind,fire_at,title,body,sent');if(!rm.error)out.lembretes=rm.data;
+      var ps=await SB.from('prumo_push_subs').select('endpoint,created_at');
+      if(!ps.error)out.aparelhos_com_aviso=(ps.data||[]).map(function(s){return {servico:String(s.endpoint).split('/')[2],desde:s.created_at}});
+    }catch(e){out.no_servidor=null;out.aviso='Sem conexão: este arquivo tem só os dados deste aparelho.'}
+  }
+  var name='prumo-meus-dados-'+todayISO()+'.json',blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
+  try{
+    var f=new File([blob],name,{type:'application/json'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Meus dados do Prumo'});return}
+  }catch(e){if(e&&e.name==='AbortError')return}
+  var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(u)},4000);
+  toast('Arquivo com seus dados gerado.');
+}
+
+// Excluir conta: confirma a senha (o servidor exige login de menos de 5 min) e apaga conta, tarefas e foto.
+var delBusy=false;
+function delSheetHTML(){
+  return '<div class="sh-head"><h2 class="h2">Excluir minha conta</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>'+
+    '<p class="hint" style="margin:0">Isso apaga para sempre a sua conta, todas as tarefas, retrôs, histórico de foco e a sua foto, em todos os aparelhos. Não dá para desfazer. Se quiser guardar uma cópia, use antes "Exportar meus dados".</p>'+
+    '<div><label class="lab" for="del-pw">Sua senha</label><input id="del-pw" class="inp" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="128"></div>'+
+    '<label class="chk"><input type="checkbox" id="del-ok"> <span>Entendo que a exclusão é permanente.</span></label>'+
+    '<p class="hint" id="del-msg" style="margin:0" aria-live="polite"></p>'+
+    '<div class="sh-actions"><button class="btn btn-d" data-act="del-go">Excluir conta</button><button class="btn btn-s" data-act="sh-close">Cancelar</button></div>';
+}
+async function deleteAccount(){
+  if(delBusy)return;
+  var pw=($('#del-pw')||{}).value||'',okc=($('#del-ok')||{}).checked,m=$('#del-msg');
+  var say=function(t){if(m){m.textContent=t;m.style.color='var(--bad)'}};
+  if(!SB||!SBU){say('Entre na conta para excluí-la.');return}
+  if(!pw){say('Digite sua senha.');return}
+  if(!okc){say('Marque a confirmação para continuar.');return}
+  delBusy=true;if(m){m.textContent='Excluindo...';m.style.color=''}
+  try{
+    var u=await SB.auth.getUser(),me=u&&u.data&&u.data.user?u.data.user.email:meEmail;
+    var v=await SB.auth.signInWithPassword({email:me,password:pw});
+    if(v.error){say(v.error.status===429?'Muitas tentativas. Aguarde alguns minutos.':'Senha incorreta.');return}
+    var r=await SB.functions.invoke('prumo-delete-account',{method:'POST',body:{}});
+    if(r.error){say('Não consegui excluir agora. Nada foi apagado. Tente de novo.');return}
+    try{var reg=await Promise.race([navigator.serviceWorker.ready,new Promise(function(ok){setTimeout(function(){ok(null)},2000)})]);var sub=reg&&await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe()}catch(e){}
+    // marca o endereço antes de sair: o SIGNED_OUT recarrega a página e a tela de entrada mostra a confirmação
+    try{history.replaceState(null,'',location.pathname+'#conta-excluida')}catch(e){}
+    stopSync();SBU=null;wipeLocal();
+    try{await SB.auth.signOut({scope:'local'})}catch(e){}
+    location.reload();
+  }catch(e){say('Sem conexão. Nada foi apagado. Tente de novo.')}
+  finally{delBusy=false}
 }
 
 /* ---------- retrô em stories ---------- */
@@ -1841,12 +2013,18 @@ function act(a,el){
     case 'pip':openPip();break;
     case 'pip-auto':try{localStorage.setItem('prumo.pip',pipAuto()?'off':'on')}catch(e){}render();break;
     case 'notif':try{Notification.requestPermission().then(function(){render()})}catch(e){}break;
+    case 'perfil':if(tab!=='perfil')prevTab=tab;tab='perfil';render();scrollTop();break;
+    case 'perfil-back':tab=prevTab||'hoje';render();scrollTop();break;
+    case 'photo-del':removePhoto();break;
+    case 'export':exportData();break;
+    case 'del-open':sh={kind:'del'};renderSheet();setTimeout(function(){var i=$('#del-pw');if(i)i.focus()},50);break;
+    case 'del-go':deleteAccount();break;
     case 'lock':logout('local');break;
     case 'lock-all':if(confirm('Encerrar a sessão em todos os aparelhos? Você vai precisar entrar de novo em cada um.'))logout('global');break;
     case 'copy-summary':copyText(summaryText(),'Resumo copiado.');break;
     case 'copy-backup':copyText(JSON.stringify(Object.assign({},S,{session:null})),'Backup copiado.');break;
     case 'restore':{
-      try{var o=JSON.parse(restoreTxt);if(!o||!Array.isArray(o.tasks))throw 0;S=Object.assign(blank(),o,{session:null},{u:S.u,dirty:S.dirty,del:S.del,synced:S.synced,owner:S.owner});restoreTxt='';persist();render();toast('Backup restaurado.')}
+      try{var o=JSON.parse(restoreTxt);if(!o||!Array.isArray(o.tasks))throw 0;S=Object.assign(blank(),o,{session:null},{u:S.u,dirty:S.dirty,del:S.del,synced:S.synced,owner:S.owner,prof:S.prof});restoreTxt='';persist();render();toast('Backup restaurado.')}
       catch(e){toast('Esse texto não parece um backup do Prumo.')}
       break}
     case 'toast-act':{var fn=toastFn;toastFn=null;$('#toast').hidden=true;if(fn)fn();break}
@@ -1865,10 +2043,12 @@ document.addEventListener('input',function(e){
   else if(k==='retro'){var wk=curWk();S.retro[wk]=S.retro[wk]||{};S.retro[wk][el.dataset.f]=el.value;persist()}
   else if(k==='ctxname'){S.ctx=S.ctx||{};var v=el.value.trim();if(v)S.ctx[el.dataset.c]=v;else delete S.ctx[el.dataset.c];persist()}
   else if(k==='restore'){restoreTxt=el.value}
+  else if(k==='pname'){S.prof=Object.assign({},S.prof,{name:cleanName(el.value).trim()});persist()}
   else if(k==='est'){var n=Math.round(Number(el.value));if(n>=1&&n<=960&&sh&&sh.d){sh.d.est=n;Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-est"]'),function(b){b.setAttribute('aria-pressed',String(Number(b.dataset.v)===n))});var pn=document.getElementById('pomo-n');if(pn)pn.textContent=pomoText(sh.d,sh.d.fw||suggestFw(sh.d));var sb=document.getElementById('sug-box');if(sb)sb.innerHTML=sugInner(sh.d);var cf=sh.d.fw||suggestFw(sh.d);Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-fw"]'),function(b){b.setAttribute('aria-pressed',String(b.dataset.v===cf))})}}
 });
 document.addEventListener('change',function(e){
   var el=e.target;if(el.dataset&&el.dataset.in==='date'&&sh&&sh.d){sh.d.day=el.value||null;renderSheet()}
+  if(el.dataset&&el.dataset.in==='photo'&&el.files&&el.files[0]){var f=el.files[0];el.value='';setPhoto(f)}
 });
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&sh){sh=null;renderSheet()}
@@ -2147,6 +2327,7 @@ if(sb){
   });
 }
 if(sb&&/token_hash=|error=/.test(location.hash))fromLink();
+else if(location.hash==='#conta-excluida'){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}lock('in');say('Sua conta foi excluída, com todos os dados. Obrigado por ter usado o Prumo.',true)}
 else if(stored())unlock();
 else lock('in');
 })();

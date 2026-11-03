@@ -16,7 +16,7 @@ function renderMini(){
   m.hidden=!h;document.documentElement.classList.toggle('hasmini',!!h);
 }
 function render(){
-  var V={hoje:viewHoje,semana:viewSemana,foco:viewFoco,revisao:viewRevisao};
+  var V={hoje:viewHoje,semana:viewSemana,foco:viewFoco,revisao:viewRevisao,perfil:viewPerfil};
   $('#view').innerHTML=V[tab]();
   Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(b){b.setAttribute('aria-current',b.dataset.t===tab?'page':'false')});
   var p=$('#pip');if(p)p.hidden=!(S.session&&S.session.alerted&&tab!=='foco');
