@@ -1,4 +1,4 @@
-const V = 'prumo-v4';
+const V = 'prumo-v5';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'supabase.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
@@ -18,7 +18,7 @@ self.addEventListener('fetch', e => {
 self.addEventListener('push', e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data ? e.data.text() : '' }; }
-  e.waitUntil(self.registration.showNotification(d.title || 'Prumo', { body: d.body || '', tag: 'prumo-timer', renotify: true, icon: 'icon-192.png', badge: 'icon-192.png', data: { url: './' } }));
+  e.waitUntil(self.registration.showNotification(d.title || 'Prumo', { body: d.body || '', tag: d.tag || 'prumo-timer', renotify: true, icon: 'icon-192.png', badge: 'icon-192.png', data: { url: './' } }));
 });
 self.addEventListener('notificationclick', e => {
   e.notification.close();
