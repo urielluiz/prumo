@@ -1,7 +1,7 @@
 # Prumo — roadmap
 
 ## Já entregue
-Login (Supabase), sincronização por item, tarefas com frameworks ágeis, pautas com entregas, plano por vários dias, tarefas recorrentes, push do timer, resumo diário e retrô semanal (stories) por push, painel semanal/mensal, guia de métodos, alterar senha.
+Login (Supabase), sincronização por item, tarefas com frameworks ágeis, pautas com entregas, plano por vários dias, tarefas recorrentes, push do timer, resumo diário e retrô semanal (stories) por push, painel semanal/mensal, guia de métodos, alterar senha, código dividido em módulos (`src/app/`) com build gerando um único arquivo.
 
 ## Próxima fase (anotado a pedido)
 - Cadastro de novos usuários (hoje o cadastro é bloqueado por trigger: só o e-mail do dono entra)
@@ -15,4 +15,3 @@ Login (Supabase), sincronização por item, tarefas com frameworks ágeis, pauta
 ## Depois
 - Acessibilidade (leitor de tela, contraste, texto)
 - Feedback de uso e ajustes de usabilidade
-- Refatorar o arquivo único em módulos com build (esbuild) mantendo a saída em um único arquivo

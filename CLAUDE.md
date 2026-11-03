@@ -3,11 +3,15 @@
 PWA pessoal de organização semanal (iPhone + Mac/Chrome), com frameworks ágeis por tarefa. Usuário único (Uriel). Idioma da interface: português do Brasil.
 
 ## Estrutura
-- `src/app.html`: fonte única do app (HTML, CSS e JS vanilla). Edite aqui.
-- `src/build.py`: gera `src/pwa/` (index.html, sw.js, manifest, ícones). Precisa de Pillow.
+- `src/app/`: fonte do app (HTML, CSS e JS vanilla), dividida em módulos. Edite aqui.
+  - `shell.html`: esqueleto (marcação, `<style>` e o IIFE `'use strict'`) com linhas `/* @include caminho */`.
+  - `css/`: `base.css`, `retro.css`, `motion.css`.
+  - `js/`: `util`, `estado`, `sync`, `dominio`, `recorrencia`, `tarefas`, `push`, `resumo`, `retro`, `eventos`, `boot`; `telas/` (componentes, views, painel, render, sheets, vazios); `timer/` (alertas, sessao).
+  - Todos os JS rodam no mesmo escopo (o IIFE do shell), na ordem dos includes. A ordem importa para `var` inicializado no topo; funções são içadas.
+- `src/build.py`: junta shell + módulos num único HTML e gera `src/pwa/` (index.html, sw.js, manifest, ícones). Precisa de Pillow.
 - `src/deploy.sh`: build + copia para a raiz, que é o que o GitHub Pages publica. Raiz = saída gerada, não edite à mão.
 - `src/sb.json`: URL e chave publicável do Supabase e chave VAPID pública.
-- `src/e2e/*.js`: testes com puppeteer-core + Chrome headless e Supabase falso. Rodar: `cd src && node e2e/rec.js` (npm i puppeteer-core antes). Rodar todos antes de publicar.
+- `src/e2e/*.js`: testes com puppeteer-core + Chrome headless e Supabase falso. Rodar: `cd src && node e2e/rec.js` (npm i puppeteer-core antes). Rodar todos antes de publicar. `rec.js` e `v2.js` (fim do timer) às vezes falham por tempo; repita antes de concluir que quebrou.
 - `ROADMAP.md`: próximas fases.
 
 ## Backend (Supabase, projeto cpdeptlintjvdqcfrafg)

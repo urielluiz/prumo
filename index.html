@@ -1341,7 +1341,7 @@ var pushState='boot',tmLast='-';
 var IOSDEV=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 var STANDALONE=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
 function b64u(s){var p='='.repeat((4-s.length%4)%4),b=(s+p).replace(/-/g,'+').replace(/_/g,'/'),r=atob(b),o=new Uint8Array(r.length);for(var i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o}
-var BUILD='03/11 13:04',pushDiag='';
+var BUILD='03/11 14:24',pushDiag='';
 function pushBanner(){
   if(pushState!=='off')return '';
   try{if(localStorage.getItem('prumo.pushno')==='1')return ''}catch(e){}

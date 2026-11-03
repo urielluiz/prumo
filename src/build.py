@@ -5,7 +5,11 @@ D = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(D, 'pwa')
 os.makedirs(OUT, exist_ok=True)
 
-app = open(os.path.join(D, 'app.html'), encoding='utf-8').read()
+# ---- monta o app: shell.html + modulos (linhas "/* @include caminho */", relativo a app/) ----
+APP = os.path.join(D, 'app')
+def include(m):
+    return open(os.path.join(APP, m.group(1)), encoding='utf-8').read()
+app = re.sub(r'^[ \t]*/\* @include (\S+) \*/\n', include, open(os.path.join(APP, 'shell.html'), encoding='utf-8').read(), flags=re.M)
 import datetime
 app = app.replace('__BUILD__', (datetime.datetime.utcnow() - datetime.timedelta(hours=3)).strftime('%d/%m %H:%M'))
 
