@@ -1,0 +1,7 @@
+src/pwa/
+src/auth.json
+src/*.bak*
+src/*.zip
+src/e2e/*.png
+src/e2e/pushtest.html
+node_modules/

@@ -1,0 +1,22 @@
+const puppeteer=require('puppeteer-core');const S=require('path').resolve(__dirname,'..');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{const b=await puppeteer.launch({executablePath:'/usr/bin/google-chrome',headless:'new',args:['--no-sandbox']});
+const p=await b.newPage();await p.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.evaluateOnNewDocument(()=>{try{localStorage.setItem('sb-test-auth-token','{"refresh_token":"x"}')}catch(e){}});
+await p.goto('file://'+S+'/pwa/index.html',{waitUntil:'domcontentloaded'});await sleep(1000);
+const n0=await p.evaluate(()=>document.querySelectorAll('[data-act=rowdel]').length);
+console.log('rows with delete:',n0);
+await p.evaluate(()=>document.querySelector('[data-act=rowdel]').click());await sleep(200);
+console.log('after delete:',await p.evaluate(()=>document.querySelectorAll('[data-act=rowdel]').length),'toast:',await p.evaluate(()=>document.querySelector('#toast').innerText));
+await p.evaluate(()=>document.querySelector('[data-act=toast-act]').click());await sleep(200);
+console.log('after undo:',await p.evaluate(()=>document.querySelectorAll('[data-act=rowdel]').length));
+await p.evaluate(()=>document.querySelector('.tab-add').click());await sleep(150);
+for(const m of [2,15,30,120]){await p.evaluate(m=>document.querySelector('[data-act=sh-est][data-v="'+m+'"]').click(),m);await sleep(80);console.log(m,'->',await p.evaluate(()=>document.querySelector('#sug-box').innerText.replace(/\n+/g,' | ')))}
+await p.evaluate(()=>document.querySelector('[data-act=sh-est-other]').click());await sleep(80);
+await p.evaluate(()=>{const i=document.querySelector('#f-est');i.value='300';i.dispatchEvent(new Event('input',{bubbles:true}))});
+console.log('300 ->',await p.evaluate(()=>document.querySelector('#sug-box').innerText.replace(/\n+/g,' | ')));
+await p.screenshot({path:S+'/e2e/del-sheet.png'});
+await p.evaluate(()=>document.querySelector('[data-act=sh-close]').click());await sleep(200);
+await p.screenshot({path:S+'/e2e/del-list.png'});
+console.log(errs.length?'ERRORS '+errs:'NO PAGE ERRORS');await b.close()})();
