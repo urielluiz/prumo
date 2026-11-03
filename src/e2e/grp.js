@@ -1,10 +1,10 @@
-const puppeteer=require('puppeteer-core');const S=require('path').resolve(__dirname,'..');
+const puppeteer=require('puppeteer-core');const url=require('./lib/serve');const S=require('path').resolve(__dirname,'..');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const res=[];const ok=(n,c)=>res.push((c?'PASS ':'FAIL ')+n);
 (async()=>{const b=await puppeteer.launch({executablePath:'/usr/bin/google-chrome',headless:'new',args:['--no-sandbox']});
 const p=await b.newPage();await p.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
 const errs=[];p.on('pageerror',e=>errs.push(e.message));
 await p.evaluateOnNewDocument(()=>{try{localStorage.setItem('sb-test-auth-token','{"refresh_token":"x"}')}catch(e){}});
-await p.goto('file://'+S+'/pwa/index.html',{waitUntil:'domcontentloaded'});await sleep(900);
+await p.goto(await url('pwa/index.html'),{waitUntil:'domcontentloaded'});await sleep(900);
 const ev=(f,...a)=>p.evaluate(f,...a);
 await ev(()=>document.querySelector('[data-act=clear-ex]').click());await sleep(150);
 // create pauta

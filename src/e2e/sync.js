@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer-core');
 const fs = require('fs');
+const url=require('./lib/serve');
 const S=require('path').resolve(__dirname,'..');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const res = []; const ok = (n, c) => res.push((c ? 'PASS ' : 'FAIL ') + n);
@@ -58,7 +59,7 @@ const srv = (op, json) => {
     page.on('pageerror', e => errs.push('pageerror: ' + e.message));
     await page.exposeFunction('__srv', srv);
     await page.evaluateOnNewDocument(FAKE);
-    await page.goto('file://' + S + '/e2e/sbtest.html', { waitUntil: 'domcontentloaded' });
+    await page.goto(await url('e2e/sbtest.html'), { waitUntil: 'domcontentloaded' });
     await sleep(2200);
     return page;
   }

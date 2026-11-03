@@ -1,4 +1,5 @@
 const puppeteer=require('puppeteer-core');const fs=require('fs');
+const url=require('./lib/serve');
 const S=require('path').resolve(__dirname,'..');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const res=[];const ok=(n,c)=>res.push((c?'PASS ':'FAIL ')+n);
 let html=fs.readFileSync(S+"/pwa/index.html","utf8");
@@ -27,7 +28,7 @@ window.Notification=function(){};Notification.permission='default';Notification.
 const p=await b.newPage();await p.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
 const errs=[];p.on('pageerror',e=>errs.push(e.message));
 await p.evaluateOnNewDocument(FAKE);
-await p.goto('file://'+S+'/e2e/pushtest.html',{waitUntil:'domcontentloaded'});await sleep(1500);
+await p.goto(await url('e2e/pushtest.html'),{waitUntil:'domcontentloaded'});await sleep(1500);
 const ev=(f,...a)=>p.evaluate(f,...a);const calls=()=>ev(()=>window.__calls.slice());const tasks=()=>ev(()=>JSON.parse(localStorage.getItem('prumo.v1')).tasks);
 await ev(()=>document.querySelector('[data-act=clear-ex]').click());await sleep(150);
 // enable push through banner on Hoje

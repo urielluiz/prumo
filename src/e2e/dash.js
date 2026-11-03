@@ -1,10 +1,10 @@
-const puppeteer=require('puppeteer-core');const S=require('path').resolve(__dirname,'..');
+const puppeteer=require('puppeteer-core');const url=require('./lib/serve');const S=require('path').resolve(__dirname,'..');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{const b=await puppeteer.launch({executablePath:'/usr/bin/google-chrome',headless:'new',args:['--no-sandbox']});
 const errs=[];
 async function mk(vp){const p=await b.newPage();await p.setViewport(vp);p.on('pageerror',e=>errs.push(e.message));
  await p.evaluateOnNewDocument(()=>{try{localStorage.setItem('sb-test-auth-token','{"refresh_token":"x"}')}catch(e){}});
- await p.goto('file://'+S+'/pwa/index.html',{waitUntil:'domcontentloaded'});await sleep(900);return p}
+ await p.goto(await url('pwa/index.html'),{waitUntil:'domcontentloaded'});await sleep(900);return p}
 let p=await mk({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
 // seed history
 await p.evaluate(()=>{const s=JSON.parse(localStorage.getItem('prumo.v1'));const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');

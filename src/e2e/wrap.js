@@ -1,4 +1,5 @@
 const puppeteer=require('puppeteer-core');const fs=require('fs');
+const url=require('./lib/serve');
 const S=require('path').resolve(__dirname,'..');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const res=[];const ok=(n,c)=>res.push((c?'PASS ':'FAIL ')+n);
 let html=fs.readFileSync(S+'/pwa/index.html','utf8');
@@ -35,7 +36,7 @@ const p=await b.newPage();await p.setViewport({width:390,height:844,deviceScaleF
 const errs=[];p.on('pageerror',e=>errs.push(e.message));
 await p.evaluateOnNewDocument(FAKE);
 await p.evaluateOnNewDocument(s=>{if(!localStorage.getItem('prumo.v1'))localStorage.setItem('prumo.v1',s)},JSON.stringify(seed));
-await p.goto('file://'+S+'/e2e/pushtest.html',{waitUntil:'domcontentloaded'});await sleep(1500);
+await p.goto(await url('e2e/pushtest.html'),{waitUntil:'domcontentloaded'});await sleep(1500);
 const ev=(f,...a)=>p.evaluate(f,...a);const click=(sel)=>ev(s=>document.querySelector(s).click(),sel);
 await click('[data-act=tab][data-t=revisao]');await sleep(300);
 ok('retro card in Revisão',await ev(()=>!!document.querySelector('.wrapcard')));
