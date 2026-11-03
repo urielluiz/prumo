@@ -5,3 +5,4 @@ src/*.zip
 src/e2e/*.png
 src/e2e/pushtest.html
 node_modules/
+src/e2e/sbtest.html
