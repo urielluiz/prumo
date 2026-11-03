@@ -1,0 +1,10 @@
+PRUMO - como instalar no iPhone
+
+1. Publique esta pasta em qualquer hospedagem estática com HTTPS
+   (Netlify Drop, GitHub Pages, Vercel, Cloudflare Pages).
+   Basta arrastar os arquivos. Não há build nem servidor.
+2. No iPhone, abra o endereço no Safari.
+3. Toque em Compartilhar e depois em "Adicionar à Tela de Início".
+4. Abra pelo ícone. O app roda em tela cheia e funciona offline.
+
+Seus dados ficam salvos no aparelho. Use Revisão > Ajustes > Copiar backup de vez em quando.
