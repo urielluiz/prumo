@@ -1,0 +1,54 @@
+name: Testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: testes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Dependências
+        run: |
+          pip install pillow==12.3.0
+          cd src && npm i --no-save --no-audit --no-fund puppeteer-core@25.16.0
+      - name: Chrome
+        run: |
+          test -x /usr/bin/google-chrome || { echo "Chrome não encontrado em /usr/bin/google-chrome"; exit 1; }
+          google-chrome --version
+      - name: Build
+        run: cd src && python3 build.py
+      - name: A raiz publicada está atualizada
+        run: |
+          # o que o GitHub Pages serve (raiz) tem que ser igual ao build, tirando o carimbo de horário
+          # (o hash da CSP muda junto com o carimbo; o conteúdo dos scripts é comparado do mesmo jeito)
+          norm() { sed -E "s/var BUILD='[^']*'/var BUILD='X'/; s/'sha256-[A-Za-z0-9+\/=]+'/'sha256-X'/g" "$1"; }
+          for f in index.html sw.js manifest.webmanifest supabase.js; do
+            cmp -s <(norm "src/pwa/$f") <(norm "$f") || { echo "::error file=$f::$f está desatualizado. Rode: sh src/deploy.sh"; exit 1; }
+          done
+        shell: bash
+      - name: Testes e2e
+        run: cd src && sh e2e/run-all.sh
+      - name: Saídas dos testes
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: saidas-e2e
+          path: src/e2e/out/
+          retention-days: 7

@@ -13,3 +13,4 @@ src/e2e/createtest.html
 src/e2e/uxtest.html
 src/e2e/converttest.html
 src/e2e/hstest.html
+src/e2e/out/
