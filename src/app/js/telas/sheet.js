@@ -33,18 +33,34 @@ function planSheetHTML(){
   var h='<div class="sh-head"><h2 class="h2">Planejar a semana</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>';
   h+='<p class="hint" style="margin:0">Capacidade é o tempo de foco real que cabe em cada dia, sem contar reuniões e imprevistos. Comece com menos do que você acha que consegue.</p><div>';
   h+=[0,1,2,3,4,5,6].map(function(i){var dw=(i+1)%7,d=addDays(wk,i);
-    return '<div class="step"><span>'+DAYS[dw]+' <span class="muted" style="font-size:13px">'+parseISO(d).getDate()+'</span></span><span style="display:flex;align-items:center"><button class="ib" data-act="cap" data-i="'+dw+'" data-d="-30" aria-label="Menos 30 minutos">'+ic('left',20)+'</button><span class="val">'+(S.cap[dw]?fmt(S.cap[dw]):'livre')+'</span><button class="ib" data-act="cap" data-i="'+dw+'" data-d="30" aria-label="Mais 30 minutos">'+ic('right',20)+'</button></span></div>'}).join('');
+    return '<div class="step"><span>'+DAYS[dw]+' <span class="muted" style="font-size:.8125rem">'+parseISO(d).getDate()+'</span></span><span style="display:flex;align-items:center"><button class="ib" data-act="cap" data-i="'+dw+'" data-d="-30" aria-label="Menos 30 minutos">'+ic('left',20)+'</button><span class="val">'+(S.cap[dw]?fmt(S.cap[dw]):'livre')+'</span><button class="ib" data-act="cap" data-i="'+dw+'" data-d="30" aria-label="Mais 30 minutos">'+ic('right',20)+'</button></span></div>'}).join('');
   h+='</div><p class="hint" style="margin:0">As tarefas sem data são distribuídas por prioridade: primeiro o que é urgente e importante, depois o importante, sem passar da capacidade de cada dia.</p>';
   h+='<div class="sh-actions"><button class="btn btn-p" data-act="autoplan">Distribuir tarefas sem data</button><button class="btn btn-s" data-act="sh-close">Fechar</button></div>';
   return h;
 }
+// Folhas: diálogo com nome (o título h2), fundo inerte enquanto aberta, foco entra ao abrir,
+// fica no mesmo controle quando a folha se redesenha e volta para quem abriu ao fechar.
+var shOpener=null,SHBG=['.wrap','#tabs','#mini'];
+function focusKey(el){if(!el||!el.closest||!el.closest('.sheet'))return null;if(el.id)return '#'+el.id;var a=el.getAttribute('data-act');if(!a)return null;var k='[data-act="'+a+'"]';['data-v','data-id','data-d','data-i'].forEach(function(x){var v=el.getAttribute(x);if(v!=null)k+='['+x+'="'+v.replace(/"/g,'\\"')+'"]'});return k}
+function sheetBg(on){SHBG.forEach(function(q){var e=document.querySelector(q);if(!e)return;if(on){if(!e.hasAttribute('inert')){e.setAttribute('inert','');e.dataset.shInert='1'}}else if(e.dataset.shInert){e.removeAttribute('inert');delete e.dataset.shInert}})}
 function renderSheet(){
   var host=$('#sheet');
-  if(!sh){host.innerHTML='';document.documentElement.classList.remove('lock');return}
-  var old=host.querySelector('.sheet'),sc=old?old.scrollTop:0;
+  if(!sh){
+    var had=!!host.querySelector('.sheet');
+    host.innerHTML='';document.documentElement.classList.remove('lock');sheetBg(false);
+    if(had){var o=shOpener;shOpener=null;setTimeout(function(){if(o&&document.body.contains(o)&&!o.closest('[inert]'))try{o.focus({preventScroll:true})}catch(e){}},0)}
+    return;
+  }
+  var old=host.querySelector('.sheet'),sc=old?old.scrollTop:0,fk=old?focusKey(document.activeElement):null;
+  if(!old)shOpener=document.activeElement&&document.activeElement!==document.body?document.activeElement:null;
   host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+({plan:planSheetHTML,help:helpSheetHTML,pw:pwSheetHTML,del:delSheetHTML,menu:menuSheetHTML,late:lateSheetHTML,note:noteSheetHTML}[sh.kind]||taskSheetHTML)()+'</div></div>';
-  document.documentElement.classList.add('lock');
-  var n=host.querySelector('.sheet');if(n)n.scrollTop=sc;
+  document.documentElement.classList.add('lock');sheetBg(true);
+  var n=host.querySelector('.sheet');if(!n)return;
+  n.scrollTop=sc;
+  var t=n.querySelector('h2');if(t){t.id='sh-t';n.setAttribute('aria-labelledby','sh-t')}
+  var f=fk&&n.querySelector(fk);
+  if(f)try{f.focus({preventScroll:true})}catch(e){}
+  else if(!old&&t){t.setAttribute('tabindex','-1');setTimeout(function(){var a=document.activeElement;if(!(a&&a.closest&&a.closest('.sheet')))try{t.focus({preventScroll:true})}catch(e){}},80)}
 }
 var pwBusy=false;
 async function savePw(){

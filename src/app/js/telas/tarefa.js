@@ -76,7 +76,7 @@ function pillsHTML(d){
 // calendário do mês: a = dia escolhido (ou início), b = fim do período; act/monAct = ações dos botões
 function calGrid(mon,a,b,act,monAct){
   var td=todayISO(),m=mon.split('-').map(Number),first=new Date(m[0],m[1]-1,1),lead=(first.getDay()+6)%7,n=new Date(m[0],m[1],0).getDate(),cur=td.slice(0,7)===mon,h='';
-  h+='<div class="cal"><div class="cal-h"><button class="ib" data-act="'+monAct+'" data-v="-1" aria-label="Mês anterior"'+(cur?' disabled':'')+'>'+ic('left',20)+'</button><span>'+MONF[m[1]-1]+' de '+m[0]+'</span><button class="ib" data-act="'+monAct+'" data-v="1" aria-label="Próximo mês">'+ic('right',20)+'</button></div><div class="cal-g" role="grid">';
+  h+='<div class="cal"><div class="cal-h"><button class="ib" data-act="'+monAct+'" data-v="-1" aria-label="Mês anterior"'+(cur?' disabled':'')+'>'+ic('left',20)+'</button><span>'+MONF[m[1]-1]+' de '+m[0]+'</span><button class="ib" data-act="'+monAct+'" data-v="1" aria-label="Próximo mês">'+ic('right',20)+'</button></div><div class="cal-g" role="group" aria-label="'+MONF[m[1]-1]+' de '+m[0]+'">';
   ['seg','ter','qua','qui','sex','sáb','dom'].forEach(function(x){h+='<small aria-hidden="true">'+x+'</small>'});
   for(var i=0;i<lead;i++)h+='<span></span>';
   for(var k=1;k<=n;k++){

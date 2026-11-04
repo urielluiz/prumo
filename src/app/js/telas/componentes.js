@@ -1,9 +1,15 @@
 /* ---------- toast ---------- */
 var toastT=null,toastFn=null;
+// com ação (Desfazer), dura mais e fica parado enquanto há foco, toque ou mouse em cima
+var toastMs=3500,toastHold=false;
+function toastArm(){clearTimeout(toastT);if(toastHold)return;toastT=setTimeout(function(){var e=$('#toast');e.hidden=true;toastFn=null},toastMs)}
+function toastBind(){var e=$('#toast');if(!e||e.dataset.b)return;e.dataset.b='1';var on=function(){toastHold=true;clearTimeout(toastT)},off=function(){toastHold=false;if(!e.hidden)toastArm()};
+  ['focusin','mouseenter','touchstart'].forEach(function(x){e.addEventListener(x,on,{passive:true})});['focusout','mouseleave','touchend'].forEach(function(x){e.addEventListener(x,off,{passive:true})})}
 function toast(msg,label,fn){
+  toastBind();
   var e=$('#toast');toastFn=fn||null;
   e.innerHTML='<span>'+esc(msg)+'</span>'+(label?'<button data-act="toast-act">'+esc(label)+'</button>':'');
-  e.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){e.hidden=true;toastFn=null},label?6000:2800);
+  e.hidden=false;clearTimeout(toastT);toastMs=label?10000:3500;toastArm();
 }
 
 /* ---------- componentes ---------- */
@@ -24,9 +30,9 @@ function rowHTML(t,o){
   if((t.slips||0)>0&&!done)m.push('<span class="tag warn">adiada '+t.slips+'×</span>');
   if(t.rid&&S.rec&&S.rec[t.rid])m.push('<span class="tag">repete</span>');
   if(t.ex)m.push('<span class="tag">exemplo</span>');
-  var right=(done?'':'<button class="ib play" data-act="start" data-id="'+t.id+'" aria-label="Começar">'+ic('play')+'</button>')+'<button class="ib more" data-act="rowmenu" data-id="'+t.id+'" aria-label="Mais ações">'+ic('more',20)+'</button>';
+  var tl=esc(t.title),right=(done?'':'<button class="ib play" data-act="start" data-id="'+t.id+'" aria-label="Começar foco: '+tl+'">'+ic('play')+'</button>')+'<button class="ib more" data-act="rowmenu" data-id="'+t.id+'" aria-label="Mais ações: '+tl+'">'+ic('more',20)+'</button>';
   return '<div class="rw"><div class="sw" aria-hidden="true"><button class="sw-a" data-act="mv" data-id="'+t.id+'" data-d="'+addDays(todayISO(),1)+'" tabindex="-1">Amanhã</button><button class="sw-b" data-act="rowmenu" data-id="'+t.id+'" tabindex="-1">Outro dia</button></div>'+
-    '<div class="row'+(done?' is-done':'')+'" data-tid="'+t.id+'"'+(o.drag&&CANDRAG&&!done?' draggable="true"':'')+'><button class="chk" data-act="toggle" data-id="'+t.id+'" aria-label="'+(done?'Reabrir':'Concluir')+' tarefa"><i class="'+(done?'on':'')+(popId===t.id?' pop':'')+'">'+(done?ic('check',15,2.6):'')+'</i></button>'+
+    '<div class="row'+(done?' is-done':'')+'" data-tid="'+t.id+'"'+(o.drag&&CANDRAG&&!done?' draggable="true"':'')+'><button class="chk" data-act="toggle" data-id="'+t.id+'" aria-label="'+(done?'Reabrir':'Concluir')+': '+esc(t.title)+'"><i class="'+(done?'on':'')+(popId===t.id?' pop':'')+'">'+(done?ic('check',15,2.6):'')+'</i></button>'+
     '<button class="row-main" data-act="edit" data-id="'+t.id+'"><div class="row-title">'+(t.mit&&!done?'<span class="star" aria-label="Prioridade">'+ic('star',15)+'</span>':'')+esc(t.title)+'</div><div class="row-meta">'+m.join('')+'</div>'+(per&&!done?'<span class="rbar" aria-hidden="true"><i style="width:'+Math.round(per/spanOf(t)*100)+'%"></i></span>':'')+'</button>'+right+'</div></div>';
 }
 function listHTML(arr,o,sapoId){return '<div class="list">'+arr.map(function(t){return rowHTML(t,Object.assign({sapo:t.id===sapoId},o))}).join('')+'</div>'}

@@ -48,4 +48,5 @@ PWA de organização semanal (iPhone + Mac/Chrome), com frameworks ágeis por ta
 - Dados locais têm dono (`S.owner`). Sair ou trocar de conta chama `wipeLocal()` (apaga tudo `prumo.*`) e recarrega. Nada de guardar dado de usuário fora de chaves `prumo.*`.
 - Mensagens de login/cadastro/recuperação não revelam se um e-mail tem conta.
 - Texto vindo do usuário sempre por `esc()` ou `textContent`, nunca direto em `innerHTML`.
+- Acessibilidade (testada em `e2e/a11y.js` com axe-core, WCAG 2.2 AA): fontes sempre em `rem` (no iPhone a base segue o tamanho de texto do sistema via `-apple-system-body`); alvos de toque de pelo menos 44 px; folhas são diálogos com nome (h2), fundo `inert`, foco entra ao abrir, fica no controle ao redesenhar e volta ao fechar (`renderSheet`); rótulos de botões dos cards incluem o título da tarefa; aviso com ação dura 10 s e pausa com foco/toque; todo gesto tem caminho por botão.
 - Respeitar prefers-reduced-motion. Sem travessão nos textos da interface.

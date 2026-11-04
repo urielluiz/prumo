@@ -27,7 +27,7 @@ jobs:
       - name: Dependências
         run: |
           pip install pillow==12.3.0
-          cd src && npm i --no-save --no-audit --no-fund puppeteer-core@25.16.0
+          cd src && npm i --no-save --no-audit --no-fund puppeteer-core@25.16.0 axe-core@4.10.2
       - name: Chrome
         run: |
           test -x /usr/bin/google-chrome || { echo "Chrome não encontrado em /usr/bin/google-chrome"; exit 1; }
