@@ -22,7 +22,7 @@ const txt=s=>ev(s=>{const e=document.querySelector(s);return e?e.innerText:''},s
 const toastTxt=()=>ev(()=>{const t=document.querySelector('#toast');return t.hidden?'':t.innerText});
 const st=()=>ev(()=>JSON.parse(localStorage.getItem('prumo.v1')));
 const task=async n=>(await st()).tasks.find(x=>x.title===n);
-const flashed=()=>ev(()=>{const e=document.querySelector('.row.flash');return e?e.dataset.tid:null});
+const flashed=()=>ev(()=>{const e=document.querySelector('[data-tid].flash');return e?e.dataset.tid:null});
 const typeTitle=async t=>{await click('.tab-add');await sleep(200);await p.type('#f-title',t);await sleep(80)};
 const pickDay=async d=>{for(let i=0;i<4;i++){if(await ev(d=>{const b=document.querySelector('[data-act=cal-day][data-v="'+d+'"]');if(b){b.click();return true}return false},d)){await sleep(80);return true}await click('[data-act=cal-mon][data-v="1"]');await sleep(60)}return false};
 await p.goto(await url('e2e/createtest.html'),{waitUntil:'domcontentloaded'});await sleep(1200);
@@ -40,7 +40,7 @@ let t=await task('Projeto do cliente X');
 ok('text: saved as one period task',!!t&&t.day===SAT&&t.end===TUE&&t.est===120&&t.ctx==='freelas');
 ok('text: toast names the period',/Tarefa criada de (sáb|sab).* a (ter).*\(\d dias\)/.test(await toastTxt()));
 await click('[data-act=toast-act]');await sleep(400);
-ok('"Ver" opens the week and highlights the card',(await flashed())===t.id&&await has('[data-act=selday][data-d="'+SAT+'"][aria-pressed=true]'));
+ok('"Ver" opens the week and highlights the card',(await flashed())===t.id&&await has('.tab[data-t=semana][aria-current=page]')&&await has('#d-'+SAT));
 ok('week strip marks the period days',await has('.dy.per[data-d="'+SAT+'"]'));
 ok('card shows day 1 of N',/dia 1 de \d/.test(await txt('[data-tid="'+t.id+'"]')));
 
@@ -115,8 +115,7 @@ await click('[data-act=sh-save]');await sleep(300);
 t=await task('Campanha de lançamento');
 ok('period from today shows on Hoje with day 1 of 3',/dia 1 de 3/.test(await txt('[data-tid="'+t.id+'"]'))&&await has('[data-tid="'+t.id+'"] .rbar'));
 await click('.tab[data-t=semana]');await sleep(150);
-await click('[data-act=selday][data-d="'+plus(TD,1)+'"]').catch(()=>{});await sleep(150);
-if(await has('[data-act=selday][data-d="'+plus(TD,1)+'"]'))ok('tomorrow shows day 2 of 3',/dia 2 de 3/.test(await txt('[data-tid="'+t.id+'"]')));
+ok('tomorrow shows day 2 of 3',await ev(([d,id])=>{const h=document.getElementById('d-'+d);const l=h&&h.nextElementSibling;const r=l&&l.querySelector('[data-tid="'+id+'"]');return !!r&&/dia 2 de 3/.test(r.innerText)},[plus(TD,1),t.id]));
 await click('.tab[data-t=hoje]');await sleep(150);
 await ev(id=>document.querySelector('[data-act=toggle][data-id="'+id+'"]').click(),t.id);await sleep(300);
 t=await task('Campanha de lançamento');
@@ -125,8 +124,13 @@ ok('completing a period ends it today',t.status==='done'&&t.day===TD&&!t.end);
 // atrasada: período que já passou aparece em "Ficou para trás" e "Hoje" desfaz o período
 await ev(([a,z])=>{const v=JSON.parse(localStorage.getItem('prumo.v1'));v.tasks.push({id:'old1',title:'Período que passou',ctx:'trabalho',est:60,day:a,end:z,status:'todo',dod:[],slips:0,focus:0,pomos:0,mit:false});localStorage.setItem('prumo.v1',JSON.stringify(v))},[plus(TD,-5),plus(TD,-2)]);
 await p.reload({waitUntil:'domcontentloaded'});await sleep(1200);
-ok('overdue period listed by its last day',/Período que passou[\s\S]*era de/.test(await txt('#view')));
-await ev(()=>{const r=[...document.querySelectorAll('[data-act=mtoday]')].find(b=>b.dataset.id==='old1');r.click()});await sleep(200);
-t=(await st()).tasks.find(x=>x.id==='old1');ok('"Hoje" on overdue period makes it today only',t.day===TD&&!t.end);
+ok('overdue: alert on Hoje instead of a list',/1 tarefa ficou para trás/.test(await txt('.alert'))&&!/Período que passou/.test(await txt('#view')));
+await click('[data-act=late]');await sleep(150);
+ok('overdue: resolve sheet shows its last day',/Período que passou[\s\S]*Era para/.test(await txt('.sheet')));
+await ev(td=>document.querySelector('.sheet [data-act=mv][data-id=old1][data-d="'+td+'"]').click(),TD);await sleep(250);
+t=(await st()).tasks.find(x=>x.id==='old1');ok('overdue: moved to today as a single day, counted as postponed',t.day===TD&&!t.end&&t.slips===1);
+ok('overdue: sheet closes when nothing is left and alert goes away',!(await has('.sheet'))&&!(await has('.alert')));
+await click('[data-act=toast-act]');await sleep(200);
+t=(await st()).tasks.find(x=>x.id==='old1');ok('undo restores the period',t.day===plus(TD,-5)&&t.end===plus(TD,-2)&&(t.slips||0)===0);
 
 console.log(res.join('\n'));console.log(errs.length?'ERRORS '+errs:'NO PAGE ERRORS');await b.close()})();

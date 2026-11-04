@@ -1,7 +1,7 @@
 # Prumo — roadmap
 
 ## Já entregue
-Login (Supabase), sincronização por item, tarefas com frameworks ágeis, pautas com entregas, plano por vários dias, tarefas recorrentes, push do timer, resumo diário e retrô semanal (stories) por push, painel semanal/mensal, guia de métodos, alterar senha, código dividido em módulos (`src/app/`) com build gerando um único arquivo, cadastro de usuários com confirmação por código, recuperação de senha, sair de todos os aparelhos, dados locais isolados por conta, CSP, limites por conta no banco, tela de Perfil (nome, foto, conta, preferências), exportar meus dados, excluir minha conta, nova folha de tarefa (escrever do seu jeito, calendário com vários dias, etapas, aviso que leva até a tarefa).
+Login (Supabase), sincronização por item, tarefas com frameworks ágeis, pautas com entregas, plano por vários dias, tarefas recorrentes, push do timer, resumo diário e retrô semanal (stories) por push, painel semanal/mensal, guia de métodos, alterar senha, código dividido em módulos (`src/app/`) com build gerando um único arquivo, cadastro de usuários com confirmação por código, recuperação de senha, sair de todos os aparelhos, dados locais isolados por conta, CSP, limites por conta no banco, tela de Perfil (nome, foto, conta, preferências), exportar meus dados, excluir minha conta, nova folha de tarefa (escrever do seu jeito, calendário com vários dias, etapas, aviso que leva até a tarefa), Hoje enxuta e Semana em 7 dias corridos com carga por dia, menu ⋯ e deslizar para mudar de dia.
 
 ## Próxima fase (anotado a pedido)
 - Abrir o cadastro: concluir os ajustes do painel em `SECURITY.md` (SMTP próprio, confirmação de e-mail, modelos, URLs) e virar `signup_open` para `'true'`
@@ -17,6 +17,6 @@ Login (Supabase), sincronização por item, tarefas com frameworks ágeis, pauta
 
 ## Depois
 - Prazo final opcional separado do "Quando" (como o Things)
-- Arrastar tarefas entre dias na Semana
+- Arrastar tarefas entre dias na Semana (no computador)
 - Acessibilidade (leitor de tela, contraste, texto)
 - Feedback de uso e ajustes de usabilidade

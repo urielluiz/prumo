@@ -1,5 +1,5 @@
 /* ---------- dominio ---------- */
-var helpPrev=null,tab='hoje',wkOff=0,selDay=null,sh=null,lastCtx='trabalho',restoreTxt='';
+var helpPrev=null,tab='hoje',wkOff=0,semOff=0,doneOpen=false,sh=null,lastCtx='trabalho',restoreTxt='';
 var byId=function(id){return S.tasks.find(function(t){return t.id===id})};
 var isDone=function(t){return t.status==='done'};
 var cname=function(id){return (S.ctx&&S.ctx[id])||(CTX.find(function(c){return c.id===id})||CTX[0]).name};
@@ -32,6 +32,7 @@ var weekTasks=function(wk){var e=addDays(wk,6);return S.tasks.filter(function(t)
 var estIn=function(t,a,b){if(!t.end)return t.day>=a&&t.day<=b?t.est:0;var s=t.day>a?t.day:a,e=t.end<b?t.end:b;return s>e?0:t.est*(Math.round((parseISO(e)-parseISO(s))/864e5)+1)};
 var overdue=function(){var td=todayISO();return S.tasks.filter(function(t){return !isDone(t)&&t.day&&lastDay(t)<td}).sort(function(a,b){return lastDay(a)<lastDay(b)?-1:1})};
 var wipCount=function(){return S.tasks.filter(function(t){return t.status==='doing'}).length};
+function relDay(s){var td=todayISO();return s===td?'hoje':(s===addDays(td,1)?'amanhã':shortDate(s))}
 function shortDate(s){var d=parseISO(s);return DABR[d.getDay()]+', '+d.getDate()+' '+MONS[d.getMonth()]}
 function rangeLabel(wk){var a=parseISO(wk),b=parseISO(addDays(wk,6));
   return a.getMonth()===b.getMonth()?a.getDate()+'–'+b.getDate()+' '+MONS[b.getMonth()]:a.getDate()+' '+MONS[a.getMonth()]+' – '+b.getDate()+' '+MONS[b.getMonth()]}

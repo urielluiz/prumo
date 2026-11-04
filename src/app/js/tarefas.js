@@ -63,9 +63,13 @@ function flashTask(id){
 function showTask(id){
   var t=byId(id);if(!t)return;
   var td=todayISO();
-  if(t.day&&covers(t,td))tab='hoje';
-  else{tab='semana';var d=t.day&&t.day<td&&t.end?td:t.day;wkOff=d?Math.round((parseISO(weekStart(d))-parseISO(weekStart(td)))/604800000):0;selDay=d}
-  sh=null;renderSheet();render();scrollTop();flashTask(id);
+  sh=null;renderSheet();
+  if(t.day&&covers(t,td)){tab='hoje';if(isDone(t))doneOpen=true;render();scrollTop();flashTask(id);return}
+  tab='semana';
+  var d=t.day?(t.day<td?td:t.day):null;
+  semOff=d?Math.floor(Math.round((parseISO(d)-parseISO(td))/864e5)/7):0;
+  render();scrollTop();
+  setTimeout(function(){var el=document.getElementById(d?'d-'+d:'d-sem');if(el)try{el.scrollIntoView({block:'start'})}catch(e){}flashTask(id)},30);
 }
 
 /* ---------- conversão das antigas pautas (tarefa com filhas) ---------- */
@@ -100,4 +104,44 @@ function convertPautas(){
     changed=true;
   });
   return changed;
+}
+
+/* ---------- mudar de dia direto do card ---------- */
+var DAYMV=7;
+function moveChips(id){
+  var td=todayISO(),h='';
+  for(var i=0;i<DAYMV;i++){var d=addDays(td,i);h+='<button class="chip" data-act="mv" data-id="'+id+'" data-d="'+d+'">'+(i===0?'Hoje':i===1?'Amanhã':DABR[parseISO(d).getDay()]+' '+parseISO(d).getDate())+'</button>'}
+  return '<div class="chips">'+h+'<button class="chip" data-act="mv" data-id="'+id+'" data-d="">Sem data</button></div>';
+}
+// período em andamento muda inteiro (mantém a duração); atrasado ou sem data vira um dia só
+function moveTask(id,d){
+  var t=byId(id);if(!t)return;
+  var td=todayISO(),was={day:t.day,end:t.end,mit:t.mit,slips:t.slips||0},late=!!t.day&&lastDay(t)<td&&!isDone(t);
+  if(late&&d)t.slips=(t.slips||0)+1;
+  var n=t.end&&!late?spanOf(t):1;
+  t.day=d||null;if(d&&n>1)t.end=addDays(d,n-1);else delete t.end;
+  if(!t.day)t.mit=false;
+  persist();
+  return was;
+}
+function undoMove(id,was){var t=byId(id);if(!t)return;t.day=was.day;if(was.end)t.end=was.end;else delete t.end;t.mit=was.mit;t.slips=was.slips;persist();render()}
+function menuSheetHTML(){
+  var t=byId(sh.id);if(!t){return ''}
+  var when=t.day?(t.end?'De '+shortDate(t.day)+' a '+shortDate(t.end):'Para '+(t.day===todayISO()?'hoje':shortDate(t.day))):'Sem data';
+  return '<div class="sh-head"><h2 class="h2">'+esc(t.title)+'</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div><p class="hint" style="margin:-8px 0 0">'+esc(when)+'</p>'+
+    '<div><span class="lab">'+(t.end&&lastDay(t)>=todayISO()?'Mover o período para começar em':'Mudar para')+'</span>'+moveChips(t.id)+'</div>'+
+    '<div class="mlist">'+(isDone(t)?'':'<button data-act="mit" data-id="'+t.id+'">'+ic('star',18)+(t.mit?'Tirar das prioridades':'Marcar como prioridade')+'</button><button data-act="start" data-id="'+t.id+'">'+ic('play',18)+'Começar foco</button>')+
+    '<button data-act="edit" data-id="'+t.id+'">'+ic('cal',18)+'Editar tarefa</button><button class="bad" data-act="rowdel" data-id="'+t.id+'">'+ic('trash',18)+'Excluir</button></div>';
+}
+function lateSheetHTML(){
+  var l=overdue();
+  return '<div class="sh-head"><h2 class="h2">Ficaram para trás</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div><p class="hint" style="margin:-8px 0 0">Escolha um novo dia para cada uma, ou tire a data.</p>'+
+    l.map(function(t){return '<div class="res"><b>'+esc(t.title)+'</b><span class="hint">Era para '+shortDate(lastDay(t))+((t.slips||0)>0?' · adiada '+t.slips+'×':'')+'</span>'+moveChips(t.id)+'</div>'}).join('');
+}
+function noteSheetHTML(){
+  var td=todayISO(),st=streak(),y=S.tasks.filter(function(t){return isDone(t)&&t.doneAt&&iso(new Date(t.doneAt))===addDays(td,-1)}).length;
+  return '<div class="sh-head"><h2 class="h2">Check-in</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>'+
+    ((y||st>1)?'<p class="hint" style="margin:-8px 0 0">'+[y?'Ontem você concluiu '+y+'.':'',st>1?'Sequência de '+st+' dias.':''].filter(Boolean).join(' ')+'</p>':'')+
+    '<div><label class="lab" for="blk">O que pode te travar hoje?</label><input id="blk" class="inp" data-in="blk" enterkeyhint="done" autocomplete="off" maxlength="200" value="'+esc(S.blockers[td]||'')+'"></div>'+
+    '<div class="sh-actions"><button class="btn btn-p" data-act="sh-close">Pronto</button></div>';
 }

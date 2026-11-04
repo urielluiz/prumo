@@ -3,66 +3,55 @@ function viewHoje(){
   var td=todayISO(),d=new Date();
   if(!booted&&!S.tasks.length)return '<header class="top"><div><div class="eyebrow">'+DAYS[d.getDay()]+', '+d.getDate()+' de '+MONF[d.getMonth()]+'</div><h1 class="h1">Hoje</h1></div></header><p class="hint">Carregando seus dados...</p>';
   var all=tasksOn(td),done=all.filter(isDone),open=all.filter(function(t){return !isDone(t)});
-  var doing=open.filter(function(t){return t.status==='doing'});
-  var mitAll=open.filter(function(t){return t.mit}).sort(byPrio),sapo=mitAll[0]&&mitAll[0].id;
-  var mits=open.filter(function(t){return t.mit&&t.status!=='doing'}).sort(byPrio);
-  var rest=open.filter(function(t){return !t.mit&&t.status!=='doing'}).sort(byPrio);
-  var over=overdue(),st=streak();
-  var yest=S.tasks.filter(function(t){return isDone(t)&&t.doneAt&&iso(new Date(t.doneAt))===addDays(td,-1)}).length;
-  var nm=profName().split(' ')[0];
+  var now=nextTask(),over=overdue(),nm=profName().split(' ')[0];
+  var sapo=open.filter(function(t){return t.mit}).sort(byPrio)[0];
+  // ordem da lista: em andamento, prioridades (estrela) e o resto; a tarefa do "Agora" não se repete
+  var rest=open.filter(function(t){return !now||t.id!==now.id}).sort(function(a,b){return ((b.status==='doing')-(a.status==='doing'))||((b.mit?1:0)-(a.mit?1:0))||byPrio(a,b)});
   var h='<header class="top"><div><div class="eyebrow">'+(nm?'Olá, '+esc(nm)+' · ':'')+DAYS[d.getDay()]+', '+d.getDate()+' de '+MONF[d.getMonth()]+'</div><h1 class="h1">Hoje</h1></div><div class="hd-r">'+ringHTML(done.length,all.length)+avatarBtn()+'</div></header>';
   h+='<div class="cols"><div class="col stick">';
+  var blk=S.blockers[td];
+  h+='<button class="note" data-act="note">'+ic('target',16)+(blk?'<span class="note-t">'+esc(blk)+'</span>':'<span>O que pode te travar hoje?</span><b>Anotar</b>')+'</button>';
   if(S.tasks.some(function(t){return t.ex}))h+='<div class="banner"><span>Estas são tarefas de exemplo para você ver o app funcionando.</span><button class="btn btn-s sm" data-act="clear-ex">Limpar</button></div>';
-  h+='<section class="checkin"><label class="lab" for="blk">Check-in'+(yest?' · ontem você concluiu '+yest:'')+(st>1?' · sequência de '+st+' dias':'')+'</label><input id="blk" class="inp" data-in="blk" enterkeyhint="done" autocomplete="off" placeholder="O que pode te travar hoje?" value="'+esc(S.blockers[td]||'')+'"></section>';
+  if(over.length)h+='<div class="alert"><span><b>'+over.length+(over.length>1?' tarefas ficaram':' tarefa ficou')+' para trás.</b></span><button class="btn btn-s sm" data-act="late">Resolver</button></div>';
   h+=wrapBanner();
   h+=pushBanner();
-  h+=heroHTML(nextTask());
+  h+=heroHTML(now,sapo&&now&&sapo.id===now.id);
   h+='</div><div class="col">';
-  if(over.length){
-    h+=secHTML('Ficou para trás',over.length)+'<div class="list">'+over.map(function(t){var c=ctxOf(t.ctx);
-      return '<div class="row"><button class="row-main" data-act="edit" data-id="'+t.id+'"><div class="row-title">'+esc(t.title)+'</div><div class="row-meta"><span><i class="dot" style="background:var('+c.v+')"></i>'+esc(cname(c.id))+'</span><span>era de '+shortDate(t.day)+'</span></div></button><button class="btn btn-s sm" data-act="mtoday" data-id="'+t.id+'">Hoje</button><button class="btn btn-g sm" data-act="drop" data-id="'+t.id+'">Soltar</button></div>'}).join('')+'</div>';
+  if(rest.length)h+=secHTML('Depois',fmt(sum(rest,function(t){return t.est})))+listHTML(rest,{day:td},sapo&&(!now||sapo.id!==now.id)?sapo.id:null);
+  else if(now)h+='<p class="hint" style="margin:14px 4px">Só isso por hoje. Toque em ⋯ num card para trazer algo de outro dia.</p>';
+  if(done.length){
+    h+='<button class="fold" data-act="fold" aria-expanded="'+doneOpen+'"><span>'+done.length+(done.length>1?' concluídas':' concluída')+' hoje</span>'+ic(doneOpen?'up':'down',18)+'</button>';
+    if(doneOpen)h+=listHTML(done,{day:td},null);
   }
-  if(doing.length)h+=secHTML('Em andamento',wipCount()+'/'+WIP)+listHTML(doing,{star:true,play:true},sapo);
-  {
-  h+=secHTML('Prioridades do dia',mitAll.length+'/'+MAXMIT);
-  h+=mits.length?listHTML(mits,{star:true,play:true},sapo):(mitAll.length?'':'<p class="hint">Toque na estrela de até 3 tarefas. A primeira da lista vira o Sapo: a mais pesada, para fazer antes de tudo.</p>');
-  if(rest.length)h+=secHTML('Resto do dia',rest.length)+listHTML(rest,{star:true,play:true},sapo);
-  }
-  if(done.length)h+=secHTML('Concluídas hoje',done.length)+listHTML(done,{},null);
-  h+=upcomingHTML();
+  var tm=addDays(td,1),tl=tasksOn(tm).filter(function(t){return !isDone(t)});
+  h+='<button class="peek" data-act="tab" data-t="semana"><span><b>Amanhã</b> · '+(tl.length?tl.length+(tl.length>1?' tarefas, ':' tarefa, ')+fmt(sum(tl,function(t){return t.est})):'nada planejado ainda')+'</span><span class="peek-r">Ver semana'+ic('right',16)+'</span></button>';
   h+='</div></div>';
   return h;
 }
 
+function dayLoad(d){return sum(tasksOn(d).filter(function(t){return !isDone(t)}),function(t){return t.est})}
 function viewSemana(){
-  var wk=curWk(),td=todayISO();
-  var days=[0,1,2,3,4,5,6].map(function(i){return addDays(wk,i)});
-  if(!selDay||days.indexOf(selDay)<0)selDay=days.indexOf(td)>=0?td:days[0];
-  var we=addDays(wk,6),inWk=function(t){return estIn(t,wk,we)};
-  var wt=weekTasks(wk),planMin=sum(wt,inWk),wdone=wt.filter(isDone);
-  var byC=CTX.map(function(c){return {c:c,m:sum(wt.filter(function(t){return t.ctx===c.id}),inWk)}}).filter(function(x){return x.m>0});
-  var dayT=tasksOn(selDay).sort(function(a,b){return (isDone(a)-isDone(b))||byPrio(a,b)});
-  var cap=S.cap[parseISO(selDay).getDay()]||0;
-  var plan=sum(dayT,function(t){return t.est}),dn=sum(dayT.filter(isDone),function(t){return t.est});
-  var sd=parseISO(selDay),over=cap&&plan>cap;
-  var msg=!cap?(plan?'Dia sem capacidade definida. Ajuste em Planejar semana.':'Dia livre.'):(over?'Passou '+fmt(plan-cap)+' da capacidade de '+fmt(cap)+'. Mova algo para outro dia.':fmt(plan)+' planejados de '+fmt(cap)+'. Sobram '+fmt(cap-plan)+'.');
-  var pc=cap?Math.min(100,plan/cap*100):0,pd=cap?Math.min(pc,dn/cap*100):0;
+  var td=todayISO(),s0=addDays(td,semOff*7),days=[0,1,2,3,4,5,6].map(function(i){return addDays(s0,i)});
+  var per=S.tasks.filter(function(t){return t.end&&!isDone(t)});
+  var d0=parseISO(days[0]),d6=parseISO(days[6]);
+  var h='<header class="top"><div><div class="eyebrow">'+(semOff?'Mais adiante':'Próximos 7 dias')+'</div><h1 class="h1">'+d0.getDate()+(d0.getMonth()!==d6.getMonth()?' '+MONS[d0.getMonth()]:'')+' a '+d6.getDate()+' '+MONS[d6.getMonth()]+'</h1></div><div class="nav">'+
+    (semOff?'<button class="btn btn-s sm" data-act="sem" data-d="0">Hoje</button>':'')+'<button class="ib" data-act="sem" data-d="-1" aria-label="7 dias antes"'+(semOff?'':' disabled')+'>'+ic('left')+'</button><button class="ib" data-act="sem" data-d="1" aria-label="Próximos 7 dias">'+ic('right')+'</button></div></header>';
+  h+='<div class="wstrip"><div class="strip">'+days.map(function(d,i){
+    var p=parseISO(d),m=dayLoad(d),cap=S.cap[p.getDay()]||0,pct=cap?Math.min(100,m/cap*100):(m?100:0),over=m>cap;
+    var pp=per.find(function(t){return covers(t,d)}),bar='';
+    if(pp)bar='<i class="pseg'+(d===pp.day||i===0?' s':'')+(d===pp.end||i===6?' e':'')+'"></i>';
+    return '<button class="dy'+(d===td?' today':'')+(pp?' per':'')+'" data-act="goday" data-d="'+d+'" aria-label="'+DAYS[p.getDay()]+', '+p.getDate()+': '+fmt(m)+(cap?' de '+fmt(cap):'')+'"><small>'+DABR[p.getDay()]+'</small><b>'+p.getDate()+'</b><span class="ld'+(over?' over':'')+'"><i style="width:'+pct.toFixed(0)+'%"></i></span>'+bar+'</button>'}).join('')+'</div>';
+  var tot=sum(days,dayLoad),capT=sum(days,function(d){return S.cap[parseISO(d).getDay()]||0});
+  h+='<div class="wline"><span>'+fmt(tot)+' planejados de '+fmt(capT)+' que cabem nestes 7 dias.</span><button class="link" data-act="plan">Planejar</button></div></div>';
+  days.forEach(function(d){
+    var p=parseISO(d),l=tasksOn(d).sort(function(a,b){return (isDone(a)-isDone(b))||((b.mit?1:0)-(a.mit?1:0))||byPrio(a,b)}),m=dayLoad(d),cap=S.cap[p.getDay()]||0;
+    var nm=d===td?'Hoje':(d===addDays(td,1)?'Amanhã':DAYS[p.getDay()]+', '+p.getDate());
+    h+='<div class="dayh" id="d-'+d+'"><h2 class="h2">'+nm+'</h2><span class="dayl'+(m>cap?' over':'')+'">'+(m>cap?'passou '+fmt(m-cap)+' do que cabe':(m?fmt(m)+' de '+fmt(cap):(cap?'livre':'')))+'</span><button class="ib" data-act="new" data-day="'+d+'" aria-label="Adicionar tarefa em '+esc(nm)+'">'+ic('plus',18)+'</button></div>';
+    h+=l.length?listHTML(l,{day:d},null):'<p class="dfree">Nada planejado.</p>';
+  });
   var back=S.tasks.filter(function(t){return !t.day&&!isDone(t)}).sort(byPrio);
-  var h='<header class="top"><div><div class="eyebrow">Semana</div><h1 class="h1">'+rangeLabel(wk)+'</h1></div><div class="nav"><button class="ib" data-act="wk" data-d="-1" aria-label="Semana anterior">'+ic('left')+'</button><button class="ib" data-act="wk" data-d="1" aria-label="Próxima semana">'+ic('right')+'</button></div></header>';
-  h+='<div class="cols"><div class="col stick">';
-  h+='<section class="panel">'+(planMin?'<div class="nums"><div><b>'+wdone.length+'/'+wt.length+'</b><small>tarefas concluídas</small></div><div><b>'+fmt(planMin)+'</b><small>planejados na semana</small></div></div><div><div class="bar" role="img" aria-label="Tempo planejado por contexto">'+byC.map(function(x){return '<i style="width:'+(x.m/planMin*100).toFixed(1)+'%;background:var('+x.c.v+')"></i>'}).join('')+'</div><div class="legend">'+byC.map(function(x){return '<span><i class="dot" style="background:var('+x.c.v+')"></i>'+esc(cname(x.c.id))+' '+fmt(x.m)+'</span>'}).join('')+'</div></div>':'<p class="hint" style="margin:0">Nada planejado nesta semana ainda.</p>')+'<div class="btns">'+(wkOff!==0?'<button class="btn btn-s sm" data-act="wk" data-d="0">Voltar para esta semana</button>':'')+'<button class="btn btn-s sm" data-act="plan">Planejar semana</button></div></section>';
-  h+='<div class="sec"><h2 class="h2">Dias</h2></div><div class="strip">'+days.map(function(d){
-    var l=tasksOn(d),n=l.length,k=l.filter(isDone).length,p=parseISO(d);
-    var pe=l.some(function(t){return t.end&&!isDone(t)});
-    return '<button class="dy'+(d===td?' today':'')+(n&&k===n?' alldone':'')+(pe?' per':'')+'" data-act="selday" data-d="'+d+'" aria-pressed="'+(d===selDay)+'"><small>'+DABR[p.getDay()]+'</small><b>'+p.getDate()+'</b><em>'+(n?k+'/'+n:'·')+'</em></button>'}).join('')+'</div>';
-  h+='<div class="panel"><div><div class="eyebrow">'+DAYS[sd.getDay()]+', '+sd.getDate()+' de '+MONF[sd.getMonth()]+'</div></div><div><div class="bar"><i style="width:'+pd.toFixed(1)+'%;background:var(--ok)"></i><i style="width:'+Math.max(0,pc-pd).toFixed(1)+'%;background:'+(over?'var(--bad)':'var(--ink)')+'"></i></div><p class="hint" style="margin:8px 0 0'+(over?';color:var(--bad)':'')+'">'+msg+'</p></div></div>';
-  h+='</div><div class="col">';
-  h+='<div class="sec"><h2 class="h2">Tarefas do dia</h2><button class="btn btn-s sm" data-act="new" data-day="'+selDay+'">'+ic('plus',16,2.2)+'Adicionar</button></div>';
-  h+=dayT.length?listHTML(dayT,{play:true,day:selDay},null):emptyHTML('dia');
-  h+=secHTML('Backlog sem data',back.length);
-  h+=back.length?listHTML(back,{pull:true},null):emptyHTML('back');
-  h+='<div class="btns" style="margin-top:12px"><button class="btn btn-s btn-full" data-act="new" data-day="none">Adicionar ao backlog</button></div>';
-  h+='</div></div>';
+  h+='<div class="dayh" id="d-sem"><h2 class="h2">Sem data</h2><span class="dayl">'+back.length+'</span><button class="ib" data-act="new" data-day="none" aria-label="Adicionar tarefa sem data">'+ic('plus',18)+'</button></div>';
+  h+=back.length?listHTML(back,{},null):'<p class="dfree">Ideias sem dia ficam aqui. Quando houver espaço, toque em ⋯ para trazer para um dia.</p>';
   return h;
 }
 

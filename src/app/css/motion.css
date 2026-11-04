@@ -120,3 +120,6 @@
 @media (min-width:700px){.tk-foot{bottom:-24px;margin:0 -24px -24px;padding:12px 24px 20px}}
 /* com uma folha aberta, o aviso vai para o topo e não cobre o botão de salvar */
 html.lock .toast{bottom:auto;top:calc(14px + env(safe-area-inset-top,0px))}
+.hero.flash{animation:heroflash 1.8s ease-out 1}
+@keyframes heroflash{0%,30%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:none}}
+@media (prefers-reduced-motion: reduce){.hero.flash{animation:none}}

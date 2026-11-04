@@ -48,7 +48,7 @@ const count = (page, sel) => page.evaluate(s => document.querySelectorAll(s).len
   await click(p, '[data-act=sh-save]'); await sleep(150);
   const view = await text(p, '#view');
   ok('phone: task listed with 5h', view.includes('Pauta de posts do LinkedIn'));
-  ok('phone: pomodoro progress in row', view.includes('0/12 pomodoros'));
+  ok('phone: compact row (no method details)', !view.includes('0/12 pomodoros'));
   ok('phone: no horizontal scroll', await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   ok('phone: bottom tabs visible, no brand', await p.evaluate(() => getComputedStyle(document.querySelector('.brand')).display === 'none' && getComputedStyle(document.querySelector('#tabs')).position === 'fixed'));
   await p.close();
@@ -72,7 +72,7 @@ const count = (page, sel) => page.evaluate(s => document.querySelectorAll(s).len
   await p.keyboard.press('Escape'); await sleep(100);
   ok('desktop: Esc closes sheet', (await count(p, '.sheet')) === 0);
   await p.keyboard.press('2'); await sleep(100);
-  ok('desktop: key 2 goes to Semana', (await text(p, '#view')).includes('Planejar semana'));
+  ok('desktop: key 2 goes to Semana', (await text(p, '#view')).includes('PRÓXIMOS 7 DIAS'));
   await p.keyboard.press('1'); await sleep(100);
 
   // start session by a real click (user activation) -> title, PiP attempt

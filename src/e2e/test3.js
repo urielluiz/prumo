@@ -58,7 +58,10 @@ await ev(()=>document.querySelector('[data-act=sh-sec][data-v=when]').click());a
 await ev(()=>document.querySelectorAll('[data-act=sh-day]')[1].click());
 await ev(()=>document.querySelector('[data-act=sh-save]').click());await sleep(300);
 await ev(()=>document.querySelector('.tab[data-t=hoje]').click());await sleep(150);
-ok('Próximos dias lists tomorrow task',/Próximos dias/.test(await ev(()=>document.querySelector('#view').innerText))&&/Entrega do cliente/.test(await ev(()=>document.querySelector('#view').innerText)));
+ok('Hoje shows tomorrow summary',/Amanhã · 1 tarefa/.test(await ev(()=>document.querySelector('.peek').innerText)));
+await ev(()=>document.querySelector('.peek').click());await sleep(200);
+ok('Semana lists tomorrow task',/Entrega do cliente/.test(await ev(()=>{const h=[...document.querySelectorAll('.dayh')].find(x=>/Amanhã/.test(x.innerText));return h&&h.nextElementSibling?h.nextElementSibling.innerText:''})));
+await ev(()=>document.querySelector('.tab[data-t=hoje]').click());await sleep(150);
 // reminders synced
 await sleep(3500);
 let c=await calls();

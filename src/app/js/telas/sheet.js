@@ -42,7 +42,7 @@ function renderSheet(){
   var host=$('#sheet');
   if(!sh){host.innerHTML='';document.documentElement.classList.remove('lock');return}
   var old=host.querySelector('.sheet'),sc=old?old.scrollTop:0;
-  host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+(sh.kind==='plan'?planSheetHTML():(sh.kind==='help'?helpSheetHTML():(sh.kind==='pw'?pwSheetHTML():(sh.kind==='del'?delSheetHTML():taskSheetHTML()))))+'</div></div>';
+  host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+({plan:planSheetHTML,help:helpSheetHTML,pw:pwSheetHTML,del:delSheetHTML,menu:menuSheetHTML,late:lateSheetHTML,note:noteSheetHTML}[sh.kind]||taskSheetHTML)()+'</div></div>';
   document.documentElement.classList.add('lock');
   var n=host.querySelector('.sheet');if(n)n.scrollTop=sc;
 }

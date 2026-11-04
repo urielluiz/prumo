@@ -9,18 +9,16 @@ function act(a,el){
     case 'wr-close':wrClose();break;
     case 'wr-copy':copyText(summaryTextFor(wr?wr.wk:curWk()),'Resumo copiado.');break;
     case 'wr-write':{var w0=wr?wr.wk:curWk();wrClose(true);tab='revisao';revMode='rev';wkOff=Math.round((parseISO(w0)-parseISO(weekStart(todayISO())))/604800000);render();scrollTop();setTimeout(function(){var i=$('#rt-worked');if(i)i.focus()},80);break}
-    case 'new':{var dv=el.dataset.day;openTask(null,dv===undefined?(tab==='semana'?selDay:todayISO()):(dv==='none'?null:dv));break}
+    case 'new':{var dv=el.dataset.day;openTask(null,dv===undefined?todayISO():(dv==='none'?null:dv));break}
     case 'edit':openTask(id);break;
     case 'toggle':toggleDone(id);break;
-    case 'mit':toggleMit(id);break;
-    case 'start':startSession(id);break;
+    case 'mit':if(sh&&sh.kind==='menu'){sh=null;renderSheet()}toggleMit(id);break;
+    case 'start':if(sh&&sh.kind==='menu'){sh=null;renderSheet()}startSession(id);break;
     case 'start5':startSession(id||null,'cinco');break;
     case 'mtoday':{var t=byId(id);if(t){t.day=todayISO();delete t.end;t.slips=(t.slips||0)+1;persist();render();toast('Movida para hoje.')}break}
     case 'drop':dropTask(id);break;
     case 'clear-ex':S.tasks=S.tasks.filter(function(t){return !t.ex});if(S.session&&!byId(S.session.tid)&&S.session.tid){S.session=null;unlock()}persist();render();toast('Exemplos removidos. Agora é com você.');break;
-    case 'wk':{var d=Number(el.dataset.d);wkOff=d===0?0:wkOff+d;selDay=null;render();break}
-    case 'selday':selDay=el.dataset.d;render();break;
-    case 'pull':{var p=byId(id);if(p){p.day=selDay||todayISO();delete p.end;persist();render();toast('Puxada para '+shortDate(p.day)+'.')}break}
+    case 'wk':{var d=Number(el.dataset.d);wkOff=d===0?0:wkOff+d;render();break}
     case 'plan':sh={kind:'plan'};renderSheet();break;
     case 'cap':{var i=Number(el.dataset.i),dl=Number(el.dataset.d);S.cap[i]=Math.max(0,Math.min(720,(S.cap[i]||0)+dl));persist();renderSheet();render();break}
     case 'autoplan':autoPlan();break;
@@ -32,8 +30,17 @@ function act(a,el){
     case 'push-test':pushTest();break;
     case 'rev':revMode=el.dataset.v;render();scrollTop();break;
     case 'drange':dashRange=el.dataset.v;render();break;
-    case 'rowdel':dropTask(el.dataset.id);break;
-    case 'sh-close':if(sh&&sh.kind==='help'&&helpPrev){sh=helpPrev;helpPrev=null}else sh=null;renderSheet();break;
+    case 'rowdel':if(sh&&sh.kind==='menu'){sh=null;renderSheet()}dropTask(el.dataset.id);break;
+    case 'rowmenu':closeSwipe();sh={kind:'menu',id:el.dataset.id};renderSheet();break;
+    case 'mv':{var mid=el.dataset.id,md=el.dataset.d||null,inLate=sh&&sh.kind==='late';closeSwipe();var was=moveTask(mid,md);if(!was)break;
+      if(inLate&&overdue().length)renderSheet();else{sh=null;renderSheet()}
+      render();toast('Movida para '+(md?relDay(md):'Sem data')+'.','Desfazer',function(){undoMove(mid,was)});flashTask(mid);break}
+    case 'late':sh={kind:'late'};renderSheet();break;
+    case 'note':sh={kind:'note'};renderSheet();setTimeout(function(){var i=$('#blk');if(i)i.focus()},60);break;
+    case 'fold':doneOpen=!doneOpen;render();break;
+    case 'sem':{var sd=Number(el.dataset.d);semOff=sd===0?0:Math.max(0,semOff+sd);render();scrollTop();break}
+    case 'goday':{var gd=document.getElementById('d-'+el.dataset.d);if(gd)try{gd.scrollIntoView({block:'start',behavior:RM?'auto':'smooth'})}catch(x){gd.scrollIntoView()}break}
+    case 'sh-close':{var wasNote=sh&&sh.kind==='note';if(sh&&sh.kind==='help'&&helpPrev){sh=helpPrev;helpPrev=null}else sh=null;renderSheet();if(wasNote)render();break}
     case 'sh-save':saveTask();break;
     case 'sh-del':{var tt=sh.mode==='edit'&&byId(sh.id);if(tt&&tt.rid&&S.rec[tt.rid]){sh.del=!sh.del;renderSheet()}else if(!sh.del){sh.del=true;renderSheet()}else{var did=sh.id;sh=null;renderSheet();dropTask(did)}break}
     case 'sh-usesug':sh.d.fw=null;renderSheet();break;

@@ -106,6 +106,7 @@ const srv = (op, json) => {
   ok('B->A: completion synced', (await local(A)).tasks.find(t => t.id === tid).status === 'done');
 
   // 5) A deletes, B receives the deletion
+  await A.evaluate(() => { const f = document.querySelector('[data-act=fold][aria-expanded=false]'); if (f) f.click(); }); await sleep(150);
   await A.evaluate(i => document.querySelector('[data-act=edit][data-id="' + i + '"]').click(), tid); await sleep(150);
   await A.evaluate(() => document.querySelector('[data-act=sh-del]').click()); await sleep(100);
   await A.evaluate(() => document.querySelector('[data-act=sh-del]').click()); await sleep(1800);

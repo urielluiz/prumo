@@ -101,6 +101,10 @@ function viewRevisao(){
   h+='<div class="cols"><div class="col">';
   h+='<button class="wrapcard" data-act="wr-open" data-wk="'+wk+'"><span><b>Retrô da semana</b><small>'+esc(rangeLabel(wk))+' · em stories</small></span>'+ic('play',24)+'</button>';
   h+='<section class="panel"><div class="nums"><div><b>'+dn.length+'/'+wt.length+'</b><small>concluídas ('+pct+'%)</small></div><div><b>'+fmt(secs/60)+'</b><small>em foco</small></div>'+(pomos?'<div><b>'+pomos+'</b><small>pomodoros</small></div>':'')+'</div>'+(wt.length?'<div class="bar"><i style="width:'+pct+'%;background:var(--ok)"></i></div>':'')+(wkOff!==0?'<div class="btns"><button class="btn btn-s sm" data-act="wk" data-d="0">Voltar para esta semana</button></div>':'')+'</section>';
+  // tempo planejado por contexto (veio da Semana: aqui é análise, lá é planejamento)
+  var we=addDays(wk,6),inWk=function(t){return estIn(t,wk,we)},planMin=sum(wt,inWk);
+  var byC=CTX.map(function(c){return {c:c,m:sum(wt.filter(function(t){return t.ctx===c.id}),inWk)}}).filter(function(x){return x.m>0});
+  if(planMin)h+='<section class="panel"><div><span class="lab">Planejado por contexto · '+fmt(planMin)+'</span><div class="bar" role="img" aria-label="Tempo planejado por contexto">'+byC.map(function(x){return '<i style="width:'+(x.m/planMin*100).toFixed(1)+'%;background:var('+x.c.v+')"></i>'}).join('')+'</div><div class="legend">'+byC.map(function(x){return '<span><i class="dot" style="background:var('+x.c.v+')"></i>'+esc(cname(x.c.id))+' '+fmt(x.m)+'</span>'}).join('')+'</div></div></section>';
   h+=secHTML('Entregas da semana',dn.length);
   if(dn.length){
     h+='<div class="list">'+CTX.map(function(c){var l=dn.filter(function(t){return t.ctx===c.id});if(!l.length)return '';

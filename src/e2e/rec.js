@@ -51,6 +51,8 @@ s=await st();ok('no duplicates after reload',s.tasks.filter(t=>t.title==='Relat�
 // delete one occurrence via trash -> skipped, not regenerated
 const victim=s.tasks.filter(t=>t.title==='Relatório diário'&&t.day>iso(new Date()))[0];
 if(victim){
+ await ev(()=>document.querySelector('.tab[data-t=semana]').click());await sleep(200);
+ await ev(i=>{const m=document.querySelector('[data-act=rowmenu][data-id="'+i+'"]');if(m)m.click()},victim.id);await sleep(120);
  await ev(i=>{const b=document.querySelector('[data-act=rowdel][data-id="'+i+'"]');if(b)b.click();else{window.__nodel=1}},victim.id);
  if(await ev(()=>window.__nodel)){ /* not on Hoje: use persist path */ await ev(i=>{window.dropTask&&0},victim.id)}
 }
@@ -80,6 +82,8 @@ await ev(i=>{window.openTask&&0;},0);
 await click('.tab[data-t=hoje]');await sleep(100);
 // find any rendered occurrence to open
 let ids=await ev(()=>[...document.querySelectorAll('[data-act=edit]')].map(x=>x.dataset.id));
+await ev(()=>document.querySelector('.tab[data-t=semana]').click());await sleep(200);
+ids=await ev(()=>[...document.querySelectorAll('[data-act=edit]')].map(x=>x.dataset.id));
 ok('occurrence rows have repete tag',/repete/.test(await ev(()=>document.querySelector('#view').innerText)));
 await ev(i=>document.querySelector('[data-act=edit][data-id="'+i+'"]').click(),ids[0]);await sleep(200);
 await click('[data-act=sh-del]');await sleep(100);

@@ -5,12 +5,13 @@ const p=await b.newPage();await p.setViewport({width:390,height:844,deviceScaleF
 const errs=[];p.on('pageerror',e=>errs.push(e.message));
 await p.evaluateOnNewDocument(()=>{try{localStorage.setItem('sb-test-auth-token','{"refresh_token":"x"}')}catch(e){}});
 await p.goto(await url('pwa/index.html'),{waitUntil:'domcontentloaded'});await sleep(1000);
-const n0=await p.evaluate(()=>document.querySelectorAll('[data-act=rowdel]').length);
+const n0=await p.evaluate(()=>document.querySelectorAll('[data-act=rowmenu]').length);
 console.log('rows with delete:',n0);
+await p.evaluate(()=>document.querySelector('[data-act=rowmenu]').click());await sleep(150);
 await p.evaluate(()=>document.querySelector('[data-act=rowdel]').click());await sleep(200);
-console.log('after delete:',await p.evaluate(()=>document.querySelectorAll('[data-act=rowdel]').length),'toast:',await p.evaluate(()=>document.querySelector('#toast').innerText));
+console.log('after delete:',await p.evaluate(()=>document.querySelectorAll('[data-act=rowmenu]').length),'toast:',await p.evaluate(()=>document.querySelector('#toast').innerText));
 await p.evaluate(()=>document.querySelector('[data-act=toast-act]').click());await sleep(200);
-console.log('after undo:',await p.evaluate(()=>document.querySelectorAll('[data-act=rowdel]').length));
+console.log('after undo:',await p.evaluate(()=>document.querySelectorAll('[data-act=rowmenu]').length));
 await p.evaluate(()=>document.querySelector('.tab-add').click());await sleep(150);
 await p.evaluate(()=>document.querySelector('[data-act=sh-sec][data-v=est]').click());await sleep(100);
 for(const m of [2,15,30,120]){await p.evaluate(m=>document.querySelector('[data-act=sh-est][data-v="'+m+'"]').click(),m);await sleep(80);console.log(m,'->',await p.evaluate(()=>document.querySelector('#tk-sum').innerText.replace(/\n+/g,' | ')))}

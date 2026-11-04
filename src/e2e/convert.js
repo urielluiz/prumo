@@ -49,7 +49,7 @@ ok('orphan child loses its broken link',!by('o1').parent&&!by('o1').type);
 ok('app opens on the focus session of the converted task',/Iniciar site Grupo Assaf/.test(await p.evaluate(()=>document.querySelector('#view').innerText)));
 await p.evaluate(()=>document.querySelector('.tab[data-t=hoje]').click());await sleep(200);
 const view=await p.evaluate(()=>document.querySelector('#view').innerText);
-ok('converted period shows on Hoje as day 2 of 5',/Iniciar site Grupo Assaf[\s\S]*dia 2 de 5/.test(view));
+ok('converted period shows on Hoje as day 2 of 5',/Iniciar site Grupo Assaf[\s\S]*dia 2 de 5/i.test(view));
 ok('steps progress on the card',/1\/3 etapas/.test(view));
 // idempotente: recarregar não muda nada
 const before=JSON.stringify(s.tasks);
