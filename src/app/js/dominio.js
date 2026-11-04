@@ -1,5 +1,5 @@
 /* ---------- dominio ---------- */
-var helpPrev=null,tab='hoje',wkOff=0,semOff=0,doneOpen=false,sh=null,lastCtx='trabalho',restoreTxt='';
+var helpPrev=null,tab='hoje',wkOff=0,semOff=0,doneOpen=false,focusFw=null,sh=null,lastCtx='trabalho',restoreTxt='';
 var byId=function(id){return S.tasks.find(function(t){return t.id===id})};
 var isDone=function(t){return t.status==='done'};
 var cname=function(id){return (S.ctx&&S.ctx[id])||(CTX.find(function(c){return c.id===id})||CTX[0]).name};

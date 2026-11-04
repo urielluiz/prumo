@@ -267,3 +267,20 @@ button.hero-t{display:block;width:100%;text-align:left;color:inherit;padding:0}
 .dz.drop-over{box-shadow:0 0 0 2px var(--accent);background:var(--accent-soft)}
 .dy.drop-over{box-shadow:0 0 0 2px var(--accent)}
 @media (prefers-reduced-motion:reduce){.dragmode .dz{transition:none}}
+/* foco */
+.fstart .fwpick{display:flex;flex-wrap:wrap;gap:6px}
+.fwchip{display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:44px;padding:4px 12px;border-radius:12px;background:rgba(255,255,255,.12);color:var(--hero-fg);font:600 14px var(--body);text-align:left}
+.fwchip small{font:500 11px var(--body);opacity:.7}
+.fwchip[aria-pressed="true"]{background:var(--hero-fg);color:var(--hero-bg)}
+.fwhow{font-size:14px}
+.timer .ring{width:min(62vw,230px)}
+.timer .clock{font-size:clamp(44px,14vw,58px)}
+.how.prog{display:flex;align-items:center;gap:10px;justify-content:center;font-weight:600;color:var(--ink)}
+.how.prog .pomos i{width:10px;height:10px}
+.fctl{display:flex;justify-content:center}
+.btn-big{min-height:56px;min-width:min(70vw,260px);font-size:18px;border-radius:16px}
+.fsec{justify-content:center;margin-top:10px}
+.fter{display:flex;justify-content:center;gap:20px;margin:12px 0 4px}
+.fter .link{color:var(--muted)}
+.endcard .btn-g{color:var(--hero-fg);opacity:.85;text-decoration:underline;text-underline-offset:3px}
+.endcard .eyebrow{color:inherit;opacity:.65}

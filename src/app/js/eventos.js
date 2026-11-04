@@ -13,7 +13,8 @@ function act(a,el){
     case 'edit':openTask(id);break;
     case 'toggle':toggleDone(id);break;
     case 'mit':if(sh&&sh.kind==='menu'){sh=null;renderSheet()}toggleMit(id);break;
-    case 'start':if(sh&&sh.kind==='menu'){sh=null;renderSheet()}startSession(id);break;
+    case 'start':if(sh&&sh.kind==='menu'){sh=null;renderSheet()}startSession(id,el.dataset.fw||undefined);focusFw=null;break;
+    case 'fw-pick':focusFw=el.dataset.v;render();break;
     case 'start5':startSession(id||null,'cinco');break;
     case 'mtoday':{var t=byId(id);if(t){t.day=todayISO();delete t.end;t.slips=(t.slips||0)+1;persist();render();toast('Movida para hoje.')}break}
     case 'drop':dropTask(id);break;
