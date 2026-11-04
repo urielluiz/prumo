@@ -4,6 +4,7 @@ async function boot(){
   initSB();
   rebase();
   rolloverRec();
+  if(convertPautas())persist();
   initNav();
   if(S.session)tab='foco';
   render();

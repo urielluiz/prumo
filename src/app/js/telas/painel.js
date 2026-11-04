@@ -15,10 +15,9 @@ function periodList(mode){
 function periodStats(p){
   var f=p.from,e=p.to,done=[],planned=0,slips=0,estSum=0,realSum=0,estReal=0,nReal=0;
   S.tasks.forEach(function(t){
-    if(isGrp(t))return;
     if(t.day&&t.day>=f&&t.day<=e){planned++;slips+=t.slips||0}
     if(isDone(t)&&t.doneAt){var dd=iso(new Date(t.doneAt));if(dd>=f&&dd<=e){
-      done.push(t);var est=t.est0||t.est;estSum+=est;
+      done.push(t);var est=estAll(t,true);estSum+=est;
       if((t.focus||0)>=60){realSum+=t.focus/60;estReal+=est;nReal++}}}
   });
   var focus=0,d=f;while(d<=e){focus+=S.log[d]||0;d=addDays(d,1)}
@@ -61,27 +60,27 @@ function viewPainel(){
   if(!any)h+=emptyHTML('painel');
   h+='</div><div class="col">';
   // estimativa vs real
-  var rs=S.tasks.filter(function(t){return isDone(t)&&!isGrp(t)&&(t.focus||0)>=60&&(t.est0||t.est)});
-  var eT=sum(rs,function(t){return t.est0||t.est}),rT=sum(rs,function(t){return t.focus/60});
+  var rs=S.tasks.filter(function(t){return isDone(t)&&(t.focus||0)>=60&&(t.est0||t.est)});
+  var eT=sum(rs,function(t){return estAll(t,true)}),rT=sum(rs,function(t){return t.focus/60});
   h+=secHTML('Estimado contra real');
   if(rs.length<5){
     h+='<section class="panel"><p style="margin:0">'+rs.length+' de 5 tarefas com tempo real registrado.</p><div class="bar"><i style="width:'+Math.round(rs.length/5*100)+'%;background:var(--accent)"></i></div><p class="hint" style="margin:0">Use o cronômetro até concluir a tarefa, ou preencha o tempo real ao editá-la. Com 5 tarefas, o app mostra se você costuma subestimar ou superestimar.</p></section>';
   }else{
     var rat=rT/eT;
     h+='<section class="panel"><p style="margin:0">'+calibText(rat)+'</p><div class="nums"><div><b>'+fmt(eT)+'</b><small>estimado</small></div><div><b>'+fmt(rT)+'</b><small>real</small></div><div><b>'+rs.length+'</b><small>tarefas</small></div></div>';
-    var grp=function(name,f){var l=rs.filter(f);if(l.length<2)return '';var e=sum(l,function(t){return t.est0||t.est}),r=sum(l,function(t){return t.focus/60});return '<div class="rn2"><span>'+name+'</span><span>'+l.length+' · '+Math.round(r/e*100)+'%</span></div>'};
+    var grp=function(name,f){var l=rs.filter(f);if(l.length<2)return '';var e=sum(l,function(t){return estAll(t,true)}),r=sum(l,function(t){return t.focus/60});return '<div class="rn2"><span>'+name+'</span><span>'+l.length+' · '+Math.round(r/e*100)+'%</span></div>'};
     var rows=CTX.map(function(c){return grp(esc(cname(c.id)),function(t){return t.ctx===c.id})}).join('')+
-      grp('Até 30 min',function(t){return (t.est0||t.est)<=30})+grp('31 a 120 min',function(t){var e=t.est0||t.est;return e>30&&e<=120})+grp('Mais de 2h',function(t){return (t.est0||t.est)>120})+
+      grp('Até 30 min',function(t){return estAll(t,true)<=30})+grp('31 a 120 min',function(t){var e=estAll(t,true);return e>30&&e<=120})+grp('Mais de 2h',function(t){return (t.est0||t.est)>120})+
       Object.keys(FW).map(function(k){return grp(esc(FW[k].name),function(t){return fwOf(t)===k})}).join('');
     if(rows)h+='<div><span class="lab">Real em relação ao estimado (tarefas · %)</span><div class="rn2s">'+rows+'</div></div>';
     h+='</section>';
     var last=rs.slice().sort(function(a,b){return (b.doneAt||0)-(a.doneAt||0)}).slice(0,6);
-    h+=secHTML('Últimas tarefas')+'<div class="list">'+last.map(function(t){var e=t.est0||t.est,r=t.focus/60;return '<div class="row" style="display:block;padding:12px 16px"><div class="row-title">'+esc(t.title)+'</div><div class="row-meta"><span>estimado '+fmt(e)+'</span><span>real '+fmt(r)+'</span><span style="color:var('+(r>e*1.15?'--warn':'--ok')+')">'+(r>e*1.15?'+':(r<e*.85?'−':'≈'))+(Math.abs(Math.round((r/e-1)*100))>=15?Math.abs(Math.round((r/e-1)*100))+'%':'')+'</span></div></div>'}).join('')+'</div>';
+    h+=secHTML('Últimas tarefas')+'<div class="list">'+last.map(function(t){var e=estAll(t,true),r=t.focus/60;return '<div class="row" style="display:block;padding:12px 16px"><div class="row-title">'+esc(t.title)+'</div><div class="row-meta"><span>estimado '+fmt(e)+'</span><span>real '+fmt(r)+'</span><span style="color:var('+(r>e*1.15?'--warn':'--ok')+')">'+(r>e*1.15?'+':(r<e*.85?'−':'≈'))+(Math.abs(Math.round((r/e-1)*100))>=15?Math.abs(Math.round((r/e-1)*100))+'%':'')+'</span></div></div>'}).join('')+'</div>';
   }
   var types={};S.tasks.forEach(function(t){if(t.type&&isDone(t)&&(t.focus||0)>=60){var o=types[t.type]=types[t.type]||{n:0,r:0,e:0};o.n++;o.r+=t.focus/60;o.e+=t.est0||t.est}});
   var tk=Object.keys(types);
   if(tk.length)h+=secHTML('Tempo por tipo de entrega')+'<section class="panel"><div class="rn2s">'+tk.map(function(k){var o=types[k];return '<div class="rn2"><span>'+esc(k)+' · '+o.n+'</span><span>média '+fmt(o.r/o.n)+' (estimado '+fmt(o.e/o.n)+')</span></div>'}).join('')+'</div></section>';
-  var other=S.tasks.filter(function(t){return isDone(t)&&!isGrp(t)&&!((t.focus||0)>=60)}).length;
+  var other=S.tasks.filter(function(t){return isDone(t)&&!((t.focus||0)>=60)}).length;
   if(other)h+='<p class="hint" style="margin-top:10px">'+other+' tarefa'+(other>1?'s':'')+' concluída'+(other>1?'s':'')+' sem tempo real. Elas contam nas entregas, mas não na comparação de estimativa.</p>';
   h+='<p class="hint" style="margin-top:10px">Os dados ficam guardados por 400 dias para você comparar meses.</p>';
   h+='</div></div>';

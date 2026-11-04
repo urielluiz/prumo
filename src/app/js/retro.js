@@ -4,15 +4,15 @@ try{RM=window.matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
 var WSEC=6500;
 function wrapData(wk){
   var days=[0,1,2,3,4,5,6].map(function(i){return addDays(wk,i)});
-  var wt=weekTasks(wk).filter(function(t){return !isGrp(t)}),dn=wt.filter(isDone);
+  var wt=weekTasks(wk),dn=wt.filter(isDone);
   var perDay=days.map(function(d){return dn.filter(function(t){return (t.doneAt?iso(new Date(t.doneAt)):t.day)===d}).length});
   var focus=days.map(function(d){return (S.log[d]||0)/60});
   var fm=sum(focus,function(x){return x});
   var best=0;days.forEach(function(d,i){if(focus[i]+perDay[i]*5>focus[best]+perDay[best]*5)best=i});
   var ctx=CTX.map(function(c){return {c:c,n:dn.filter(function(t){return t.ctx===c.id}).length}}).filter(function(x){return x.n>0});
   var rs=dn.filter(function(t){return (t.focus||0)>=60&&(t.est0||t.est)});
-  var eT=sum(rs,function(t){return t.est0||t.est}),rT=sum(rs,function(t){return t.focus/60});
-  var win=dn.slice().sort(function(a,b){return b.est-a.est})[0]||null;
+  var eT=sum(rs,function(t){return estAll(t,true)}),rT=sum(rs,function(t){return t.focus/60});
+  var win=dn.slice().sort(function(a,b){return estAll(b)-estAll(a)})[0]||null;
   var slip=dn.filter(function(t){return (t.slips||0)>0}).sort(function(a,b){return b.slips-a.slips})[0]||null;
   var act=perDay.filter(function(n){return n>0}).length;
   var pct=wt.length?Math.round(dn.length/wt.length*100):0;
@@ -145,6 +145,6 @@ function wrapBanner(){
   var wk=wrapTarget();if(!wk)return '';
   var seen=false;try{seen=!!localStorage.getItem('prumo.wrap.'+wk)}catch(e){}
   if(seen)return '';
-  if(!weekTasks(wk).some(function(t){return isDone(t)&&!isGrp(t)}))return '';
+  if(!weekTasks(wk).some(isDone))return '';
   return '<div class="wrapban"><div><b>Sua retrô da semana está pronta</b><span>'+esc(rangeLabel(wk))+'</span></div><button class="btn btn-p sm" data-act="wr-open" data-wk="'+wk+'">Ver</button></div>';
 }

@@ -34,36 +34,38 @@ await ev(()=>document.querySelector('[data-act=clear-ex]').click());await sleep(
 // enable push through banner on Hoje
 ok('banner on Hoje',/Quer ser avisado/.test(await ev(()=>document.querySelector('#view').innerText)));
 await ev(()=>document.querySelector('.banner [data-act=push-on]').click());await sleep(500);
-// new task with plan: 3 working days x 2h from next monday
+// new task with a period: 3 days x 2h from next monday, picked on the calendar
 const nextMon=await ev(()=>{const d=new Date();d.setDate(d.getDate()+((8-d.getDay())%7||7));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')});
+const plus=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 await ev(()=>document.querySelector('.tab-add').click());await sleep(150);
 await p.type('#f-title','Projeto X');
-await ev(()=>document.querySelector('[data-act=sh-sec][data-v=split]').click());await sleep(100);
-
-await ev(m=>{const f=(s,v)=>{const e=document.querySelector(s);e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}))};f('[data-in=pstart]',m);f('[data-in=pn]','6');f('[data-in=pest]','120')},nextMon);
-await ev(()=>document.querySelector('[data-act=plan-add]').click());await sleep(200);
-ok('plan pending summary',/6 dias de 2h a partir de/.test(await ev(()=>document.querySelector('.sheet').innerText)));
+await ev(()=>document.querySelector('[data-act=sh-sec][data-v=when]').click());await sleep(100);
+await ev(()=>document.querySelector('[data-act=sh-multi][data-v="1"]').click());await sleep(100);
+const pickDay=async d=>{for(let i=0;i<3;i++){const ok=await ev(d=>{const b=document.querySelector('[data-act=cal-day][data-v="'+d+'"]');if(b){b.click();return true}return false},d);if(ok)return;await ev(()=>document.querySelector('[data-act=cal-mon][data-v="1"]').click());await sleep(80)}};
+await pickDay(nextMon);await sleep(80);await pickDay(plus(nextMon,2));await sleep(80);
+await ev(()=>document.querySelector('[data-act=sh-sec][data-v=est]').click());await sleep(80);
+await ev(()=>document.querySelector('[data-act=sh-est][data-v="120"]').click());await sleep(80);
+ok('period summary in sheet',/3 dias/.test(await ev(()=>document.querySelector('#tk-sum').innerText)));
 await ev(()=>document.querySelector('[data-act=sh-save]').click());await sleep(400);
-let t=await tasks();const g=t.find(x=>x.title==='Projeto X'),kids=t.filter(x=>x.parent===g.id);
-ok('6 sessions created',kids.length===6);
-ok('sessions skip weekends',kids.every(k=>{const w=new Date(k.day+'T12:00:00').getDay();return w>0&&w<6}));
-ok('sessions on distinct consecutive workdays',new Set(kids.map(k=>k.day)).size===6&&kids[0].day===nextMon);
-ok('pauta est is total (12h)',g.est===720&&g.day===null);
-ok('kids typed with project name',kids.every(k=>k.type==='Projeto X'));
+let t=await tasks();const g=t.find(x=>x.title==='Projeto X');
+ok('one task, not a pauta',t.filter(x=>x.parent).length===0&&!!g);
+ok('period saved from monday for 3 days',g.day===nextMon&&g.end===plus(nextMon,2));
+ok('time is per day',g.est===120);
 // Proximos dias on Hoje: task for tomorrow
 await ev(()=>document.querySelector('.tab-add').click());await sleep(150);
-await p.type('#f-title','Entrega amanhã');
-await ev(()=>document.querySelector('[data-act=sh-day]:nth-child(2)').click());
+await p.type('#f-title','Entrega do cliente');
+await ev(()=>document.querySelector('[data-act=sh-sec][data-v=when]').click());await sleep(80);
+await ev(()=>document.querySelectorAll('[data-act=sh-day]')[1].click());
 await ev(()=>document.querySelector('[data-act=sh-save]').click());await sleep(300);
 await ev(()=>document.querySelector('.tab[data-t=hoje]').click());await sleep(150);
-ok('Próximos dias lists tomorrow task',/Próximos dias/.test(await ev(()=>document.querySelector('#view').innerText))&&/Entrega amanhã/.test(await ev(()=>document.querySelector('#view').innerText)));
+ok('Próximos dias lists tomorrow task',/Próximos dias/.test(await ev(()=>document.querySelector('#view').innerText))&&/Entrega do cliente/.test(await ev(()=>document.querySelector('#view').innerText)));
 // reminders synced
 await sleep(3500);
 let c=await calls();
 const rems=c.filter(x=>x.tbl==='prumo_reminders'&&x.op==='upsert');
 ok('reminders upserted',rems.length>=1);
 const rows=rems[rems.length-1].row;
-ok('reminder for tomorrow 08:00 local',rows.some(r=>{const d=new Date(r.fire_at);return d.getHours()===8&&/Entrega amanhã/.test(r.body)&&r.sent===false}));
+ok('reminder for tomorrow 08:00 local',rows.some(r=>{const d=new Date(r.fire_at);return d.getHours()===8&&/Entrega do cliente/.test(r.body)&&r.sent===false}));
 ok('reminder groups project sessions',rows.some(r=>/2h em Projeto X/.test(r.body)));
 ok('unsent reminders cleared before upsert',c.some(x=>x.tbl==='prumo_reminders'&&x.op==='delete'));
 // start timer, go to other tab -> mini player with pause

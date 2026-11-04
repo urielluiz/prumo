@@ -107,7 +107,7 @@ async function syncNow(pull){
   try{
     if(navigator.onLine===false){setSync('off');return}
     var changed=false;
-    if(pull||!S.synced){changed=mergeRemote(await sbFetchAll());rebase()}
+    if(pull||!S.synced){changed=mergeRemote(await sbFetchAll());rebase();if(convertPautas()){stamp();changed=true}}
     await sbPush();
     setSync('ok');writeLocal();
     if(changed)softRender();

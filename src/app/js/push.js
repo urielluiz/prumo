@@ -70,9 +70,9 @@ function remBuild(){
   for(var i=0;i<8;i++){
     var d=addDays(td,i),p=parseISO(d);p.setHours(h,0,0,0);
     if(p.getTime()<=now+60000)continue;
-    var l=tasksOn(d).filter(function(t){return !isDone(t)&&!isGrp(t)});
+    var l=tasksOn(d).filter(function(t){return !isDone(t)});
     if(!l.length)continue;
-    var by={};l.forEach(function(t){var par=t.parent&&byId(t.parent),k=par?par.title:t.title;by[k]=(by[k]||0)+t.est});
+    var by={};l.forEach(function(t){by[t.title]=(by[t.title]||0)+t.est});
     var ks=Object.keys(by).sort(function(a,b){return by[b]-by[a]});
     out.push({day:d,kind:'day',fire_at:p.toISOString(),title:'Prumo · Hoje: '+l.length+(l.length>1?' tarefas':' tarefa')+', '+fmt(sum(l,function(t){return t.est})),body:(ks.slice(0,3).map(function(k){return fmt(by[k])+' em '+k}).join(' · ')+(ks.length>3?' · +'+(ks.length-3):'')).slice(0,1000),sent:false});
   }

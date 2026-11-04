@@ -1,6 +1,8 @@
 /* ---------- eventos ---------- */
 function act(a,el){
   var id=el.dataset.id;
+  // folha de tarefa nova: ao tocar num controle, o que o texto reconheceu vira escolha
+  if(sh&&sh.kind==='task'&&/^(sh-(day|multi|est|est-other|ctx|rec|urg|imp|fw|sec)|cal-|rec-|st-)/.test(a))absorb();
   switch(a){
     case 'tab':tab=el.dataset.t;render();scrollTop();(function(){var v=$('#view');if(v){v.classList.remove('vin');void v.offsetWidth;v.classList.add('vin')}})();break;
     case 'wr-open':wrOpen(el.dataset.wk||curWk());break;
@@ -13,12 +15,12 @@ function act(a,el){
     case 'mit':toggleMit(id);break;
     case 'start':startSession(id);break;
     case 'start5':startSession(id||null,'cinco');break;
-    case 'mtoday':{var t=byId(id);if(t){t.day=todayISO();t.slips=(t.slips||0)+1;persist();render();toast('Movida para hoje.')}break}
+    case 'mtoday':{var t=byId(id);if(t){t.day=todayISO();delete t.end;t.slips=(t.slips||0)+1;persist();render();toast('Movida para hoje.')}break}
     case 'drop':dropTask(id);break;
     case 'clear-ex':S.tasks=S.tasks.filter(function(t){return !t.ex});if(S.session&&!byId(S.session.tid)&&S.session.tid){S.session=null;unlock()}persist();render();toast('Exemplos removidos. Agora é com você.');break;
     case 'wk':{var d=Number(el.dataset.d);wkOff=d===0?0:wkOff+d;selDay=null;render();break}
     case 'selday':selDay=el.dataset.d;render();break;
-    case 'pull':{var p=byId(id);if(p){p.day=selDay||todayISO();persist();render();toast('Puxada para '+shortDate(p.day)+'.')}break}
+    case 'pull':{var p=byId(id);if(p){p.day=selDay||todayISO();delete p.end;persist();render();toast('Puxada para '+shortDate(p.day)+'.')}break}
     case 'plan':sh={kind:'plan'};renderSheet();break;
     case 'cap':{var i=Number(el.dataset.i),dl=Number(el.dataset.d);S.cap[i]=Math.max(0,Math.min(720,(S.cap[i]||0)+dl));persist();renderSheet();render();break}
     case 'autoplan':autoPlan();break;
@@ -28,11 +30,6 @@ function act(a,el){
     case 'push-on':pushEnable();break;
     case 'push-off':pushDisable();break;
     case 'push-test':pushTest();break;
-    case 'sh-par':sh.d.parent=el.dataset.v||null;renderSheet();break;
-    case 'plan-add':addPlan();break;
-    case 'plan-wk':sh.g=sh.g||{};sh.g.pwk=sh.g.pwk===false;renderSheet();break;
-    case 'kid-add':addKids();break;
-    case 'kid-open':{if(sh&&sh.mode==='edit'&&sh.d.title.trim()){var ct=byId(sh.id);if(ct){applySheet(ct,sh.d);persist()}}openTask(el.dataset.id);break}
     case 'rev':revMode=el.dataset.v;render();scrollTop();break;
     case 'drange':dashRange=el.dataset.v;render();break;
     case 'rowdel':dropTask(el.dataset.id);break;
@@ -40,10 +37,16 @@ function act(a,el){
     case 'sh-save':saveTask();break;
     case 'sh-del':{var tt=sh.mode==='edit'&&byId(sh.id);if(tt&&tt.rid&&S.rec[tt.rid]){sh.del=!sh.del;renderSheet()}else if(!sh.del){sh.del=true;renderSheet()}else{var did=sh.id;sh=null;renderSheet();dropTask(did)}break}
     case 'sh-usesug':sh.d.fw=null;renderSheet();break;
-    case 'sh-more':sh.more=true;renderSheet();break;
-    case 'sh-sec':sh.sec=sh.sec===el.dataset.v?null:el.dataset.v;renderSheet();break;
+    case 'sh-sec':{var sv=el.dataset.v;if(/^(when|est|ctx|rep)$/.test(sv)){sh.open=sh.open===sv?null:sv;sh.pick=null}else sh.more=sv==='more'?!sh.more:true;renderSheet();if(sv==='more'&&sh.more){var mo=document.querySelector('.tk-opts');if(mo)try{mo.scrollIntoView({block:'nearest',behavior:RM?'auto':'smooth'})}catch(x){}}break}
+    case 'tok-off':sh.off[el.dataset.v]=true;renderSheet();fitTitle();break;
+    case 'sh-multi':sh.multi=el.dataset.v==='1';sh.pick=null;if(!sh.multi)sh.d.end=null;renderSheet();break;
+    case 'cal-mon':{var cm=sh.mon.split('-').map(Number),cn=new Date(cm[0],cm[1]-1+Number(el.dataset.v),1);sh.mon=cn.getFullYear()+'-'+pad(cn.getMonth()+1);renderSheet();break}
+    case 'cal-day':{var cv=el.dataset.v;if(!sh.multi){sh.d.day=cv;sh.d.end=null}else if(!sh.pick){sh.pick=cv}else{var ca=sh.pick,cz=cv;if(cz<ca){var cx=ca;ca=cz;cz=cx}sh.d.day=ca;sh.d.end=cz===ca?null:cz;sh.pick=null}renderSheet();break}
+    case 'st-add':addStep();break;
+    case 'st-del':sh.d.dod.splice(Number(el.dataset.v),1);renderSheet();break;
+    case 'st-tog':{var so=sh.d.dod[Number(el.dataset.v)];if(so)so.d=!so.d;renderSheet();break}
     case 'sh-est-other':sh.estOpen=true;renderSheet();setTimeout(function(){var i=$('#f-est');if(i)i.focus()},40);break;
-    case 'sh-rec':{var v=el.dataset.v;if(v==='none')sh.d.rec=null;else if(v==='weekly')sh.d.rec={t:'weekly',dows:(sh.d.rec&&sh.d.rec.t==='weekly'&&sh.d.rec.dows&&sh.d.rec.dows.length)?sh.d.rec.dows:[parseISO(sh.d.day||todayISO()).getDay()]};else sh.d.rec={t:v};renderSheet();break}
+    case 'sh-rec':{var v=el.dataset.v;if(v==='none')sh.d.rec=null;else if(v==='weekly')sh.d.rec={t:'weekly',dows:(sh.d.rec&&sh.d.rec.t==='weekly'&&sh.d.rec.dows&&sh.d.rec.dows.length)?sh.d.rec.dows:[parseISO(sh.d.day||todayISO()).getDay()]};else sh.d.rec={t:v};if(sh.d.rec){sh.d.end=null;sh.multi=false;sh.pick=null}renderSheet();break}
     case 'rec-dow':{var w=Number(el.dataset.v),ds=(sh.d.rec&&sh.d.rec.dows||[]).slice(),ix=ds.indexOf(w);if(ix>=0){if(ds.length>1)ds.splice(ix,1)}else ds.push(w);sh.d.rec.dows=ds;renderSheet();break}
     case 'rec-all':sh.d.recAll=!sh.d.recAll;renderSheet();break;
     case 'sh-del1':{var d1=sh.id;sh=null;renderSheet();dropTask(d1);break}
@@ -52,7 +55,7 @@ function act(a,el){
     case 'pw-open':sh={kind:'pw'};renderSheet();break;
     case 'pw-save':savePw();break;
     case 'sh-ctx':sh.d.ctx=el.dataset.v;renderSheet();break;
-    case 'sh-day':sh.d.day=el.dataset.v==='none'?null:el.dataset.v;renderSheet();break;
+    case 'sh-day':sh.d.day=el.dataset.v==='none'?null:el.dataset.v;sh.d.end=null;sh.multi=false;sh.pick=null;if(sh.d.day)sh.mon=(sh.d.day>todayISO()?sh.d.day:todayISO()).slice(0,7);renderSheet();break;
     case 'sh-est':sh.d.est=Number(el.dataset.v);sh.estOpen=false;renderSheet();break;
     case 'sh-urg':sh.d.urg=!sh.d.urg;renderSheet();break;
     case 'sh-imp':sh.d.imp=!sh.d.imp;renderSheet();break;
@@ -93,7 +96,7 @@ document.addEventListener('click',function(e){
 });
 document.addEventListener('input',function(e){
   var el=e.target,k=el.dataset&&el.dataset.in;if(!k)return;
-  if(k==='title'||k==='dodText'){if(sh&&sh.d)sh.d[k]=el.value}
+  if(k==='title'){if(sh&&sh.kind==='task'){sh.d.raw=el.value.replace(/\n/g,' ');liveTask()}}
   else if(k==='gname'||k==='gn'||k==='gest'||k==='pstart'||k==='pn'||k==='pest'){if(sh){sh.g=sh.g||{name:'',n:'1',est:''};sh.g[{gname:'name',gn:'n',gest:'est',pstart:'pstart',pn:'pn',pest:'pest'}[k]]=el.value}}
   else if(k==='real'){if(sh&&sh.d)sh.d.real=el.value}
   else if(k==='blk'){var td=todayISO();if(el.value.trim())S.blockers[td]=el.value;else delete S.blockers[td];persist()}
@@ -101,7 +104,7 @@ document.addEventListener('input',function(e){
   else if(k==='ctxname'){S.ctx=S.ctx||{};var v=el.value.trim();if(v)S.ctx[el.dataset.c]=v;else delete S.ctx[el.dataset.c];persist()}
   else if(k==='restore'){restoreTxt=el.value}
   else if(k==='pname'){S.prof=Object.assign({},S.prof,{name:cleanName(el.value).trim()});persist()}
-  else if(k==='est'){var n=Math.round(Number(el.value));if(n>=1&&n<=960&&sh&&sh.d){sh.d.est=n;Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-est"]'),function(b){b.setAttribute('aria-pressed',String(Number(b.dataset.v)===n))});var pn=document.getElementById('pomo-n');if(pn)pn.textContent=pomoText(sh.d,sh.d.fw||suggestFw(sh.d));var sb=document.getElementById('sug-box');if(sb)sb.innerHTML=sugInner(sh.d);var cf=sh.d.fw||suggestFw(sh.d);Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-fw"]'),function(b){b.setAttribute('aria-pressed',String(b.dataset.v===cf))})}}
+  else if(k==='est'){var n=Math.round(Number(el.value));if(n>=1&&n<=960&&sh&&sh.d){sh.d.est=n;Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-est"]'),function(b){b.setAttribute('aria-pressed',String(Number(b.dataset.v)===n))});var pn=document.getElementById('pomo-n');if(pn)pn.textContent=pomoText(sh.d,sh.d.fw||suggestFw(sh.d));var sm=document.getElementById('tk-pills');if(sm&&sh.kind==='task')liveTask();var cf=sh.d.fw||suggestFw(sh.d);Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-fw"]'),function(b){b.setAttribute('aria-pressed',String(b.dataset.v===cf))})}}
 });
 document.addEventListener('change',function(e){
   var el=e.target;
@@ -117,6 +120,7 @@ document.addEventListener('change',function(e){
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&sh){sh=null;renderSheet()}
   if(e.key==='Enter'&&e.target&&e.target.id==='f-title'){e.preventDefault();saveTask()}
+  if(e.key==='Enter'&&e.target&&e.target.id==='f-step'){e.preventDefault();addStep()}
   if(e.key==='Enter'&&e.target&&e.target.id==='blk'){e.target.blur()}
 });
 document.addEventListener('visibilitychange',function(){

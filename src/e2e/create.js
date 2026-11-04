@@ -5,7 +5,10 @@ let html=fs.readFileSync(S+'/pwa/index.html','utf8');
 html=html.replace(/<script>window\.PRUMO_SB=.*?<\/script>\n?/,'').replace('<script src="supabase.js"></script>\n','');
 fs.writeFileSync(S+'/e2e/createtest.html',html);
 const pad=n=>String(n).padStart(2,'0');const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-const nextSat=(()=>{const d=new Date();d.setDate(d.getDate()+((6-d.getDay()+7)%7||7));return iso(d)})();
+const plus=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)};
+const TD=iso(new Date());
+const nextDow=w=>{const d=new Date();for(let i=0;i<7;i++){const x=new Date(d);x.setDate(d.getDate()+i);if(x.getDay()===w)return iso(x)}};
+const SAT=nextDow(6),TUE=nextDow(2)>SAT?nextDow(2):plus(SAT,3);
 
 (async()=>{const b=await puppeteer.launch({executablePath:'/usr/bin/google-chrome',headless:'new',args:['--no-sandbox']});
 const p=await b.newPage();await p.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
@@ -14,54 +17,116 @@ await p.evaluateOnNewDocument(FAKE);
 await p.evaluateOnNewDocument(()=>{localStorage.setItem('sb-test-auth-token',JSON.stringify({refresh_token:'x',user:{id:'u1',email:'dono@example.com'}}))});
 const ev=(f,...a)=>p.evaluate(f,...a);
 const click=s=>ev(s=>{const e=document.querySelector(s);if(!e)throw new Error('missing '+s);e.click()},s);
+const has=s=>ev(s=>!!document.querySelector(s),s);
+const txt=s=>ev(s=>{const e=document.querySelector(s);return e?e.innerText:''},s);
 const toastTxt=()=>ev(()=>{const t=document.querySelector('#toast');return t.hidden?'':t.innerText});
 const st=()=>ev(()=>JSON.parse(localStorage.getItem('prumo.v1')));
+const task=async n=>(await st()).tasks.find(x=>x.title===n);
 const flashed=()=>ev(()=>{const e=document.querySelector('.row.flash');return e?e.dataset.tid:null});
+const typeTitle=async t=>{await click('.tab-add');await sleep(200);await p.type('#f-title',t);await sleep(80)};
+const pickDay=async d=>{for(let i=0;i<4;i++){if(await ev(d=>{const b=document.querySelector('[data-act=cal-day][data-v="'+d+'"]');if(b){b.click();return true}return false},d)){await sleep(80);return true}await click('[data-act=cal-mon][data-v="1"]');await sleep(60)}return false};
 await p.goto(await url('e2e/createtest.html'),{waitUntil:'domcontentloaded'});await sleep(1200);
 await ev(()=>{const c=document.querySelector('[data-act=clear-ex]');if(c)c.click()});await sleep(150);
 
-// ---------- calendário de "Outra data" não fecha ----------
-await click('.tab-add');await sleep(200);
-await p.type('#f-title','Revisar contrato');
-const same=await ev(async d=>{const i=document.querySelector('#f-date');window.__dateEl=i;i.value=d;i.dispatchEvent(new Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,100));return document.querySelector('#f-date')===window.__dateEl},nextSat);
-ok('picking a date keeps the same field (native picker stays open)',same);
-ok('picked date shown on the chip',await ev(()=>{const l=document.querySelector('#f-date').parentNode;return l.getAttribute('aria-pressed')==='true'&&/\d/.test(l.textContent)}));
-ok('other "Quando" chips unselected',await ev(()=>[...document.querySelectorAll('[data-act="sh-day"]')].every(b=>b.getAttribute('aria-pressed')==='false')));
-ok('title kept while picking date',(await ev(()=>document.querySelector('#f-title').value))==='Revisar contrato');
-
-// ---------- salvar diz para onde foi e leva até lá ----------
+// ---------- reconhecimento de texto ----------
+await typeTitle('Projeto do cliente X sáb a ter 2h #freelas');
+const toks=await ev(()=>[...document.querySelectorAll('.tok')].map(t=>t.innerText.trim()));
+ok('text: period, time and context recognized',toks.length===3&&/a ter/.test(toks[0])&&toks[1]==='2h'&&toks[2]==='Freelas');
+ok('text: summary shows period per day',/Projeto do cliente X · .* \(\d dias\) · 2h por dia · Freelas/.test(await txt('#tk-sum')));
+ok('text: pills follow the text',/2h por dia/.test(await txt('#tk-pills'))&&/Freelas/.test(await txt('#tk-pills')));
+ok('text: typing does not rebuild the sheet (focus stays)',await ev(()=>document.activeElement&&document.activeElement.id==='f-title'));
 await click('[data-act=sh-save]');await sleep(300);
-let t=(await st()).tasks.find(x=>x.title==='Revisar contrato');
-ok('task saved on the picked date',!!t&&t.day===nextSat);
-let tt=await toastTxt();
-ok('toast says where it went',/Tarefa criada para (sáb|sab)/i.test(tt));
-ok('toast offers "Ver"',/Ver/.test(tt));
+let t=await task('Projeto do cliente X');
+ok('text: saved as one period task',!!t&&t.day===SAT&&t.end===TUE&&t.est===120&&t.ctx==='freelas');
+ok('text: toast names the period',/Tarefa criada de (sáb|sab).* a (ter).*\(\d dias\)/.test(await toastTxt()));
 await click('[data-act=toast-act]');await sleep(400);
-ok('"Ver" opens the week on that day',await ev(d=>document.querySelector('.tab[data-t=semana]').getAttribute('aria-current')==='page'&&!!document.querySelector('[data-act=selday][data-d="'+d+'"][aria-pressed=true]'),nextSat));
-ok('"Ver" highlights the card',(await flashed())===t.id);
+ok('"Ver" opens the week and highlights the card',(await flashed())===t.id&&await has('[data-act=selday][data-d="'+SAT+'"][aria-pressed=true]'));
+ok('week strip marks the period days',await has('.dy.per[data-d="'+SAT+'"]'));
+ok('card shows day 1 of N',/dia 1 de \d/.test(await txt('[data-tid="'+t.id+'"]')));
 
-// hoje: destaca na própria tela
-await click('.tab[data-t=hoje]');await sleep(200);
-await click('.tab-add');await sleep(200);await p.type('#f-title','Ligar para o contador');await click('[data-act=sh-save]');await sleep(300);
-t=(await st()).tasks.find(x=>x.title==='Ligar para o contador');
-ok('today: toast says hoje',/criada para hoje/.test(await toastTxt()));
-ok('today: card highlighted on Hoje',(await flashed())===t.id);
-
-// sem data
-await click('.tab-add');await sleep(200);await p.type('#f-title','Ideia de post');await click('[data-act="sh-day"][data-v=none]');await sleep(100);await click('[data-act=sh-save]');await sleep(300);
-ok('no date: toast says backlog',/backlog/.test(await toastTxt()));
-
-// plano por vários dias (o caso do teste real: sábado a terça)
-await click('.tab-add');await sleep(200);await p.type('#f-title','Projeto do cliente X');
-await click('[data-act=sh-sec][data-v=split]');await sleep(150);
-await ev(d=>{const set=(k,v)=>{const i=document.querySelector('[data-in='+k+']');i.value=v;i.dispatchEvent(new Event('input',{bubbles:true}))};set('pstart',d);set('pn','4');set('pest','120')},nextSat);
-await ev(()=>[...document.querySelectorAll('.sheet button')].find(x=>/dias úteis/.test(x.innerText)).click());await sleep(100);
-await ev(()=>[...document.querySelectorAll('.sheet button')].find(x=>/Criar plano/.test(x.innerText)).click());await sleep(150);
+// × trata como texto
+await click('.tab[data-t=hoje]');await sleep(150);
+await typeTitle('Relatório de sexta 1h');
+await ev(()=>document.querySelector('[data-act=tok-off][data-v=when]').click());await sleep(120);
+ok('× keeps the word in the title',/Relatório de sexta · Hoje · 1h/.test(await txt('#tk-sum')));
 await click('[data-act=sh-save]');await sleep(300);
-const g=(await st()).tasks.find(x=>x.title==='Projeto do cliente X');
-ok('plan: toast names the start day and count',/Pauta criada: 4 etapas a partir de (sáb|sab)/i.test(await toastTxt()));
-await click('[data-act=toast-act]');await sleep(400);
-const k1=(await st()).tasks.find(x=>x.parent===g.id&&x.day===nextSat);
-ok('plan: "Ver" opens the first day and highlights it',(await flashed())===k1.id);
+t=await task('Relatório de sexta');
+ok('× : saved with the word and no date change',!!t&&t.day===TD&&t.est===60);
+ok('today: toast says hoje and card flashes',/criada para hoje/.test(await toastTxt())&&(await flashed())===t.id);
+
+// ---------- calendário: um dia, vários dias, sem data ----------
+await typeTitle('Viagem a trabalho');
+await click('[data-act=sh-sec][data-v=when]');await sleep(100);
+ok('past days are disabled',await ev(td=>{const bs=[...document.querySelectorAll('[data-act=cal-day]')].filter(b=>b.dataset.v<td);return bs.every(b=>b.disabled)},TD));
+await click('[data-act=sh-multi][data-v="1"]');await sleep(80);
+const A=plus(TD,3),Z=plus(TD,5);
+await pickDay(Z);ok('multi: asks for the last day',/último dia/.test(await txt('.tk-panel .hint')));
+await pickDay(A);
+ok('multi: picking in reverse order still makes a valid range',/3 dias/.test(await txt('.tk-panel .hint'))&&await has('[data-act=cal-day][data-v="'+A+'"].s')&&await has('[data-act=cal-day][data-v="'+Z+'"].e'));
+await click('[data-act=sh-sec][data-v=est]');await sleep(80);
+await click('[data-act=sh-est][data-v="240"]');await sleep(80);
+ok('est panel shows total for the period',/12h/.test(await txt('.tk-panel')));
+await click('[data-act=sh-save]');await sleep(300);
+t=await task('Viagem a trabalho');ok('multi: saved',t.day===A&&t.end===Z&&t.est===240);
+await typeTitle('Ideia de post');
+await click('[data-act=sh-sec][data-v=when]');await sleep(80);
+await click('[data-act=sh-day][data-v=none]');await sleep(80);
+await click('[data-act=sh-save]');await sleep(300);
+ok('no date: backlog toast',/backlog/.test(await toastTxt())&&!(await task('Ideia de post')).day);
+
+// ---------- repetição não combina com período ----------
+await typeTitle('Treino');
+await click('[data-act=sh-sec][data-v=when]');await sleep(80);await click('[data-act=sh-multi][data-v="1"]');await sleep(60);
+await pickDay(plus(TD,1));await pickDay(plus(TD,2));
+await click('[data-act=sh-sec][data-v=rep]');await sleep(80);await click('[data-act=sh-rec][data-v=daily]');await sleep(80);
+await click('[data-act=sh-sec][data-v=when]');await sleep(80);
+ok('repeat: multi-day disabled and explained',await ev(()=>document.querySelector('[data-act=sh-multi][data-v="1"]').disabled)&&/repetem são de um dia/.test(await txt('.tk-panel .hint')));
+await click('[data-act=sh-save]');await sleep(300);
+t=await task('Treino');ok('repeat: saved as single-day series',!!t&&!t.end&&!!t.rid);
+
+// ---------- etapas ----------
+await typeTitle('Site novo');
+await click('[data-act=sh-sec][data-v=more]');await sleep(120);
+await p.type('#f-step','Briefing');await p.keyboard.press('Enter');await sleep(120);
+await p.type('#f-step','Wireframe');await click('[data-act=st-add]');await sleep(120);
+await p.type('#f-step','Layout');await p.keyboard.press('Enter');await sleep(120);
+ok('steps: added with Enter and button, focus stays in field',(await ev(()=>document.querySelectorAll('.steps li').length))===3&&await ev(()=>document.activeElement.id==='f-step'));
+await click('[data-act=st-del][data-v="1"]');await sleep(80);
+await click('[data-act=st-tog][data-v="0"]');await sleep(80);
+await click('[data-act=sh-save]');await sleep(300);
+t=await task('Site novo');
+ok('steps: saved in order with state',JSON.stringify(t.dod)===JSON.stringify([{t:'Briefing',d:true},{t:'Layout',d:false}]));
+ok('steps: card shows progress',/1\/2 etapas/.test(await txt('[data-tid="'+t.id+'"]')));
+
+// ---------- editar: título não é reinterpretado ----------
+await click('.tab[data-t=hoje]');await sleep(150);
+const rel=await task('Relatório de sexta');
+await ev(id=>document.querySelector('[data-act=edit][data-id="'+id+'"]').click(),rel.id);await sleep(200);
+ok('edit: no text recognition on existing title',!(await has('.tok'))&&/Relatório de sexta/.test(await txt('#tk-sum')));
+await ev(()=>{const i=document.querySelector('#f-title');i.value='Relatório de sexta revisado';i.dispatchEvent(new Event('input',{bubbles:true}))});
+await click('[data-act=sh-save]');await sleep(300);
+ok('edit: saved with "salva" toast',/Tarefa salva para hoje/.test(await toastTxt())&&!!(await task('Relatório de sexta revisado')));
+
+// ---------- período nas telas ----------
+await typeTitle('Campanha de lançamento');
+await click('[data-act=sh-sec][data-v=when]');await sleep(80);await click('[data-act=sh-multi][data-v="1"]');await sleep(60);
+await pickDay(TD);await pickDay(plus(TD,2));
+await click('[data-act=sh-save]');await sleep(300);
+t=await task('Campanha de lançamento');
+ok('period from today shows on Hoje with day 1 of 3',/dia 1 de 3/.test(await txt('[data-tid="'+t.id+'"]'))&&await has('[data-tid="'+t.id+'"] .rbar'));
+await click('.tab[data-t=semana]');await sleep(150);
+await click('[data-act=selday][data-d="'+plus(TD,1)+'"]').catch(()=>{});await sleep(150);
+if(await has('[data-act=selday][data-d="'+plus(TD,1)+'"]'))ok('tomorrow shows day 2 of 3',/dia 2 de 3/.test(await txt('[data-tid="'+t.id+'"]')));
+await click('.tab[data-t=hoje]');await sleep(150);
+await ev(id=>document.querySelector('[data-act=toggle][data-id="'+id+'"]').click(),t.id);await sleep(300);
+t=await task('Campanha de lançamento');
+ok('completing a period ends it today',t.status==='done'&&t.day===TD&&!t.end);
+
+// atrasada: período que já passou aparece em "Ficou para trás" e "Hoje" desfaz o período
+await ev(([a,z])=>{const v=JSON.parse(localStorage.getItem('prumo.v1'));v.tasks.push({id:'old1',title:'Período que passou',ctx:'trabalho',est:60,day:a,end:z,status:'todo',dod:[],slips:0,focus:0,pomos:0,mit:false});localStorage.setItem('prumo.v1',JSON.stringify(v))},[plus(TD,-5),plus(TD,-2)]);
+await p.reload({waitUntil:'domcontentloaded'});await sleep(1200);
+ok('overdue period listed by its last day',/Período que passou[\s\S]*era de/.test(await txt('#view')));
+await ev(()=>{const r=[...document.querySelectorAll('[data-act=mtoday]')].find(b=>b.dataset.id==='old1');r.click()});await sleep(200);
+t=(await st()).tasks.find(x=>x.id==='old1');ok('"Hoje" on overdue period makes it today only',t.day===TD&&!t.end);
 
 console.log(res.join('\n'));console.log(errs.length?'ERRORS '+errs:'NO PAGE ERRORS');await b.close()})();

@@ -53,6 +53,7 @@ var ICON={
   x:'<path d="M6 6l12 12M18 6L6 18"/>',
   up:'<path d="M6 14l6-6 6 6"/>',
   down:'<path d="M6 10l6 6 6-6"/>',
+  repeat:'<path d="M17 3l3 3-3 3M4 12v-2a4 4 0 0 1 4-4h12M7 21l-3-3 3-3M20 12v2a4 4 0 0 1-4 4H4"/>',
   trash:'<path d="M4.5 7h15M9.5 7V4.8h5V7M6.5 7l.9 12.2h9.2L17.5 7M10 10.5v5.5M14 10.5v5.5"/>'
 };
 function ic(n,s,w){s=s||22;return '<svg class="ic" width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(w||1.9)+'" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[n]+'</svg>'}

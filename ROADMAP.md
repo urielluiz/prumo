@@ -1,7 +1,7 @@
 # Prumo — roadmap
 
 ## Já entregue
-Login (Supabase), sincronização por item, tarefas com frameworks ágeis, pautas com entregas, plano por vários dias, tarefas recorrentes, push do timer, resumo diário e retrô semanal (stories) por push, painel semanal/mensal, guia de métodos, alterar senha, código dividido em módulos (`src/app/`) com build gerando um único arquivo, cadastro de usuários com confirmação por código, recuperação de senha, sair de todos os aparelhos, dados locais isolados por conta, CSP, limites por conta no banco, tela de Perfil (nome, foto, conta, preferências), exportar meus dados, excluir minha conta.
+Login (Supabase), sincronização por item, tarefas com frameworks ágeis, pautas com entregas, plano por vários dias, tarefas recorrentes, push do timer, resumo diário e retrô semanal (stories) por push, painel semanal/mensal, guia de métodos, alterar senha, código dividido em módulos (`src/app/`) com build gerando um único arquivo, cadastro de usuários com confirmação por código, recuperação de senha, sair de todos os aparelhos, dados locais isolados por conta, CSP, limites por conta no banco, tela de Perfil (nome, foto, conta, preferências), exportar meus dados, excluir minha conta, nova folha de tarefa (escrever do seu jeito, calendário com vários dias, etapas, aviso que leva até a tarefa).
 
 ## Próxima fase (anotado a pedido)
 - Abrir o cadastro: concluir os ajustes do painel em `SECURITY.md` (SMTP próprio, confirmação de e-mail, modelos, URLs) e virar `signup_open` para `'true'`
@@ -16,5 +16,7 @@ Login (Supabase), sincronização por item, tarefas com frameworks ágeis, pauta
 - Comprar domínio próprio e migrar da GitHub Pages para a Hostinger (ajustar URL de origem do push/VAPID e do Supabase Auth). Lá, mandar a CSP e os demais cabeçalhos por HTTP (HSTS, frame-ancestors, X-Content-Type-Options, Permissions-Policy)
 
 ## Depois
+- Prazo final opcional separado do "Quando" (como o Things)
+- Arrastar tarefas entre dias na Semana
 - Acessibilidade (leitor de tela, contraste, texto)
 - Feedback de uso e ajustes de usabilidade

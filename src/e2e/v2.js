@@ -35,11 +35,12 @@ const count = (page, sel) => page.evaluate(s => document.querySelectorAll(s).len
   // ---------- PHONE: estimativas ----------
   let p = await mk(browser, { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   await click(p, '.tab-add'); await sleep(150);
+  await click(p, '[data-act=sh-sec][data-v=est]'); await sleep(100);
   ok('phone: estimate chips with Outro', (await text(p, '.sheet')).includes('Outro'));
   await p.type('#f-title', 'Pauta de posts do LinkedIn');
   await click(p, '[data-act=sh-est-other]'); await sleep(80);
   await p.type('#f-est', '300');
-  await click(p, '[data-act=sh-sec][data-v=prio]'); await sleep(100);
+  await click(p, '[data-act=sh-sec][data-v=more]'); await sleep(100);
   ok('phone: custom estimate keeps value', (await p.evaluate(() => document.querySelector('#f-est').value)) === '300');
   await click(p, '[data-act=sh-fw][data-v=pomodoro]');
   ok('phone: shows pomodoro count', (await text(p, '#pomo-n')).includes('12 pomodoros'));

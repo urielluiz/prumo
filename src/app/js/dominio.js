@@ -19,10 +19,18 @@ function suggestion(t){
 function suggestFw(t){return suggestion(t).fw}
 var fwOf=function(t){return t.fw||suggestFw(t)};
 var byPrio=function(a,b){return quad(a)-quad(b)||b.est-a.est};
-var tasksOn=function(d){return S.tasks.filter(function(t){return t.day===d})};
+// Período: tarefa com day (início) e end (último dia). O tempo (est) é por dia. Concluída, ela termina no dia da conclusão.
+var lastDay=function(t){return t.end||t.day};
+var spanOf=function(t){return t.end?Math.round((parseISO(t.end)-parseISO(t.day))/864e5)+1:1};
+var dayIdx=function(t,d){return Math.round((parseISO(d)-parseISO(t.day))/864e5)+1};
+var covers=function(t,d){return !!t.day&&(t.day===d||(!!t.end&&d>t.day&&d<=t.end))};
+var estAll=function(t,orig){return ((orig&&t.est0)||t.est||0)*spanOf(t)};
+var tasksOn=function(d){return S.tasks.filter(function(t){return covers(t,d)})};
 var curWk=function(){return addDays(weekStart(todayISO()),wkOff*7)};
-var weekTasks=function(wk){var e=addDays(wk,6);return S.tasks.filter(function(t){return t.day&&t.day>=wk&&t.day<=e})};
-var overdue=function(){var td=todayISO();return S.tasks.filter(function(t){return !isDone(t)&&t.day&&t.day<td}).sort(function(a,b){return a.day<b.day?-1:1})};
+var weekTasks=function(wk){var e=addDays(wk,6);return S.tasks.filter(function(t){return t.day&&t.day<=e&&lastDay(t)>=wk})};
+// minutos planejados de uma tarefa entre a e b (período conta só os dias dentro do intervalo)
+var estIn=function(t,a,b){if(!t.end)return t.day>=a&&t.day<=b?t.est:0;var s=t.day>a?t.day:a,e=t.end<b?t.end:b;return s>e?0:t.est*(Math.round((parseISO(e)-parseISO(s))/864e5)+1)};
+var overdue=function(){var td=todayISO();return S.tasks.filter(function(t){return !isDone(t)&&t.day&&lastDay(t)<td}).sort(function(a,b){return lastDay(a)<lastDay(b)?-1:1})};
 var wipCount=function(){return S.tasks.filter(function(t){return t.status==='doing'}).length};
 function shortDate(s){var d=parseISO(s);return DABR[d.getDay()]+', '+d.getDate()+' '+MONS[d.getMonth()]}
 function rangeLabel(wk){var a=parseISO(wk),b=parseISO(addDays(wk,6));
@@ -34,7 +42,7 @@ function streak(){
 }
 function nextTask(){
   var td=todayISO();
-  var open=S.tasks.filter(function(t){return !isDone(t)&&t.day===td});
+  var open=S.tasks.filter(function(t){return !isDone(t)&&covers(t,td)});
   var doing=open.filter(function(t){return t.status==='doing'});
   var mits=open.filter(function(t){return t.mit&&t.status!=='doing'}).sort(byPrio);
   var rest=open.filter(function(t){return !t.mit&&t.status!=='doing'}).sort(byPrio);

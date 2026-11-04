@@ -29,7 +29,6 @@ function viewHoje(){
   if(rest.length)h+=secHTML('Resto do dia',rest.length)+listHTML(rest,{star:true,play:true},sapo);
   }
   if(done.length)h+=secHTML('Concluídas hoje',done.length)+listHTML(done,{},null);
-  h+=grpSection();
   h+=upcomingHTML();
   h+='</div></div>';
   return h;
@@ -39,26 +38,27 @@ function viewSemana(){
   var wk=curWk(),td=todayISO();
   var days=[0,1,2,3,4,5,6].map(function(i){return addDays(wk,i)});
   if(!selDay||days.indexOf(selDay)<0)selDay=days.indexOf(td)>=0?td:days[0];
-  var wt=weekTasks(wk),planMin=sum(wt,function(t){return t.est}),wdone=wt.filter(isDone);
-  var byC=CTX.map(function(c){return {c:c,m:sum(wt.filter(function(t){return t.ctx===c.id}),function(t){return t.est})}}).filter(function(x){return x.m>0});
+  var we=addDays(wk,6),inWk=function(t){return estIn(t,wk,we)};
+  var wt=weekTasks(wk),planMin=sum(wt,inWk),wdone=wt.filter(isDone);
+  var byC=CTX.map(function(c){return {c:c,m:sum(wt.filter(function(t){return t.ctx===c.id}),inWk)}}).filter(function(x){return x.m>0});
   var dayT=tasksOn(selDay).sort(function(a,b){return (isDone(a)-isDone(b))||byPrio(a,b)});
   var cap=S.cap[parseISO(selDay).getDay()]||0;
   var plan=sum(dayT,function(t){return t.est}),dn=sum(dayT.filter(isDone),function(t){return t.est});
   var sd=parseISO(selDay),over=cap&&plan>cap;
   var msg=!cap?(plan?'Dia sem capacidade definida. Ajuste em Planejar semana.':'Dia livre.'):(over?'Passou '+fmt(plan-cap)+' da capacidade de '+fmt(cap)+'. Mova algo para outro dia.':fmt(plan)+' planejados de '+fmt(cap)+'. Sobram '+fmt(cap-plan)+'.');
   var pc=cap?Math.min(100,plan/cap*100):0,pd=cap?Math.min(pc,dn/cap*100):0;
-  var back=S.tasks.filter(function(t){return !t.day&&!isDone(t)&&!isGrp(t)}).sort(byPrio);
+  var back=S.tasks.filter(function(t){return !t.day&&!isDone(t)}).sort(byPrio);
   var h='<header class="top"><div><div class="eyebrow">Semana</div><h1 class="h1">'+rangeLabel(wk)+'</h1></div><div class="nav"><button class="ib" data-act="wk" data-d="-1" aria-label="Semana anterior">'+ic('left')+'</button><button class="ib" data-act="wk" data-d="1" aria-label="Próxima semana">'+ic('right')+'</button></div></header>';
   h+='<div class="cols"><div class="col stick">';
   h+='<section class="panel">'+(planMin?'<div class="nums"><div><b>'+wdone.length+'/'+wt.length+'</b><small>tarefas concluídas</small></div><div><b>'+fmt(planMin)+'</b><small>planejados na semana</small></div></div><div><div class="bar" role="img" aria-label="Tempo planejado por contexto">'+byC.map(function(x){return '<i style="width:'+(x.m/planMin*100).toFixed(1)+'%;background:var('+x.c.v+')"></i>'}).join('')+'</div><div class="legend">'+byC.map(function(x){return '<span><i class="dot" style="background:var('+x.c.v+')"></i>'+esc(cname(x.c.id))+' '+fmt(x.m)+'</span>'}).join('')+'</div></div>':'<p class="hint" style="margin:0">Nada planejado nesta semana ainda.</p>')+'<div class="btns">'+(wkOff!==0?'<button class="btn btn-s sm" data-act="wk" data-d="0">Voltar para esta semana</button>':'')+'<button class="btn btn-s sm" data-act="plan">Planejar semana</button></div></section>';
   h+='<div class="sec"><h2 class="h2">Dias</h2></div><div class="strip">'+days.map(function(d){
     var l=tasksOn(d),n=l.length,k=l.filter(isDone).length,p=parseISO(d);
-    return '<button class="dy'+(d===td?' today':'')+(n&&k===n?' alldone':'')+'" data-act="selday" data-d="'+d+'" aria-pressed="'+(d===selDay)+'"><small>'+DABR[p.getDay()]+'</small><b>'+p.getDate()+'</b><em>'+(n?k+'/'+n:'·')+'</em></button>'}).join('')+'</div>';
+    var pe=l.some(function(t){return t.end&&!isDone(t)});
+    return '<button class="dy'+(d===td?' today':'')+(n&&k===n?' alldone':'')+(pe?' per':'')+'" data-act="selday" data-d="'+d+'" aria-pressed="'+(d===selDay)+'"><small>'+DABR[p.getDay()]+'</small><b>'+p.getDate()+'</b><em>'+(n?k+'/'+n:'·')+'</em></button>'}).join('')+'</div>';
   h+='<div class="panel"><div><div class="eyebrow">'+DAYS[sd.getDay()]+', '+sd.getDate()+' de '+MONF[sd.getMonth()]+'</div></div><div><div class="bar"><i style="width:'+pd.toFixed(1)+'%;background:var(--ok)"></i><i style="width:'+Math.max(0,pc-pd).toFixed(1)+'%;background:'+(over?'var(--bad)':'var(--ink)')+'"></i></div><p class="hint" style="margin:8px 0 0'+(over?';color:var(--bad)':'')+'">'+msg+'</p></div></div>';
   h+='</div><div class="col">';
   h+='<div class="sec"><h2 class="h2">Tarefas do dia</h2><button class="btn btn-s sm" data-act="new" data-day="'+selDay+'">'+ic('plus',16,2.2)+'Adicionar</button></div>';
-  h+=dayT.length?listHTML(dayT,{play:true},null):emptyHTML('dia');
-  h+=grpSection();
+  h+=dayT.length?listHTML(dayT,{play:true,day:selDay},null):emptyHTML('dia');
   h+=secHTML('Backlog sem data',back.length);
   h+=back.length?listHTML(back,{pull:true},null):emptyHTML('back');
   h+='<div class="btns" style="margin-top:12px"><button class="btn btn-s btn-full" data-act="new" data-day="none">Adicionar ao backlog</button></div>';
@@ -103,7 +103,7 @@ function viewFoco(){
   }
   h+='</div><div class="col">';
   if(t&&t.dod&&t.dod.length){
-    h+=secHTML('Pronto quando',t.dod.filter(function(x){return x.d}).length+'/'+t.dod.length)+'<div class="list">'+t.dod.map(function(x,i){return '<button class="dodrow" data-act="dod" data-id="'+t.id+'" data-i="'+i+'"><i class="'+(x.d?'on':'')+'">'+(x.d?ic('check',14,2.8):'')+'</i><span>'+esc(x.t)+'</span></button>'}).join('')+'</div>';
+    h+=secHTML('Etapas',t.dod.filter(function(x){return x.d}).length+'/'+t.dod.length)+'<div class="list">'+t.dod.map(function(x,i){return '<button class="dodrow" data-act="dod" data-id="'+t.id+'" data-i="'+i+'"><i class="'+(x.d?'on':'')+'">'+(x.d?ic('check',14,2.8):'')+'</i><span>'+esc(x.t)+'</span></button>'}).join('')+'</div>';
   }
   h+='</div></div>';
   return h;

@@ -9,13 +9,7 @@ function writeLocal(){if(wiped)return;try{localStorage.setItem(LS,JSON.stringify
 var wiped=false;
 function wipeLocal(){wiped=true;try{Object.keys(localStorage).forEach(function(k){if(k.indexOf('prumo.')===0)localStorage.removeItem(k)})}catch(e){}}
 var saveT=null,pushing=false,again=false,remote=null,sync='boot',booted=false;
-function kidsOf(id){return S.tasks.filter(function(c){return c.parent===id})}
-function isGrp(t){return S.tasks.some(function(c){return c.parent===t.id})}
-function fixGroups(){S.tasks.forEach(function(t){if(!isGrp(t))return;var k=kidsOf(t.id),all=k.every(function(c){return c.status==='done'});
-  if(all&&t.status!=='done'){t.status='done';t.doneAt=Math.max.apply(null,k.map(function(c){return c.doneAt||0}))||Date.now()}
-  else if(!all&&t.status==='done'){t.status='todo';t.doneAt=null}
-  if(t.day)t.day=null;t.mit=false})}
-function persist(){try{topUpRec()}catch(e){}fixGroups();S.upd=Date.now();try{timerSync();clearTimeout(remT);remT=setTimeout(remSync,2500)}catch(e){}if(SBCFG)stamp();writeLocal();clearTimeout(saveT);saveT=setTimeout(pushRemote,700);if(SBCFG)pushSoon(900)}
+function persist(){try{topUpRec()}catch(e){}S.upd=Date.now();try{timerSync();clearTimeout(remT);remT=setTimeout(remSync,2500)}catch(e){}if(SBCFG)stamp();writeLocal();clearTimeout(saveT);saveT=setTimeout(pushRemote,700);if(SBCFG)pushSoon(900)}
 function setSync(s){sync=s;var e=$('#sync');if(e)e.textContent=syncText()}
 function syncText(){
   if(sync==='ok')return 'Sincronizado com a sua conta.';
@@ -27,7 +21,8 @@ function syncText(){
 }
 function prune(days){
   var lim=Date.now()-days*864e5;
-  S.tasks=S.tasks.filter(function(t){return !(t.status==='done'&&t.doneAt&&t.doneAt<lim)});
+  // filhas de pautas antigas ficam até a conversão (convertPautas) registrar o que foi concluído
+  S.tasks=S.tasks.filter(function(t){return t.parent||!(t.status==='done'&&t.doneAt&&t.doneAt<lim)});
   var keep=iso(new Date(Date.now()-400*864e5));
   Object.keys(S.log).forEach(function(k){if(k<keep)delete S.log[k]});
 }

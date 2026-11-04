@@ -32,7 +32,6 @@ function topUpRec(){
 function rolloverRec(){try{if(topUpRec())persist()}catch(e){}}
 function purgeFuture(rid,od){S.tasks=S.tasks.filter(function(x){return !(x.rid===rid&&!isDone(x)&&(x.od||x.day)>od)})}
 function applyRec(t,d){
-  if(t.parent||isGrp(t)||d.parent)return;
   var s=t.rid&&S.rec[t.rid],want=d.rec||null,od=t.od||t.day;
   var dod=function(){return (d.dodText||'').split('\n').map(function(x){return x.trim()}).filter(Boolean).slice(0,12)};
   if(!s&&want){

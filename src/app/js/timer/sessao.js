@@ -106,7 +106,7 @@ function finishSession(){
   var t=byId(se.tid);
   if(t&&t.dod&&t.dod.length&&t.dod.some(function(x){return !x.d})&&!se.warned){se.warned=true;toast('Faltam itens em "Pronto quando". Toque de novo para concluir mesmo assim.');return}
   settleFocus();S.session=null;unlock();
-  if(t){t.status='done';t.doneAt=Date.now();t.day=todayISO()}
+  if(t)markDone(t);
   persist();tab='hoje';render();scrollTop();toast('Tarefa concluída.');
 }
 

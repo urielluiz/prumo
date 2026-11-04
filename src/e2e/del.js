@@ -12,10 +12,11 @@ console.log('after delete:',await p.evaluate(()=>document.querySelectorAll('[dat
 await p.evaluate(()=>document.querySelector('[data-act=toast-act]').click());await sleep(200);
 console.log('after undo:',await p.evaluate(()=>document.querySelectorAll('[data-act=rowdel]').length));
 await p.evaluate(()=>document.querySelector('.tab-add').click());await sleep(150);
-for(const m of [2,15,30,120]){await p.evaluate(m=>document.querySelector('[data-act=sh-est][data-v="'+m+'"]').click(),m);await sleep(80);console.log(m,'->',await p.evaluate(()=>document.querySelector('#sug-box').innerText.replace(/\n+/g,' | ')))}
+await p.evaluate(()=>document.querySelector('[data-act=sh-sec][data-v=est]').click());await sleep(100);
+for(const m of [2,15,30,120]){await p.evaluate(m=>document.querySelector('[data-act=sh-est][data-v="'+m+'"]').click(),m);await sleep(80);console.log(m,'->',await p.evaluate(()=>document.querySelector('#tk-sum').innerText.replace(/\n+/g,' | ')))}
 await p.evaluate(()=>document.querySelector('[data-act=sh-est-other]').click());await sleep(80);
 await p.evaluate(()=>{const i=document.querySelector('#f-est');i.value='300';i.dispatchEvent(new Event('input',{bubbles:true}))});
-console.log('300 ->',await p.evaluate(()=>document.querySelector('#sug-box').innerText.replace(/\n+/g,' | ')));
+console.log('300 ->',await p.evaluate(()=>document.querySelector('#tk-sum').innerText));
 await p.screenshot({path:S+'/e2e/del-sheet.png'});
 await p.evaluate(()=>document.querySelector('[data-act=sh-close]').click());await sleep(200);
 await p.screenshot({path:S+'/e2e/del-list.png'});

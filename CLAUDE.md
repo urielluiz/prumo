@@ -6,7 +6,8 @@ PWA de organização semanal (iPhone + Mac/Chrome), com frameworks ágeis por ta
 - `src/app/`: fonte do app (HTML, CSS e JS vanilla), dividida em módulos. Edite aqui.
   - `shell.html`: esqueleto (marcação, `<style>` e o IIFE `'use strict'`) com linhas `/* @include caminho */`.
   - `css/`: `base.css`, `retro.css`, `motion.css`.
-  - `js/`: `util`, `estado`, `sync`, `dominio`, `recorrencia`, `tarefas`, `push`, `resumo`, `perfil` (nome, foto, exportar, excluir conta), `retro`, `eventos`, `boot`; `telas/` (componentes, views, painel, perfil, render, sheets, vazios); `timer/` (alertas, sessao).
+  - `js/`: `util`, `estado`, `sync`, `dominio`, `recorrencia`, `tarefas`, `push`, `resumo`, `perfil` (nome, foto, exportar, excluir conta), `retro`, `eventos`, `boot`; `telas/` (componentes, views, painel, perfil, tarefa, render, sheets, vazios); `timer/` (alertas, sessao).
+  - Folha de tarefa (`telas/tarefa.js`): criar e editar. Pílulas Quando/Tempo/Contexto/Repetir abrem um painel por vez; calendário próprio (sem `input type=date`: no iPhone ele fecha quando a folha redesenha); "Mais opções" com prioridade, etapas, método e tempo real. Ao criar, `recognize()` lê data, período, tempo, `#contexto`, repetição e `!` do título; `absorb()` transforma o reconhecido em escolha quando a pessoa toca num controle. Editar não reinterpreta o título.
   - Perfil: aberto pelo avatar da tela Hoje (`tab='perfil'`, fora da barra de abas). Concentra conta, preferências, dados, privacidade e ajuda; a Revisão fica só com a semana.
   - `auth/`: tela de entrada (`gate.html/.css/.js`): login, cadastro, código por e-mail, recuperação, nova senha, regras de senha e checagem de vazamento (`window.prumoPw`). Roda fora do IIFE do app; fala com ele por `window.prumoSB` e `window.prumoLogout`.
   - Todos os JS rodam no mesmo escopo (o IIFE do shell), na ordem dos includes. A ordem importa para `var` inicializado no topo; funções são içadas.
@@ -31,7 +32,10 @@ PWA de organização semanal (iPhone + Mac/Chrome), com frameworks ágeis por ta
 
 ## Convenções
 - Sync offline-first com carimbo por item (`S.u`, `S.dirty`, `S.del`).
-- Pautas: tarefa com filhas (`parent`). Recorrência: `S.rec`, ocorrências com id `r_<rid>_<data>`.
+- Período: tarefa com `day` (início) e `end` (último dia); `est` é por dia. Use `covers`, `spanOf`, `estIn`, `estAll`, `lastDay` (dominio.js) em vez de comparar `t.day`. Concluir chama `markDone()`: o período termina no dia da conclusão.
+- Etapas: `t.dod` (lista `{t,d}`), até 30. Não existem mais pautas (`parent`): `convertPautas()` converte dados antigos no boot e após cada sync (plano vira período, entregas viram etapas).
+- Depois de criar/salvar: `toast(whereText(t), 'Ver', showTask)`.
+- Recorrência: `S.rec`, ocorrências com id `r_<rid>_<data>`; tarefa que repete não tem período.
 - Mudou o service worker? Aumente `V` em build.py.
 - Dados locais têm dono (`S.owner`). Sair ou trocar de conta chama `wipeLocal()` (apaga tudo `prumo.*`) e recarrega. Nada de guardar dado de usuário fora de chaves `prumo.*`.
 - Mensagens de login/cadastro/recuperação não revelam se um e-mail tem conta.
