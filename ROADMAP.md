@@ -1,7 +1,7 @@
 # Prumo — roadmap
 
 ## Já entregue
-Login (Supabase), sincronização por item, tarefas com frameworks ágeis, pautas com entregas, plano por vários dias, tarefas recorrentes, push do timer, resumo diário e retrô semanal (stories) por push, painel semanal/mensal, guia de métodos, alterar senha, código dividido em módulos (`src/app/`) com build gerando um único arquivo, cadastro de usuários com confirmação por código, recuperação de senha, sair de todos os aparelhos, dados locais isolados por conta, CSP, limites por conta no banco, tela de Perfil (nome, foto, conta, preferências), exportar meus dados, excluir minha conta, nova folha de tarefa (escrever do seu jeito, calendário com vários dias, etapas, aviso que leva até a tarefa), Hoje enxuta e Semana em 7 dias corridos com carga por dia, menu ⋯ e deslizar para mudar de dia, prazo final, arrastar entre dias no computador, testes automáticos no GitHub, acessibilidade (texto do sistema, foco, rótulos, alvos de 44 px, axe-core no CI), obra fase 1 (anéis do dia, fechar o dia com Sapo de amanhã e lembrete, sequência com folga e pausa, andares por semana), planejar a semana com sugestão de dias, busca de tarefas, atalhos no ícone.
+Login (Supabase), sincronização por item, tarefas com frameworks ágeis, pautas com entregas, plano por vários dias, tarefas recorrentes, push do timer, resumo diário e retrô semanal (stories) por push, painel semanal/mensal, guia de métodos, alterar senha, código dividido em módulos (`src/app/`) com build gerando um único arquivo, cadastro de usuários com confirmação por código, recuperação de senha, sair de todos os aparelhos, dados locais isolados por conta, CSP, limites por conta no banco, tela de Perfil (nome, foto, conta, preferências), exportar meus dados, excluir minha conta, nova folha de tarefa (escrever do seu jeito, calendário com vários dias, etapas, aviso que leva até a tarefa), Hoje enxuta e Semana em 7 dias corridos com carga por dia, menu ⋯ e deslizar para mudar de dia, prazo final, arrastar entre dias no computador, testes automáticos no GitHub, acessibilidade (texto do sistema, foco, rótulos, alvos de 44 px, axe-core no CI), obra fase 1 (anéis do dia, fechar o dia com Sapo de amanhã e lembrete, sequência com folga e pausa, andares por semana), planejar a semana com sugestão de dias, busca de tarefas, atalhos no ícone, estimativa que aprende com o tempo real.
 
 ## Próxima fase (anotado a pedido)
 - Abrir o cadastro: concluir os ajustes do painel em `SECURITY.md` (SMTP próprio, confirmação de e-mail, modelos, URLs) e virar `signup_open` para `'true'`
@@ -13,7 +13,6 @@ Login (Supabase), sincronização por item, tarefas com frameworks ágeis, pauta
 - Limites de uso por conta
 
 ## Próximas melhorias de uso
-- Estimativa que aprende: comparar estimado e real por contexto e sugerir ajuste ao planejar
 - Horário opcional na tarefa e modelos de tarefa (checklists que se repetem)
 
 ## Obra (gamificação)

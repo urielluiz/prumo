@@ -41,3 +41,23 @@ function setDay(d,o){S.days=S.days||{};var cur=Object.assign({},S.days[d]||{},o)
 // dados vindos da nuvem passam por aqui antes de entrar no estado
 function cleanDay(o){o=o||{};var r={};if(Number(o.c)>0)r.c=Number(o.c);if(Number(o.p)>0)r.p=Number(o.p);if(typeof o.s==='string'&&o.s.length<=64)r.s=o.s;return r}
 function cleanG(o){o=o||{};var r={};if(Array.isArray(o.off))r.off=o.off.map(Number).filter(function(x,i,a){return x>=0&&x<=6&&a.indexOf(x)===i});var m=Number(o.meta);if(m>=1&&m<=5)r.meta=Math.floor(m);return r}
+
+/* ---------- estimativa que aprende ---------- */
+// Por contexto: tempo real de foco contra o estimado nas tarefas concluídas das últimas 6 semanas que tiveram
+// pelo menos 5 min de cronômetro. Só vale com 5 tarefas ou mais e quando a diferença passa de 20%.
+var EST_N=5,EST_DAYS=42;
+function estFactor(ctx){
+  var lim=Date.now()-EST_DAYS*864e5,e=0,r=0,n=0;
+  S.tasks.forEach(function(t){if(t.ctx===ctx&&isDone(t)&&(t.doneAt||0)>=lim&&(t.focus||0)>=300){var x=estAll(t,true);if(x>0){e+=x;r+=t.focus/60;n++}}});
+  if(n<EST_N||!e)return null;
+  var f=Math.max(.5,Math.min(2.5,r/e));
+  return Math.abs(f-1)>=.2?{f:f,n:n}:null;
+}
+function estAdj(t){var k=estFactor(t.ctx);return k?Math.max(5,Math.round(t.est*k.f/5)*5):t.est}
+function estTipHTML(d,mini){
+  var k=estFactor(d.ctx);if(!k||!d.est||(sh&&sh.estOk))return '';
+  var v=Math.max(5,Math.round(d.est*k.f/5)*5);if(v===d.est)return '';
+  var pc=Math.round(Math.abs(k.f-1)*100);
+  if(mini)return '<button class="est-mini" data-act="est-learn" data-v="'+v+'">'+ic('timer',16)+'<span>Em '+esc(cname(d.ctx))+' costuma levar '+(k.f>1?'+':'−')+pc+'%. <b>Usar '+fmt(v)+'</b></span></button>';
+  return '<div class="est-tip"><p>Em '+esc(cname(d.ctx))+' você costuma levar '+pc+'% '+(k.f>1?'a mais':'a menos')+' do que estima ('+k.n+' tarefas recentes).</p><button class="btn btn-s sm" data-act="est-learn" data-v="'+v+'">Usar '+fmt(v)+'</button></div>';
+}

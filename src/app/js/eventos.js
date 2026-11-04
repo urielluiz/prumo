@@ -2,7 +2,7 @@
 function act(a,el){
   var id=el.dataset.id;
   // folha de tarefa nova: ao tocar num controle, o que o texto reconheceu vira escolha
-  if(sh&&sh.kind==='task'&&/^(sh-(day|multi|est|est-other|ctx|rec|urg|imp|fw|sec)|cal-|rec-|st-|due-)/.test(a))absorb();
+  if(sh&&sh.kind==='task'&&/^(sh-(day|multi|est|est-other|ctx|rec|urg|imp|fw|sec)|est-learn|cal-|rec-|st-|due-)/.test(a))absorb();
   switch(a){
     case 'tab':tab=el.dataset.t;render();scrollTop();(function(){var v=$('#view');if(v){v.classList.remove('vin');void v.offsetWidth;v.classList.add('vin')}})();break;
     case 'wr-open':wrOpen(el.dataset.wk||curWk());break;
@@ -83,7 +83,8 @@ function act(a,el){
     case 'pw-save':savePw();break;
     case 'sh-ctx':sh.d.ctx=el.dataset.v;renderSheet();break;
     case 'sh-day':sh.d.day=el.dataset.v==='none'?null:el.dataset.v;sh.d.end=null;sh.multi=false;sh.pick=null;if(sh.d.day)sh.mon=(sh.d.day>todayISO()?sh.d.day:todayISO()).slice(0,7);renderSheet();break;
-    case 'sh-est':sh.d.est=Number(el.dataset.v);sh.estOpen=false;renderSheet();break;
+    case 'sh-est':sh.d.est=Number(el.dataset.v);sh.estOpen=false;sh.estOk=false;renderSheet();break;
+    case 'est-learn':sh.d.est=Number(el.dataset.v);sh.estOpen=false;sh.estOk=true;renderSheet();break;
     case 'sh-urg':sh.d.urg=!sh.d.urg;renderSheet();break;
     case 'sh-imp':sh.d.imp=!sh.d.imp;renderSheet();break;
     case 'sh-fw':sh.d.fw=el.dataset.v;renderSheet();break;

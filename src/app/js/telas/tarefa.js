@@ -105,7 +105,7 @@ function panelHTML(d){
     var other=EST_MAIN.indexOf(d.est)<0||sh.estOpen;
     h+='<div class="tk-panel"><div class="chips">'+EST_MAIN.map(function(m){return chip(fmt(m),d.est===m&&!sh.estOpen,'data-act="sh-est" data-v="'+m+'"')}).join('')+chip(other&&EST_MAIN.indexOf(d.est)<0?'Outro: '+fmt(d.est):'Outro',other,'data-act="sh-est-other"')+'</div>'+
       (other?'<div class="est-in"><label class="lab" for="f-est" style="margin:0">Minutos</label><input id="f-est" class="inp" data-in="est" type="number" inputmode="numeric" min="1" max="960" placeholder="ex.: 200" value="'+(EST_MAIN.indexOf(d.est)<0?d.est:'')+'"></div>':'')+
-      (d.end?'<p class="hint">Tempo por dia. No período todo: '+fmt(d.est*spanOf(d))+'.</p>':'')+'</div>';
+      (d.end?'<p class="hint">Tempo por dia. No período todo: '+fmt(d.est*spanOf(d))+'.</p>':'')+estTipHTML(d)+'</div>';
   }
   if(sh.open==='ctx')h+='<div class="tk-panel"><div class="chips">'+CTX.map(function(c){return chip(esc(cname(c.id)),d.ctx===c.id,'data-act="sh-ctx" data-v="'+c.id+'"','<i class="dot" style="background:var('+c.v+')"></i>')}).join('')+'</div></div>';
   if(sh.open==='rep'){
@@ -143,7 +143,7 @@ function taskSheetHTML(){
   var h='<div class="sh-head"><h2 class="h2">'+(sh.mode==='new'?'Nova tarefa':'Editar tarefa')+'</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>';
   h+='<div class="tk-top"><textarea id="f-title" class="tk-title" data-in="title" rows="1" maxlength="300" autocomplete="off" enterkeyhint="done" placeholder="O que precisa ser feito?" aria-label="O que precisa ser feito?">'+esc(sh.d.raw||'')+'</textarea>'+
     '<div class="tk-toks" id="tk-toks">'+tokHTML(d)+'</div>'+(sh.mode==='new'&&!sh.d.raw?'<p class="hint" id="tk-tip">Dica: escreva "sáb a ter 2h #freelas" e o Prumo preenche para você.</p>':'')+'</div>';
-  h+='<div class="tk-pills" id="tk-pills">'+pillsHTML(d)+'</div>';
+  h+='<div class="tk-pills" id="tk-pills">'+pillsHTML(d)+'</div><div id="tk-est">'+(sh.open!=='est'?estTipHTML(d,true):'')+'</div>';
   h+=panelHTML(d);
   h+=moreHTML(d);
   h+='<div class="tk-foot"><p class="tk-sum" id="tk-sum" aria-live="polite">'+sumText(d)+'</p><div class="sh-actions"><button class="btn btn-p" data-act="sh-save" id="tk-save"'+(d.title?'':' aria-disabled="true"')+'>'+(sh.mode==='new'?'Adicionar tarefa':'Salvar')+'</button>';
@@ -158,6 +158,7 @@ function liveTask(){
   var d=eff(),q=function(id){return document.getElementById(id)};
   if(q('tk-toks'))q('tk-toks').innerHTML=tokHTML(d);
   if(q('tk-pills'))q('tk-pills').innerHTML=pillsHTML(d);
+  if(q('tk-est'))q('tk-est').innerHTML=sh.open!=='est'?estTipHTML(d,true):'';
   if(q('tk-sum'))q('tk-sum').innerHTML=sumText(d);
   if(q('tk-save')){if(d.title)q('tk-save').removeAttribute('aria-disabled');else q('tk-save').setAttribute('aria-disabled','true')}
   var tip=q('tk-tip');if(tip&&sh.d.raw)tip.remove();

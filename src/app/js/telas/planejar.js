@@ -9,11 +9,11 @@ function wpPropose(){
   var days=wpDays().filter(function(d){return d!==todayISO()||new Date().getHours()<17}),load={};days.forEach(function(d){load[d]=dayLoad(d)});
   var pool=semData().sort(function(a,b){return quad(a)-quad(b)||(b.slips||0)-(a.slips||0)||b.est-a.est}),out=[];
   pool.forEach(function(t){
-    var fits=days.filter(function(d){return capOf(d)>0&&load[d]+t.est<=capOf(d)});
+    var e=estAdj(t),fits=days.filter(function(d){return capOf(d)>0&&load[d]+e<=capOf(d)});
     if(!fits.length){out.push({id:t.id,d:''});return}
     // urgente vai para o primeiro dia que cabe; o resto vai para o dia com mais folga (a semana fica equilibrada)
     var d=t.urg?fits[0]:fits.reduce(function(a,b){return capOf(b)-load[b]>capOf(a)-load[a]?b:a});
-    load[d]+=t.est;out.push({id:t.id,d:d});
+    load[d]+=e;out.push({id:t.id,d:d});
   });
   return out;
 }
@@ -33,7 +33,7 @@ function planSheetHTML(){
       '<span class="wp-bar" role="img" aria-label="'+fmt(m)+(a?' mais '+fmt(a)+' sugeridos':'')+' de '+(c?fmt(c):'nada')+'"><i style="width:'+(m/base*100).toFixed(1)+'%"></i>'+(a?'<i class="add" style="width:'+(a/base*100).toFixed(1)+'%"></i>':'')+(c&&c<base?'<b style="left:'+(c/base*100).toFixed(1)+'%"></b>':'')+'</span>'+
       '<span class="wp-v">'+fmt(tot)+' de '+(c?fmt(c):'0')+'</span>'+
       '<span class="wp-c"><button class="ib" data-act="cap" data-i="'+w+'" data-d="-30" aria-label="Menos 30 minutos de capacidade em '+DAYS[w]+'">'+ic('left',18)+'</button><button class="ib" data-act="cap" data-i="'+w+'" data-d="30" aria-label="Mais 30 minutos de capacidade em '+DAYS[w]+'">'+ic('right',18)+'</button></span></div>'}).join('')+'</div>'+
-    '<p class="hint" style="margin:8px 2px 0">Capacidade é o tempo de foco real que cabe no dia, sem reuniões e imprevistos. As setas ajustam esse dia da semana em 30 min.</p></div>';
+    wpRealHTML(days,prop)+'<p class="hint" style="margin:8px 2px 0">Capacidade é o tempo de foco real que cabe no dia, sem reuniões e imprevistos. As setas ajustam esse dia da semana em 30 min.</p></div>';
   h+='<div><span class="lab">Sem data · '+sd.length+'</span>';
   if(!sd.length)h+='<p class="hint" style="margin:0 2px">Nada sem data. Use o + de cada dia na Semana para planejar direto no dia.</p>';
   else if(!prop)h+='<p class="hint" style="margin:0 2px 10px">O app sugere um dia para cada uma, pela prioridade e pela folga de cada dia. Você ajusta antes de aplicar.</p><div class="btns"><button class="btn btn-s sm" data-act="wp-prop">Sugerir dias</button></div>';
@@ -65,4 +65,12 @@ function planCardHTML(){
   if(weekPlanned(planWk(td)))return '';
   try{if(localStorage.getItem('prumo.wpno')===td)return ''}catch(e){}
   return '<section class="closec plan"><div><b>Planejar a semana</b><span>'+(w===0?'Deixe a próxima semana pronta':'Comece a semana com a carga de cada dia')+' em 5 minutos.</span></div><div class="btns"><button class="btn btn-p sm" data-act="plan">Planejar</button><button class="btn btn-s sm" data-act="wp-later">Agora não</button></div></section>';
+}
+// quanto a semana deve levar de verdade, pelo histórico de cada contexto
+function wpRealHTML(days,prop){
+  var est=0,real=0;
+  days.forEach(function(d){tasksOn(d).forEach(function(t){if(isDone(t))return;est+=t.est;real+=estAdj(t)})});
+  (prop||[]).forEach(function(x){var t=byId(x.id);if(t&&x.d){est+=t.est;real+=estAdj(t)}});
+  if(!est||Math.abs(real-est)<Math.max(30,est*.1))return '';
+  return '<p class="est-wk">Pelo seu tempo real, estes 7 dias devem levar cerca de <b>'+fmt(real)+'</b>, não '+fmt(est)+'.'+(real>est?' A sugestão de dias já conta com isso.':'')+'</p>';
 }

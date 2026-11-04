@@ -212,3 +212,11 @@ html.lock .toast{bottom:auto;top:calc(14px + env(safe-area-inset-top,0px))}
 .bs-r.done b{color:var(--muted);text-decoration:line-through}
 .bs-r:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (max-width:380px){.wp-d{grid-template-columns:4.4rem minmax(0,1fr) auto}.wp-v{display:none}}
+/* estimativa que aprende */
+.est-tip{display:grid;gap:8px;margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--accent-soft)}
+.est-tip p{margin:0;font-size:.875rem}
+.est-tip .btn{justify-self:start;background:var(--surface)}
+.est-mini{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin-top:8px;padding:6px 12px;border-radius:12px;background:var(--accent-soft);color:var(--ink);font-size:.875rem;text-align:left}
+.est-mini b{color:var(--accent-text);font-weight:600}
+.est-mini:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.est-wk{margin:10px 2px 0;padding:10px 12px;border-radius:12px;background:var(--accent-soft);font-size:.875rem}
