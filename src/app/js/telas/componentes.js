@@ -29,12 +29,12 @@ function rowHTML(t,o){
     if(o.pull)right+='<button class="btn btn-s sm" data-act="pull" data-id="'+t.id+'">Puxar</button>';
   }
   right+='<button class="ib del" data-act="rowdel" data-id="'+t.id+'" aria-label="Excluir tarefa">'+ic('trash',18)+'</button>';
-  return '<div class="row'+(done?' is-done':'')+'"><button class="chk" data-act="toggle" data-id="'+t.id+'" aria-label="'+(done?'Reabrir':'Concluir')+' tarefa"><i class="'+(done?'on':'')+(popId===t.id?' pop':'')+'">'+(done?ic('check',15,2.6):'')+'</i></button>'+
+  return '<div class="row'+(done?' is-done':'')+'" data-tid="'+t.id+'"><button class="chk" data-act="toggle" data-id="'+t.id+'" aria-label="'+(done?'Reabrir':'Concluir')+' tarefa"><i class="'+(done?'on':'')+(popId===t.id?' pop':'')+'">'+(done?ic('check',15,2.6):'')+'</i></button>'+
     '<button class="row-main" data-act="edit" data-id="'+t.id+'"><div class="row-title">'+esc(t.title)+'</div><div class="row-meta">'+meta+'</div>'+(tags.length?'<div class="tags">'+tags.join('')+'</div>':'')+'</button>'+right+'</div>';
 }
 function groupRowHTML(t){
   var k=kidsOf(t.id),dn=k.filter(isDone).length,real=sum(k,function(c){return (c.focus||0)/60}),plan=sum(k,function(c){return c.est}),c=ctxOf(t.ctx),pct=k.length?Math.round(dn/k.length*100):0;
-  return '<div class="row grp"><div class="gi" aria-hidden="true">'+ic('bars',20)+'</div><button class="row-main" data-act="edit" data-id="'+t.id+'"><div class="row-title">'+esc(t.title)+'</div><div class="row-meta"><span><i class="dot" style="background:var('+c.v+')"></i>'+esc(cname(c.id))+'</span><span>'+dn+'/'+k.length+' entregas</span><span>'+fmt(real)+' de '+fmt(t.est)+'</span>'+(plan!==t.est?'<span>soma das entregas: '+fmt(plan)+'</span>':'')+'</div><div class="bar" style="margin-top:8px"><i style="width:'+pct+'%;background:var(--ok)"></i></div></button><button class="ib del" data-act="rowdel" data-id="'+t.id+'" aria-label="Excluir pauta e entregas">'+ic('trash',18)+'</button></div>';
+  return '<div class="row grp" data-tid="'+t.id+'"><div class="gi" aria-hidden="true">'+ic('bars',20)+'</div><button class="row-main" data-act="edit" data-id="'+t.id+'"><div class="row-title">'+esc(t.title)+'</div><div class="row-meta"><span><i class="dot" style="background:var('+c.v+')"></i>'+esc(cname(c.id))+'</span><span>'+dn+'/'+k.length+' entregas</span><span>'+fmt(real)+' de '+fmt(t.est)+'</span>'+(plan!==t.est?'<span>soma das entregas: '+fmt(plan)+'</span>':'')+'</div><div class="bar" style="margin-top:8px"><i style="width:'+pct+'%;background:var(--ok)"></i></div></button><button class="ib del" data-act="rowdel" data-id="'+t.id+'" aria-label="Excluir pauta e entregas">'+ic('trash',18)+'</button></div>';
 }
 function upcomingHTML(){
   var td=todayISO(),end=addDays(td,7),l=S.tasks.filter(function(t){return !isDone(t)&&!isGrp(t)&&t.day&&t.day>td&&t.day<=end}).sort(function(a,b){return a.day<b.day?-1:(a.day>b.day?1:byPrio(a,b))});

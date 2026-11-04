@@ -43,4 +43,22 @@ function autoPlan(){
   persist();render();renderSheet();
   toast(placed?(placed+' tarefa'+(placed>1?'s':'')+' distribuída'+(placed>1?'s':'')+(left?'. '+left+' sem espaço.':'.')):(left?'Nenhuma coube na capacidade. Aumente os dias ou tire algo.':'O backlog está vazio.'));
 }
-
+// Depois de criar ou salvar: diz para onde a tarefa foi e leva até ela
+function firstDay(t){var k=kidsOf(t.id).map(function(c){return c.day}).filter(Boolean).sort();return t.day||k[0]||null}
+function whereText(t,isNew){
+  var k=kidsOf(t.id),d=firstDay(t),v=isNew?'criada':'salva';
+  if(k.length&&!t.day&&d)return (isNew?'Pauta criada':'Pauta salva')+': '+k.length+(k.length>1?' etapas':' etapa')+' a partir de '+shortDate(d)+'.';
+  if(!d)return 'Tarefa '+v+' no backlog, sem data.';
+  return 'Tarefa '+v+' para '+(d===todayISO()?'hoje':shortDate(d))+'.';
+}
+function flashTask(id){
+  setTimeout(function(){var el=document.querySelector('[data-tid="'+id+'"]');if(!el)return;el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');try{el.scrollIntoView({block:'center',behavior:RM?'auto':'smooth'})}catch(e){}},60);
+}
+function showTask(id){
+  var t=byId(id);if(!t)return;
+  var d=firstDay(t),td=todayISO(),k=kidsOf(id),target=id;
+  if(d===td&&!k.length)tab='hoje';
+  else{tab='semana';wkOff=d?Math.round((parseISO(weekStart(d))-parseISO(weekStart(td)))/604800000):0;selDay=d;
+    var kd=d&&k.find(function(c){return c.day===d});if(kd)target=kd.id}
+  sh=null;renderSheet();render();scrollTop();flashTask(target);
+}

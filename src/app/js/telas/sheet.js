@@ -150,7 +150,9 @@ function saveTask(){
   var isNew=sh.mode==='new';
   if(isNew&&sh.pend&&sh.pend.length){sh.pend.forEach(function(x){mkKids(t,x.name,x.n,x.est,x.days,x.plan?t.title:null)});t.day=null;if(sh.pend.some(function(x){return x.plan}))t.est=sum(kidsOf(t.id),function(c){return c.est})}
   lastCtx=d.ctx;
-  sh=null;persist();renderSheet();render();toast(isNew?'Tarefa criada.':'Tarefa salva.');
+  sh=null;persist();renderSheet();render();
+  toast(whereText(t,isNew),'Ver',function(){showTask(t.id)});
+  if(tab==='hoje'&&t.day===todayISO())flashTask(t.id);
 }
 function applySheet(t,d){
   var old=t.dod||[],lines=d.dodText.split('\n').map(function(x){return x.trim()}).filter(Boolean).slice(0,12);

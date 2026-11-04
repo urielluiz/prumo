@@ -64,3 +64,8 @@
   .sheet{border-radius:24px;max-height:86vh;padding:22px 24px 24px}
   .toast{left:calc(50% + 116px);bottom:28px}
 }
+
+/* destaque do card criado/salvo ("Ver" no aviso) */
+.row.flash{animation:rowflash 1.8s ease-out 1}
+@keyframes rowflash{0%,30%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:var(--shadow)}}
+@media (prefers-reduced-motion: reduce){.row.flash{animation:none;box-shadow:0 0 0 3px var(--accent)}}

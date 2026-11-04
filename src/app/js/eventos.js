@@ -104,7 +104,14 @@ document.addEventListener('input',function(e){
   else if(k==='est'){var n=Math.round(Number(el.value));if(n>=1&&n<=960&&sh&&sh.d){sh.d.est=n;Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-est"]'),function(b){b.setAttribute('aria-pressed',String(Number(b.dataset.v)===n))});var pn=document.getElementById('pomo-n');if(pn)pn.textContent=pomoText(sh.d,sh.d.fw||suggestFw(sh.d));var sb=document.getElementById('sug-box');if(sb)sb.innerHTML=sugInner(sh.d);var cf=sh.d.fw||suggestFw(sh.d);Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-fw"]'),function(b){b.setAttribute('aria-pressed',String(b.dataset.v===cf))})}}
 });
 document.addEventListener('change',function(e){
-  var el=e.target;if(el.dataset&&el.dataset.in==='date'&&sh&&sh.d){sh.d.day=el.value||null;renderSheet()}
+  var el=e.target;
+  if(el.dataset&&el.dataset.in==='date'&&sh&&sh.d){
+    // não redesenha a folha: no iPhone isso destrói o campo e fecha o calendário nativo no meio da escolha
+    sh.d.day=el.value||null;
+    var lab=el.parentNode;if(lab&&lab.firstChild&&lab.firstChild.nodeType===3)lab.firstChild.nodeValue=el.value?shortDate(el.value):'Outra data';
+    Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-day"]'),function(b){b.setAttribute('aria-pressed','false')});
+    if(lab)lab.setAttribute('aria-pressed',String(!!el.value));
+  }
   if(el.dataset&&el.dataset.in==='photo'&&el.files&&el.files[0]){var f=el.files[0];el.value='';setPhoto(f)}
 });
 document.addEventListener('keydown',function(e){
