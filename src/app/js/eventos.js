@@ -2,7 +2,7 @@
 function act(a,el){
   var id=el.dataset.id;
   // folha de tarefa nova: ao tocar num controle, o que o texto reconheceu vira escolha
-  if(sh&&sh.kind==='task'&&/^(sh-(day|multi|est|est-other|ctx|rec|urg|imp|fw|sec)|cal-|rec-|st-)/.test(a))absorb();
+  if(sh&&sh.kind==='task'&&/^(sh-(day|multi|est|est-other|ctx|rec|urg|imp|fw|sec)|cal-|rec-|st-|due-)/.test(a))absorb();
   switch(a){
     case 'tab':tab=el.dataset.t;render();scrollTop();(function(){var v=$('#view');if(v){v.classList.remove('vin');void v.offsetWidth;v.classList.add('vin')}})();break;
     case 'wr-open':wrOpen(el.dataset.wk||curWk());break;
@@ -49,6 +49,10 @@ function act(a,el){
     case 'sh-multi':sh.multi=el.dataset.v==='1';sh.pick=null;if(!sh.multi)sh.d.end=null;renderSheet();break;
     case 'cal-mon':{var cm=sh.mon.split('-').map(Number),cn=new Date(cm[0],cm[1]-1+Number(el.dataset.v),1);sh.mon=cn.getFullYear()+'-'+pad(cn.getMonth()+1);renderSheet();break}
     case 'cal-day':{var cv=el.dataset.v;if(!sh.multi){sh.d.day=cv;sh.d.end=null}else if(!sh.pick){sh.pick=cv}else{var ca=sh.pick,cz=cv;if(cz<ca){var cx=ca;ca=cz;cz=cx}sh.d.day=ca;sh.d.end=cz===ca?null:cz;sh.pick=null}renderSheet();break}
+    case 'due-set':sh.d.due=el.dataset.v||null;sh.dueOpen=false;renderSheet();break;
+    case 'due-pick':sh.dueOpen=!sh.dueOpen;if(sh.dueOpen&&sh.d.due)sh.dmon=(sh.d.due>todayISO()?sh.d.due:todayISO()).slice(0,7);renderSheet();break;
+    case 'due-day':sh.d.due=el.dataset.v;sh.dueOpen=false;renderSheet();break;
+    case 'due-mon':{var dm=sh.dmon.split('-').map(Number),dn2=new Date(dm[0],dm[1]-1+Number(el.dataset.v),1);sh.dmon=dn2.getFullYear()+'-'+pad(dn2.getMonth()+1);renderSheet();break}
     case 'st-add':addStep();break;
     case 'st-del':sh.d.dod.splice(Number(el.dataset.v),1);renderSheet();break;
     case 'st-tog':{var so=sh.d.dod[Number(el.dataset.v)];if(so)so.d=!so.d;renderSheet();break}

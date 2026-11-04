@@ -17,6 +17,7 @@ function rowHTML(t,o){
   var vd=o.day||todayISO(),per=t.end&&covers(t,vd)?dayIdx(t,vd):0;
   var m=['<span><i class="dot" style="background:var('+c.v+')"></i>'+esc(cname(c.id))+'</span>','<span>'+fmt(t.est)+(t.end?' por dia':'')+'</span>'];
   if(dt)m.push('<span>'+dn+'/'+dt+' etapas</span>');
+  if(t.due&&!done)m.push(dueTag(t));
   if(t.end)m.push('<span class="tag per">'+(per?'dia '+per+' de '+spanOf(t):shortDate(t.day)+' a '+shortDate(t.end))+'</span>');
   if(o.sapo&&!done)m.push('<span class="tag hot">Sapo</span>');
   if(t.status==='doing'&&!done)m.push('<span class="tag go">em andamento</span>');
@@ -25,7 +26,7 @@ function rowHTML(t,o){
   if(t.ex)m.push('<span class="tag">exemplo</span>');
   var right=(done?'':'<button class="ib play" data-act="start" data-id="'+t.id+'" aria-label="Começar">'+ic('play')+'</button>')+'<button class="ib more" data-act="rowmenu" data-id="'+t.id+'" aria-label="Mais ações">'+ic('more',20)+'</button>';
   return '<div class="rw"><div class="sw" aria-hidden="true"><button class="sw-a" data-act="mv" data-id="'+t.id+'" data-d="'+addDays(todayISO(),1)+'" tabindex="-1">Amanhã</button><button class="sw-b" data-act="rowmenu" data-id="'+t.id+'" tabindex="-1">Outro dia</button></div>'+
-    '<div class="row'+(done?' is-done':'')+'" data-tid="'+t.id+'"><button class="chk" data-act="toggle" data-id="'+t.id+'" aria-label="'+(done?'Reabrir':'Concluir')+' tarefa"><i class="'+(done?'on':'')+(popId===t.id?' pop':'')+'">'+(done?ic('check',15,2.6):'')+'</i></button>'+
+    '<div class="row'+(done?' is-done':'')+'" data-tid="'+t.id+'"'+(o.drag&&CANDRAG&&!done?' draggable="true"':'')+'><button class="chk" data-act="toggle" data-id="'+t.id+'" aria-label="'+(done?'Reabrir':'Concluir')+' tarefa"><i class="'+(done?'on':'')+(popId===t.id?' pop':'')+'">'+(done?ic('check',15,2.6):'')+'</i></button>'+
     '<button class="row-main" data-act="edit" data-id="'+t.id+'"><div class="row-title">'+(t.mit&&!done?'<span class="star" aria-label="Prioridade">'+ic('star',15)+'</span>':'')+esc(t.title)+'</div><div class="row-meta">'+m.join('')+'</div>'+(per&&!done?'<span class="rbar" aria-hidden="true"><i style="width:'+Math.round(per/spanOf(t)*100)+'%"></i></span>':'')+'</button>'+right+'</div></div>';
 }
 function listHTML(arr,o,sapoId){return '<div class="list">'+arr.map(function(t){return rowHTML(t,Object.assign({sapo:t.id===sapoId},o))}).join('')+'</div>'}

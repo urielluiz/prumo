@@ -133,4 +133,33 @@ ok('overdue: sheet closes when nothing is left and alert goes away',!(await has(
 await click('[data-act=toast-act]');await sleep(200);
 t=(await st()).tasks.find(x=>x.id==='old1');ok('undo restores the period',t.day===plus(TD,-5)&&t.end===plus(TD,-2)&&(t.slips||0)===0);
 
+
+// ---------- prazo final ----------
+const FRI=(()=>{for(let i=0;i<7;i++){const d=plus(TD,i);if(new Date(d+'T12:00:00').getDay()===5)return d}})();
+await click('.tab[data-t=hoje]');await sleep(150);
+await typeTitle('Entregar relatório até sexta 1h');
+ok('due: "até sexta" recognized as deadline, not as the day',/Prazo/.test(await ev(()=>[...document.querySelectorAll('.tok')].map(t=>t.innerText).join(' ')))&&/Entregar relatório · Hoje · 1h .* · prazo/.test(await txt('#tk-sum')));
+await click('[data-act=sh-save]');await sleep(300);
+t=await task('Entregar relatório');
+ok('due: saved separately from the day',t.day===TD&&t.due===FRI);
+ok('due: card shows the deadline',new RegExp('prazo '+(FRI===TD?'hoje':'')).test(await txt('[data-tid="'+t.id+'"]')));
+// escolher e limpar pelo calendário
+await ev(id=>document.querySelector('[data-act=edit][data-id="'+id+'"]').click(),t.id);await sleep(200);
+await click('[data-act=sh-sec][data-v=more]');await sleep(120);
+await click('[data-act=due-pick]');await sleep(120);
+const D9=plus(TD,9);
+for(let i=0;i<3;i++){if(await has('[data-act=due-day][data-v="'+D9+'"]'))break;await click('[data-act=due-mon][data-v="1"]');await sleep(60)}
+await click('[data-act=due-day][data-v="'+D9+'"]');await sleep(120);
+ok('due: picked on its own calendar',/prazo/.test(await txt('#tk-sum'))&&!(await has('[data-act=due-day]')));
+await click('[data-act=sh-save]');await sleep(300);
+ok('due: edited',(await task('Entregar relatório')).due===D9);
+// prazo hoje de tarefa planejada para depois aparece na tela Hoje; vencido fica vermelho
+await ev(([td,y])=>{const v=JSON.parse(localStorage.getItem('prumo.v1'));v.tasks.push({id:'dz1',title:'Contrato com prazo hoje',ctx:'trabalho',est:30,day:null,due:td,status:'todo',dod:[],slips:0,focus:0,pomos:0,mit:false},{id:'dz2',title:'Prazo que venceu',ctx:'trabalho',est:30,day:null,due:y,status:'todo',dod:[],slips:0,focus:0,pomos:0,mit:false});localStorage.setItem('prumo.v1',JSON.stringify(v))},[TD,plus(TD,-1)]);
+await p.reload({waitUntil:'domcontentloaded'});await sleep(1200);
+ok('due today: shows on Hoje even without a day',/Contrato com prazo hoje/.test(await txt('#view'))&&/prazo hoje/.test(await txt('[data-tid=dz1]')));
+ok('due passed: red tag',await has('[data-tid=dz2] .tag.due.bad'));
+await ev(()=>document.querySelector('[data-act=edit][data-id=dz1]').click());await sleep(200);
+await click('[data-act=sh-sec][data-v=more]');await sleep(100);await click('[data-act=due-set][data-v=""]');await sleep(100);
+await click('[data-act=sh-save]');await sleep(300);
+ok('due: cleared',!(await st()).tasks.find(x=>x.id==='dz1').due);
 console.log(res.join('\n'));console.log(errs.length?'ERRORS '+errs:'NO PAGE ERRORS');await b.close()})();

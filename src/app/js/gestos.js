@@ -31,3 +31,31 @@ document.addEventListener('click',function(e){
   if(r&&r.dataset.swiped){e.stopPropagation();e.preventDefault();return}
   if(swOpen&&!(e.target.closest&&e.target.closest('.sw'))){closeSwipe();e.stopPropagation();e.preventDefault()}
 },true);
+
+/* ---------- arrastar entre dias (computador, Semana) ---------- */
+// Solte num dia da faixa ou na seção de um dia. Pelo teclado, o mesmo vem pelo menu ⋯.
+var dragId=null,CANDRAG=!(window.matchMedia&&matchMedia('(pointer: coarse)').matches); // dedo como ponteiro principal: sem arrastar
+function dropTarget(e){return e.target.closest&&(e.target.closest('.wstrip .dy')||e.target.closest('.dz'))}
+function dropDay(el){var v=el.classList.contains('dy')?el.dataset.d:el.dataset.drop;return v==='none'?null:v}
+function clearOver(){Array.prototype.forEach.call(document.querySelectorAll('.drop-over'),function(x){x.classList.remove('drop-over')})}
+document.addEventListener('dragstart',function(e){
+  var r=e.target.closest&&e.target.closest('.row[draggable]');if(!r)return;
+  dragId=r.dataset.tid;r.classList.add('dragging');document.documentElement.classList.add('dragmode');
+  try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',dragId)}catch(x){}
+});
+document.addEventListener('dragend',function(e){
+  var r=e.target.closest&&e.target.closest('.row');if(r)r.classList.remove('dragging');
+  dragId=null;clearOver();document.documentElement.classList.remove('dragmode');
+});
+document.addEventListener('dragover',function(e){
+  if(!dragId)return;var t=dropTarget(e);if(!t)return;
+  e.preventDefault();try{e.dataTransfer.dropEffect='move'}catch(x){}
+  if(!t.classList.contains('drop-over')){clearOver();t.classList.add('drop-over')}
+});
+document.addEventListener('drop',function(e){
+  if(!dragId)return;var t=dropTarget(e);if(!t)return;
+  e.preventDefault();var id=dragId,d=dropDay(t),cur=byId(id);dragId=null;clearOver();document.documentElement.classList.remove('dragmode');
+  if(!cur||(cur.day||null)===d)return;
+  var was=moveTask(id,d);if(!was)return;
+  render();toast('Movida para '+(d?relDay(d):'Sem data')+'.','Desfazer',function(){undoMove(id,was)});flashTask(id);
+});

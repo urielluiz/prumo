@@ -32,6 +32,9 @@ var weekTasks=function(wk){var e=addDays(wk,6);return S.tasks.filter(function(t)
 var estIn=function(t,a,b){if(!t.end)return t.day>=a&&t.day<=b?t.est:0;var s=t.day>a?t.day:a,e=t.end<b?t.end:b;return s>e?0:t.est*(Math.round((parseISO(e)-parseISO(s))/864e5)+1)};
 var overdue=function(){var td=todayISO();return S.tasks.filter(function(t){return !isDone(t)&&t.day&&lastDay(t)<td}).sort(function(a,b){return lastDay(a)<lastDay(b)?-1:1})};
 var wipCount=function(){return S.tasks.filter(function(t){return t.status==='doing'}).length};
+// prazo final: etiqueta do card (vence hoje, amanhã, venceu)
+function dueTag(t){if(!t.due||isDone(t))return '';var td=todayISO(),c=t.due<td?'bad':(t.due===td?'warn':''),x=t.due<td?'prazo venceu '+shortDate(t.due):'prazo '+relDay(t.due);return '<span class="tag due'+(c?' '+c:'')+'">'+esc(x)+'</span>'}
+var dueNow=function(){var td=todayISO();return S.tasks.filter(function(t){return t.due&&t.due<=td&&!isDone(t)&&!covers(t,td)&&!(t.day&&lastDay(t)<td)})};
 function relDay(s){var td=todayISO();return s===td?'hoje':(s===addDays(td,1)?'amanhã':shortDate(s))}
 function shortDate(s){var d=parseISO(s);return DABR[d.getDay()]+', '+d.getDate()+' '+MONS[d.getMonth()]}
 function rangeLabel(wk){var a=parseISO(wk),b=parseISO(addDays(wk,6));

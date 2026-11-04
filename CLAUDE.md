@@ -38,6 +38,8 @@ PWA de organização semanal (iPhone + Mac/Chrome), com frameworks ágeis por ta
 - Período: tarefa com `day` (início) e `end` (último dia); `est` é por dia. Use `covers`, `spanOf`, `estIn`, `estAll`, `lastDay` (dominio.js) em vez de comparar `t.day`. Concluir chama `markDone()`: o período termina no dia da conclusão.
 - Etapas: `t.dod` (lista `{t,d}`), até 30. Não existem mais pautas (`parent`): `convertPautas()` converte dados antigos no boot e após cada sync (plano vira período, entregas viram etapas).
 - Depois de criar/salvar: `toast(whereText(t), 'Ver', showTask)`.
+- Prazo final: `t.due` (opcional, separado do `day`). `dueTag()` no card; `dueNow()` põe na tela Hoje o que vence hoje ou venceu sem estar planejado para hoje. Texto: "até sexta", "prazo 12/11".
+- Arrastar entre dias: só na Semana e só quando o ponteiro principal não é o dedo (`CANDRAG`); áreas `.dz[data-drop]` e dias da faixa; usa `moveTask()`.
 - Recorrência: `S.rec`, ocorrências com id `r_<rid>_<data>`; tarefa que repete não tem período.
 - Mudou o service worker? Aumente `V` em build.py.
 - Dados locais têm dono (`S.owner`). Sair ou trocar de conta chama `wipeLocal()` (apaga tudo `prumo.*`) e recarrega. Nada de guardar dado de usuário fora de chaves `prumo.*`.

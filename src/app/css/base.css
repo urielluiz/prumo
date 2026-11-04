@@ -257,3 +257,13 @@ html.hasmini .wrap{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 150px)}
 .dfree{margin:0;padding:12px 14px;border-radius:14px;background:var(--surface);color:var(--muted);font-size:14px;box-shadow:var(--shadow)}
 @media (prefers-reduced-motion:reduce){.rw .row{transition:none}}
 button.hero-t{display:block;width:100%;text-align:left;color:inherit;padding:0}
+.tag.due{background:var(--soft);color:var(--ink)}
+.tag.due.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.due.bad{background:var(--bad);color:var(--surface)}
+/* arrastar entre dias */
+.row[draggable="true"]{cursor:grab}
+.row.dragging{opacity:.45}
+.dragmode .dz{border-radius:18px;transition:box-shadow .12s}
+.dz.drop-over{box-shadow:0 0 0 2px var(--accent);background:var(--accent-soft)}
+.dy.drop-over{box-shadow:0 0 0 2px var(--accent)}
+@media (prefers-reduced-motion:reduce){.dragmode .dz{transition:none}}

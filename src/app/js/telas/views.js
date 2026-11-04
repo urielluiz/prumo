@@ -2,7 +2,7 @@
 function viewHoje(){
   var td=todayISO(),d=new Date();
   if(!booted&&!S.tasks.length)return '<header class="top"><div><div class="eyebrow">'+DAYS[d.getDay()]+', '+d.getDate()+' de '+MONF[d.getMonth()]+'</div><h1 class="h1">Hoje</h1></div></header><p class="hint">Carregando seus dados...</p>';
-  var all=tasksOn(td),done=all.filter(isDone),open=all.filter(function(t){return !isDone(t)});
+  var all=tasksOn(td),done=all.filter(isDone),open=all.filter(function(t){return !isDone(t)}).concat(dueNow());
   var now=nextTask(),over=overdue(),nm=profName().split(' ')[0];
   var sapo=open.filter(function(t){return t.mit}).sort(byPrio)[0];
   // ordem da lista: em andamento, prioridades (estrela) e o resto; a tarefa do "Agora" não se repete
@@ -46,12 +46,12 @@ function viewSemana(){
   days.forEach(function(d){
     var p=parseISO(d),l=tasksOn(d).sort(function(a,b){return (isDone(a)-isDone(b))||((b.mit?1:0)-(a.mit?1:0))||byPrio(a,b)}),m=dayLoad(d),cap=S.cap[p.getDay()]||0;
     var nm=d===td?'Hoje':(d===addDays(td,1)?'Amanhã':DAYS[p.getDay()]+', '+p.getDate());
-    h+='<div class="dayh" id="d-'+d+'"><h2 class="h2">'+nm+'</h2><span class="dayl'+(m>cap?' over':'')+'">'+(m>cap?'passou '+fmt(m-cap)+' do que cabe':(m?fmt(m)+' de '+fmt(cap):(cap?'livre':'')))+'</span><button class="ib" data-act="new" data-day="'+d+'" aria-label="Adicionar tarefa em '+esc(nm)+'">'+ic('plus',18)+'</button></div>';
-    h+=l.length?listHTML(l,{day:d},null):'<p class="dfree">Nada planejado.</p>';
+    h+='<div class="dz" data-drop="'+d+'"><div class="dayh" id="d-'+d+'"><h2 class="h2">'+nm+'</h2><span class="dayl'+(m>cap?' over':'')+'">'+(m>cap?'passou '+fmt(m-cap)+' do que cabe':(m?fmt(m)+' de '+fmt(cap):(cap?'livre':'')))+'</span><button class="ib" data-act="new" data-day="'+d+'" aria-label="Adicionar tarefa em '+esc(nm)+'">'+ic('plus',18)+'</button></div>';
+    h+=(l.length?listHTML(l,{day:d,drag:true},null):'<p class="dfree">Nada planejado.</p>')+'</div>';
   });
   var back=S.tasks.filter(function(t){return !t.day&&!isDone(t)}).sort(byPrio);
-  h+='<div class="dayh" id="d-sem"><h2 class="h2">Sem data</h2><span class="dayl">'+back.length+'</span><button class="ib" data-act="new" data-day="none" aria-label="Adicionar tarefa sem data">'+ic('plus',18)+'</button></div>';
-  h+=back.length?listHTML(back,{},null):'<p class="dfree">Ideias sem dia ficam aqui. Quando houver espaço, toque em ⋯ para trazer para um dia.</p>';
+  h+='<div class="dz" data-drop="none"><div class="dayh" id="d-sem"><h2 class="h2">Sem data</h2><span class="dayl">'+back.length+'</span><button class="ib" data-act="new" data-day="none" aria-label="Adicionar tarefa sem data">'+ic('plus',18)+'</button></div>';
+  h+=(back.length?listHTML(back,{drag:true},null):'<p class="dfree">Ideias sem dia ficam aqui. Quando houver espaço, toque em ⋯ para trazer para um dia.</p>')+'</div>';
   return h;
 }
 

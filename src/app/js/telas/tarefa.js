@@ -36,6 +36,7 @@ function recognize(raw,off){
     var a=resolveDay(m[1]),b=a&&resolveDay(m[2],a);if(!a||!b)return null;if(b<a){var x=a;a=b;b=x}
     return {label:shortDate(a)+' a '+shortDate(b),set:{day:a,end:b===a?null:b}};
   });
+  take(new RegExp('\\b(?:ate|prazo)(?:\\s+(?:o\\s+)?dia)?\\s+'+DAYRX+'\\b'),'due',function(m){var a=resolveDay(m[1]);return a?{label:'Prazo '+(a===todayISO()?'hoje':shortDate(a)),set:{due:a}}:null});
   take(new RegExp('\\b'+DAYRX+'\\b'),'when',function(m){var a=resolveDay(m[1]);return a?{label:a===todayISO()?'Hoje':shortDate(a),set:{day:a,end:null}}:null});
   take(/\b(\d{1,2})\s*h\s*(\d{1,2})?\b|\b(\d{1,3})\s*min\b/,'est',function(m){var v=m[3]?+m[3]:(+m[1]*60+(+m[2]||0));return v>=1&&v<=960?{label:fmt(v),set:{est:v}}:null});
   take(/#([a-z0-9]+)/,'ctx',function(m){var c=CTX.find(function(c){return c.id===m[1]||deacc(cname(c.id)).replace(/[^a-z0-9]/g,'').indexOf(m[1])===0});return c?{label:cname(c.id),set:{ctx:c.id}}:null});
@@ -44,7 +45,7 @@ function recognize(raw,off){
   out.title=t.replace(/\s+/g,' ').trim();
   return out;
 }
-var TKF=['day','end','est','ctx','rec','imp'];
+var TKF=['day','end','est','ctx','rec','imp','due'];
 // valores efetivos: o que foi escolhido + o que o texto reconheceu (só ao criar)
 function eff(){
   var d=Object.assign({},sh.d);
@@ -72,10 +73,10 @@ function pillsHTML(d){
   var c=ctxOf(d.ctx),p=function(k,label,val){return '<button class="pill" data-act="sh-sec" data-v="'+k+'" aria-expanded="'+(sh.open===k)+'">'+(label?'<span class="pk">'+label+'</span>':'')+val+'</button>'};
   return p('when','Quando',esc(whenLabel(d)))+p('est','Tempo',fmt(d.est)+(d.end?' por dia':''))+p('ctx','','<i class="dot" style="background:var('+c.v+')"></i>'+esc(cname(c.id)))+p('rep','',ic('repeat',16,2)+esc(recLabel(d.rec)));
 }
-function calHTML(d){
-  var td=todayISO(),m=sh.mon.split('-').map(Number),first=new Date(m[0],m[1]-1,1),lead=(first.getDay()+6)%7,n=new Date(m[0],m[1],0).getDate();
-  var a=sh.pick||d.day,b=sh.pick?null:d.end,cur=td.slice(0,7)===sh.mon,h='';
-  h+='<div class="cal"><div class="cal-h"><button class="ib" data-act="cal-mon" data-v="-1" aria-label="Mês anterior"'+(cur?' disabled':'')+'>'+ic('left',20)+'</button><span>'+MONF[m[1]-1]+' de '+m[0]+'</span><button class="ib" data-act="cal-mon" data-v="1" aria-label="Próximo mês">'+ic('right',20)+'</button></div><div class="cal-g" role="grid">';
+// calendário do mês: a = dia escolhido (ou início), b = fim do período; act/monAct = ações dos botões
+function calGrid(mon,a,b,act,monAct){
+  var td=todayISO(),m=mon.split('-').map(Number),first=new Date(m[0],m[1]-1,1),lead=(first.getDay()+6)%7,n=new Date(m[0],m[1],0).getDate(),cur=td.slice(0,7)===mon,h='';
+  h+='<div class="cal"><div class="cal-h"><button class="ib" data-act="'+monAct+'" data-v="-1" aria-label="Mês anterior"'+(cur?' disabled':'')+'>'+ic('left',20)+'</button><span>'+MONF[m[1]-1]+' de '+m[0]+'</span><button class="ib" data-act="'+monAct+'" data-v="1" aria-label="Próximo mês">'+ic('right',20)+'</button></div><div class="cal-g" role="grid">';
   ['seg','ter','qua','qui','sex','sáb','dom'].forEach(function(x){h+='<small aria-hidden="true">'+x+'</small>'});
   for(var i=0;i<lead;i++)h+='<span></span>';
   for(var k=1;k<=n;k++){
@@ -85,10 +86,11 @@ function calHTML(d){
     if(b&&s===b)cl.push('e');
     if(a&&b&&s>a&&s<b)cl.push('in');
     var on=(a&&s===a)||(b&&s===b);
-    h+='<button data-act="cal-day" data-v="'+s+'" class="'+cl.join(' ')+'"'+(s<td?' disabled':'')+' aria-pressed="'+!!on+'" aria-label="'+k+' de '+MONF[m[1]-1]+'">'+k+'</button>';
+    h+='<button data-act="'+act+'" data-v="'+s+'" class="'+cl.join(' ')+'"'+(s<td?' disabled':'')+' aria-pressed="'+!!on+'" aria-label="'+k+' de '+MONF[m[1]-1]+'">'+k+'</button>';
   }
   return h+'</div></div>';
 }
+function calHTML(d){return calGrid(sh.mon,sh.pick||d.day,sh.pick?null:d.end,'cal-day','cal-mon')}
 function panelHTML(d){
   var td=todayISO(),h='';
   if(sh.open==='when'){
@@ -117,11 +119,15 @@ function panelHTML(d){
 }
 function moreHTML(d){
   var sug=suggestFw(d),cur=d.fw||sug,q=quad(d),n=(d.dod||[]).length,dn=(d.dod||[]).filter(function(x){return x.d}).length;
-  var sum=[QD[q].n,FW[cur].name].concat(n?[dn+'/'+n+' etapas']:[]).join(' · ');
+  var sum=(d.due?['prazo '+shortDate(d.due)]:[]).concat([QD[q].n,FW[cur].name]).concat(n?[dn+'/'+n+' etapas']:[]).join(' · ');
   var h='<button class="tk-more" data-act="sh-sec" data-v="more" aria-expanded="'+!!sh.more+'"><span>Mais opções</span><span class="pk">'+esc(sum)+'</span>'+ic(sh.more?'up':'down',18)+'</button>';
   if(!sh.more)return h;
   h+='<div class="tk-opts">';
   h+='<div><span class="lab">Prioridade</span><div class="chips">'+chip('Importante',!!d.imp,'data-act="sh-imp"')+chip('Urgente',!!d.urg,'data-act="sh-urg"')+'</div><p class="verdict"><b>'+QD[q].n+'.</b> '+QD[q].s+'.</p></div>';
+  var td=todayISO(),fri=resolveDay('sex'),nw=resolveDay('seg',addDays(td,1));
+  h+='<div><span class="lab">Prazo final</span><div class="chips">'+chip('Sem prazo',!d.due,'data-act="due-set" data-v=""')+chip('Sexta',d.due===fri,'data-act="due-set" data-v="'+fri+'"')+chip('Próxima segunda',d.due===nw,'data-act="due-set" data-v="'+nw+'"')+chip(d.due&&d.due!==fri&&d.due!==nw?shortDate(d.due):'Escolher dia',!!(sh.dueOpen||(d.due&&d.due!==fri&&d.due!==nw)),'data-act="due-pick"')+'</div>'+
+    (sh.dueOpen?calGrid(sh.dmon,d.due,null,'due-day','due-mon'):'')+
+    '<p class="hint" style="margin:8px 0 0">'+(d.due&&d.day&&d.due<lastDay(d)?'O prazo é antes do último dia planejado.':'Até quando precisa estar pronto. A tarefa continua no dia escolhido em Quando e aparece na tela Hoje no dia do prazo.')+'</p></div>';
   h+='<div><span class="lab">Etapas</span>'+(n?'<ul class="steps">'+d.dod.map(function(x,i){return '<li><button class="st-chk" data-act="st-tog" data-v="'+i+'" aria-pressed="'+!!x.d+'" aria-label="'+(x.d?'Desmarcar':'Marcar')+' etapa">'+(x.d?ic('check',13,2.6):'')+'</button><span'+(x.d?' class="dn"':'')+'>'+esc(x.t)+'</span><button class="ib" data-act="st-del" data-v="'+i+'" aria-label="Remover etapa">'+ic('x',16)+'</button></li>'}).join('')+'</ul>':'')+
     (n<MAXSTEPS?'<div class="st-add"><input id="f-step" class="inp" maxlength="120" autocomplete="off" enterkeyhint="done" placeholder="'+(n?'Próxima etapa':'Ex.: Mandar o briefing')+'" aria-label="Nova etapa"><button class="btn btn-s sm" data-act="st-add">Adicionar</button></div>':'')+'</div>';
   h+='<div><span class="lab">Como atacar</span><div class="fwgrid">'+Object.keys(FW).map(function(k){return '<button class="fwopt" data-act="sh-fw" data-v="'+k+'" aria-pressed="'+(cur===k)+'"><b>'+esc(FW[k].name)+'</b><small>'+esc(FW[k].best)+(k===sug?' · sugerido':'')+'</small></button>'}).join('')+'</div><p class="verdict">'+esc(FW[cur].how)+'<b id="pomo-n">'+pomoText(d,cur)+'</b></p><button class="link" data-act="help">Entender os métodos</button></div>';
@@ -130,7 +136,7 @@ function moreHTML(d){
 }
 function sumText(d){
   if(!d.title)return 'Escreva o que precisa ser feito.';
-  return '<b>'+esc(d.title)+'</b> · '+esc(whenLabel(d))+(d.end?' ('+spanOf(d)+' dias)':'')+' · '+fmt(d.est)+(d.end?' por dia':'')+' · '+esc(cname(d.ctx));
+  return '<b>'+esc(d.title)+'</b> · '+esc(whenLabel(d))+(d.end?' ('+spanOf(d)+' dias)':'')+' · '+fmt(d.est)+(d.end?' por dia':'')+' · '+esc(cname(d.ctx))+(d.due?' · prazo '+esc(shortDate(d.due)):'');
 }
 function taskSheetHTML(){
   var d=eff(),cur0=sh.mode==='edit'?byId(sh.id):null,isRec=!!(cur0&&cur0.rid&&S.rec[cur0.rid]);
@@ -163,11 +169,13 @@ function fitTitle(){var t=document.getElementById('f-title');if(t){t.style.heigh
 function openTask(id,day){
   if(id){var t=byId(id);if(!t)return;
     sh={kind:'task',mode:'edit',id:id,off:{},open:null,more:false,multi:!!t.end,mon:(t.day&&t.day>todayISO()?t.day:todayISO()).slice(0,7),pick:null,del:false,
-      d:{raw:t.title,ctx:t.ctx,est:t.est,day:t.day||null,end:t.end||null,urg:!!t.urg,imp:!!t.imp,fw:t.fw||null,rec:(t.rid&&S.rec[t.rid]?clone(S.rec[t.rid].rule):null),recAll:true,dod:clone(t.dod||[]),real:Math.round((t.focus||0)/60)||''}};
+      d:{raw:t.title,ctx:t.ctx,est:t.est,day:t.day||null,end:t.end||null,urg:!!t.urg,imp:!!t.imp,fw:t.fw||null,rec:(t.rid&&S.rec[t.rid]?clone(S.rec[t.rid].rule):null),recAll:true,dod:clone(t.dod||[]),real:Math.round((t.focus||0)/60)||'',due:t.due||null}};
+    sh.dmon=(t.due&&t.due>todayISO()?t.due:todayISO()).slice(0,7);
   }else{
     var dd=day===undefined?todayISO():day;
     sh={kind:'task',mode:'new',off:{},open:null,more:false,multi:false,mon:((dd&&dd>todayISO())?dd:todayISO()).slice(0,7),pick:null,del:false,
-      d:{raw:'',ctx:lastCtx,est:30,day:dd,end:null,urg:false,imp:true,fw:null,rec:null,dod:[]}};
+      d:{raw:'',ctx:lastCtx,est:30,day:dd,end:null,urg:false,imp:true,fw:null,rec:null,dod:[],due:null}};
+    sh.dmon=todayISO().slice(0,7);
   }
   renderSheet();fitTitle();
   if(sh.mode==='new')setTimeout(function(){var i=$('#f-title');if(i)i.focus()},60);
@@ -176,6 +184,7 @@ function applySheet(t,d){
   var day=d.day||null,end=(!d.rec&&day&&d.end&&d.end>day)?d.end:null;
   Object.assign(t,{title:d.title,ctx:d.ctx,est:d.est,day:day,urg:!!d.urg,imp:!!d.imp,fw:d.fw||null,dod:(d.dod||[]).slice(0,MAXSTEPS).map(function(x){return {t:String(x.t).slice(0,120),d:!!x.d}})});
   if(end)t.end=end;else delete t.end;
+  if(d.due&&/^\d{4}-\d{2}-\d{2}$/.test(d.due))t.due=d.due;else delete t.due;
   if(!t.day)t.mit=false;
   if(sh.mode==='edit'&&d.real!=null&&d.real!==''&&Number(d.real)>=0&&Number(d.real)!==Math.round((t.focus||0)/60))t.focus=Math.round(Number(d.real))*60;
   d.dodText=t.dod.map(function(x){return x.t}).join('\n');

@@ -119,4 +119,28 @@ ok('Semana: "Hoje" returns to today',(await ev(()=>document.querySelector('.wstr
 await click('.tab[data-t=revisao]');await sleep(200);
 ok('Revisão: planned time by context',/Planejado por contexto/i.test(await txt('#view'))&&/Freelas/.test(await txt('.legend')));
 
+
+// ---------- arrastar entre dias (computador) ----------
+ok('mobile: cards are not draggable',!(await ev(()=>!!document.querySelector('.row[draggable]'))));
+{const q=await b.newPage();await q.setViewport({width:1280,height:860});q.on('pageerror',e=>errs.push(e.message));
+await q.evaluateOnNewDocument(FAKE);
+await q.goto(await url('e2e/hstest.html'),{waitUntil:'domcontentloaded'});await sleep(1300);
+await q.evaluate(()=>document.querySelector('.tab[data-t=semana]').click());await sleep(250);
+const drag=(id,sel)=>q.evaluate(([id,sel])=>{const src=document.querySelector('.row[data-tid="'+id+'"][draggable]');const dst=document.querySelector(sel);if(!src||!dst)return 'missing';
+  const dt=new DataTransfer();src.dispatchEvent(new DragEvent('dragstart',{bubbles:true,dataTransfer:dt}));
+  dst.dispatchEvent(new DragEvent('dragover',{bubbles:true,cancelable:true,dataTransfer:dt}));
+  const over=dst.classList.contains('drop-over');
+  dst.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:dt}));src.dispatchEvent(new DragEvent('dragend',{bubbles:true,dataTransfer:dt}));return over?'ok':'no-over'},[id,sel]);
+const qt=async id=>(await q.evaluate(()=>JSON.parse(localStorage.getItem('prumo.v1')))).tasks.find(x=>x.id===id);
+ok('desktop: cards are draggable in Semana',await q.evaluate(()=>!!document.querySelector('.row[data-tid=g][draggable]')));
+let rr=await drag('g','.wstrip .dy[data-d="'+plus(3)+'"]');
+ok('drag onto a day in the strip highlights it and moves the task',rr==='ok'&&(await qt('g')).day===plus(3));
+ok('drag shows undo toast',/Movida para .*Desfazer/s.test(await q.evaluate(()=>document.querySelector('#toast').innerText)));
+await q.evaluate(()=>document.querySelector('[data-act=toast-act]').click());await sleep(150);
+ok('drag undo',(await qt('g')).day===plus(1));
+rr=await drag('g','.dz[data-drop="'+plus(5)+'"]');
+ok('drag onto a day section moves it',rr==='ok'&&(await qt('g')).day===plus(5));
+rr=await drag('g','.dz[data-drop="none"]');
+ok('drag to "Sem data" removes the date',(await qt('g')).day===null);
+await q.close()}
 console.log(res.join('\n'));console.log(errs.length?'ERRORS '+errs:'NO PAGE ERRORS');await b.close()})();
