@@ -30,7 +30,7 @@ function obra(){
   var floors=[],by={};
   days.forEach(function(x){var wk=weekStart(x.d);if(!by[wk]){by[wk]={wk:wk,cells:['','','','','','',''],n:0};floors.push(by[wk])}var f=by[wk];f.cells[(parseISO(x.d).getDay()+6)%7]=x.s;if(x.s==='f')f.n++});
   floors=floors.filter(function(f){return f.n>0||f.wk===weekStart(td)});
-  floors.forEach(function(f){f.prumo=retroDone(f.wk)});
+  floors.forEach(function(f){f.prumo=retroDone(f.wk);f.plan=weekPlanned(f.wk)});
   var last=days[days.length-1]||{u:0};
   return {cur:run,best:best,bricks:bricks,floors:floors,today:last.u,meta:meta,firm:last.u>=meta,pauseLeft:PAUSAS-(used[weekStart(td)]||0),broke:run===0&&best>0&&days.some(function(x){return x.s==='x'})};
 }
@@ -39,5 +39,5 @@ function planned(d){return !!(S.blockers[d]||dayOf(d).s||tasksOn(d).length)}
 function sapoOf(d){var id=dayOf(d).s,t=id&&byId(id);return t&&!isDone(t)&&covers(t,d)?t:null}
 function setDay(d,o){S.days=S.days||{};var cur=Object.assign({},S.days[d]||{},o);Object.keys(cur).forEach(function(k){if(cur[k]==null||cur[k]==='')delete cur[k]});if(Object.keys(cur).length)S.days[d]=cur;else delete S.days[d]}
 // dados vindos da nuvem passam por aqui antes de entrar no estado
-function cleanDay(o){o=o||{};var r={};if(Number(o.c)>0)r.c=Number(o.c);if(typeof o.s==='string'&&o.s.length<=64)r.s=o.s;return r}
+function cleanDay(o){o=o||{};var r={};if(Number(o.c)>0)r.c=Number(o.c);if(Number(o.p)>0)r.p=Number(o.p);if(typeof o.s==='string'&&o.s.length<=64)r.s=o.s;return r}
 function cleanG(o){o=o||{};var r={};if(Array.isArray(o.off))r.off=o.off.map(Number).filter(function(x,i,a){return x>=0&&x<=6&&a.indexOf(x)===i});var m=Number(o.meta);if(m>=1&&m<=5)r.meta=Math.floor(m);return r}

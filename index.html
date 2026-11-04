@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-1Qmcy4j6aNFgRwdLngcAKq/W1vScASZ8669jMVnaf3k=' 'sha256-E7nSVVcy1iDxTeh3iQgGdhTaDSHsI/kt6NxtGDXBlsw=' 'sha256-M83SiRaxQw8WWPr1qdbElLabaNfhtC6YMMJDVWU3QNA=' 'sha256-WSaTyIcG/4A0XRG5I5akAXJUOUO9a1HHpUzWTQFnc5s=' 'sha256-wNBm0LO9t0JKUloaWmeP9HoGpjFq3dG9AuBOcy/YQ4g='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.pwnedpasswords.com https://cpdeptlintjvdqcfrafg.supabase.co wss://cpdeptlintjvdqcfrafg.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-1Qmcy4j6aNFgRwdLngcAKq/W1vScASZ8669jMVnaf3k=' 'sha256-IMP7sV/UIw0xTxD6JwFi+yG+iQhQpCJPP8M5vzhS8tg=' 'sha256-M83SiRaxQw8WWPr1qdbElLabaNfhtC6YMMJDVWU3QNA=' 'sha256-WSaTyIcG/4A0XRG5I5akAXJUOUO9a1HHpUzWTQFnc5s=' 'sha256-wNBm0LO9t0JKUloaWmeP9HoGpjFq3dG9AuBOcy/YQ4g='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.pwnedpasswords.com https://cpdeptlintjvdqcfrafg.supabase.co wss://cpdeptlintjvdqcfrafg.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <meta name="referrer" content="no-referrer">
 <script>if(window.top!==window.self){window.stop();document.documentElement.innerHTML=''}</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -561,6 +561,33 @@ html.lock .toast{bottom:auto;top:calc(14px + env(safe-area-inset-top,0px))}
   @keyframes bkdrop{from{transform:translateY(-26px);opacity:0}to{transform:none;opacity:1}}
   .rg-a{transition:stroke-dashoffset .5s ease}
 }
+/* ---------- planejar a semana e busca ---------- */
+.closec.plan{margin:14px 0 0;flex-wrap:wrap}
+.closec.plan .btns{flex:none}
+.wp-days{display:grid;gap:2px}
+.wp-d{display:grid;grid-template-columns:5.2rem minmax(0,1fr) auto auto;gap:8px;align-items:center;min-height:44px}
+.wp-n{font-weight:600;font-size:.9375rem;white-space:nowrap}
+.wp-n small{font-weight:400;color:var(--muted);font-size:.75rem}
+.wp-bar{position:relative;display:flex;height:10px;border-radius:99px;background:var(--soft);overflow:hidden}
+.wp-bar i{display:block;height:100%;background:var(--ink);opacity:.75}
+.wp-bar i.add{background:repeating-linear-gradient(135deg,var(--accent) 0 4px,var(--accent-soft) 4px 8px);opacity:1}
+.wp-bar b{position:absolute;top:0;bottom:0;width:2px;background:var(--bad)}
+.wp-d.over .wp-v{color:var(--bad)}
+.wp-v{font:500 .75rem var(--mono);color:var(--muted);white-space:nowrap}
+.wp-c{display:flex}
+.wp-p{display:grid;gap:6px;padding-top:10px;border-top:1px solid var(--line)}
+.wp-p label{display:grid;gap:2px}
+.wp-p label b{font-weight:600;overflow-wrap:anywhere}
+.wp-p label small{color:var(--muted);font-size:.8125rem}
+.wp-p select{min-height:44px}
+.ob-pl{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--c1);margin-right:4px;vertical-align:middle}
+.bs-list{display:grid;gap:6px}
+.bs-r{display:grid;gap:3px;text-align:left;width:100%;min-height:52px;padding:10px 12px;border-radius:12px;background:var(--bg)}
+.bs-r b{font-weight:600;overflow-wrap:anywhere}
+.bs-r small{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:.8125rem}
+.bs-r.done b{color:var(--muted);text-decoration:line-through}
+.bs-r:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:380px){.wp-d{grid-template-columns:4.4rem minmax(0,1fr) auto}.wp-v{display:none}}
 </style>
 
 <div class="wrap"><main id="view" aria-live="polite"></main></div>
@@ -614,6 +641,7 @@ var QD={
 };
 
 var ICON={
+  search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
   target:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/>',
   cal:'<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
@@ -992,7 +1020,7 @@ function obra(){
   var floors=[],by={};
   days.forEach(function(x){var wk=weekStart(x.d);if(!by[wk]){by[wk]={wk:wk,cells:['','','','','','',''],n:0};floors.push(by[wk])}var f=by[wk];f.cells[(parseISO(x.d).getDay()+6)%7]=x.s;if(x.s==='f')f.n++});
   floors=floors.filter(function(f){return f.n>0||f.wk===weekStart(td)});
-  floors.forEach(function(f){f.prumo=retroDone(f.wk)});
+  floors.forEach(function(f){f.prumo=retroDone(f.wk);f.plan=weekPlanned(f.wk)});
   var last=days[days.length-1]||{u:0};
   return {cur:run,best:best,bricks:bricks,floors:floors,today:last.u,meta:meta,firm:last.u>=meta,pauseLeft:PAUSAS-(used[weekStart(td)]||0),broke:run===0&&best>0&&days.some(function(x){return x.s==='x'})};
 }
@@ -1001,7 +1029,7 @@ function planned(d){return !!(S.blockers[d]||dayOf(d).s||tasksOn(d).length)}
 function sapoOf(d){var id=dayOf(d).s,t=id&&byId(id);return t&&!isDone(t)&&covers(t,d)?t:null}
 function setDay(d,o){S.days=S.days||{};var cur=Object.assign({},S.days[d]||{},o);Object.keys(cur).forEach(function(k){if(cur[k]==null||cur[k]==='')delete cur[k]});if(Object.keys(cur).length)S.days[d]=cur;else delete S.days[d]}
 // dados vindos da nuvem passam por aqui antes de entrar no estado
-function cleanDay(o){o=o||{};var r={};if(Number(o.c)>0)r.c=Number(o.c);if(typeof o.s==='string'&&o.s.length<=64)r.s=o.s;return r}
+function cleanDay(o){o=o||{};var r={};if(Number(o.c)>0)r.c=Number(o.c);if(Number(o.p)>0)r.p=Number(o.p);if(typeof o.s==='string'&&o.s.length<=64)r.s=o.s;return r}
 function cleanG(o){o=o||{};var r={};if(Array.isArray(o.off))r.off=o.off.map(Number).filter(function(x,i,a){return x>=0&&x<=6&&a.indexOf(x)===i});var m=Number(o.meta);if(m>=1&&m<=5)r.meta=Math.floor(m);return r}
 /* ---------- toast ---------- */
 var toastT=null,toastFn=null;
@@ -1069,6 +1097,7 @@ function viewHoje(){
   h+=wrapBanner();
   h+=pushBanner();
   h+=heroHTML(now,sapo&&now&&sapo.id===now.id);
+  h+=planCardHTML();
   h+='</div><div class="col">';
   if(rest.length)h+=secHTML('Depois',fmt(sum(rest,function(t){return t.est})))+listHTML(rest,{day:td},sapo&&(!now||sapo.id!==now.id)?sapo.id:null);
   else if(now)h+='<p class="hint" style="margin:14px 4px">Só isso por hoje. Toque em ⋯ num card para trazer algo de outro dia.</p>';
@@ -1089,7 +1118,7 @@ function viewSemana(){
   var per=S.tasks.filter(function(t){return t.end&&!isDone(t)});
   var d0=parseISO(days[0]),d6=parseISO(days[6]);
   var h='<header class="top"><div><div class="eyebrow">'+(semOff?'Mais adiante':'Próximos 7 dias')+'</div><h1 class="h1">'+d0.getDate()+(d0.getMonth()!==d6.getMonth()?' '+MONS[d0.getMonth()]:'')+' a '+d6.getDate()+' '+MONS[d6.getMonth()]+'</h1></div><div class="nav">'+
-    (semOff?'<button class="btn btn-s sm" data-act="sem" data-d="0">Hoje</button>':'')+'<button class="ib" data-act="sem" data-d="-1" aria-label="7 dias antes"'+(semOff?'':' disabled')+'>'+ic('left')+'</button><button class="ib" data-act="sem" data-d="1" aria-label="Próximos 7 dias">'+ic('right')+'</button></div></header>';
+    (semOff?'<button class="btn btn-s sm" data-act="sem" data-d="0">Hoje</button>':'')+'<button class="ib" data-act="busca" aria-label="Buscar tarefas">'+ic('search')+'</button><button class="ib" data-act="sem" data-d="-1" aria-label="7 dias antes"'+(semOff?'':' disabled')+'>'+ic('left')+'</button><button class="ib" data-act="sem" data-d="1" aria-label="Próximos 7 dias">'+ic('right')+'</button></div></header>';
   h+='<div class="wstrip"><div class="strip">'+days.map(function(d,i){
     var p=parseISO(d),m=dayLoad(d),cap=S.cap[p.getDay()]||0,pct=cap?Math.min(100,m/cap*100):(m?100:0),over=m>cap;
     var pp=per.find(function(t){return covers(t,d)}),bar='';
@@ -1280,7 +1309,7 @@ function viewRevisao(){
     '<div class="btns"><button class="btn btn-s sm" data-act="wr-open" data-wk="'+wk+'">'+ic('play',16)+'Retrô em stories</button>'+(wkOff!==0?'<button class="btn btn-s sm" data-act="wk" data-d="0">Voltar para esta semana</button>':'')+'</div></section>';
   h+=secHTML('Fechar a semana')+'<div class="stack">'+
     [['worked','O que funcionou?'],['stuck','O que travou?'],['tweak','O que muda na próxima semana?']].map(function(x){return '<div><label class="lab" for="rt-'+x[0]+'">'+x[1]+'</label><textarea id="rt-'+x[0]+'" class="inp" data-in="retro" data-f="'+x[0]+'" rows="2">'+esc(rt[x[0]]||'')+'</textarea></div>'}).join('')+'</div>';
-  h+='<div class="btns" style="margin-top:12px"><button class="btn btn-p btn-full" data-act="copy-summary">Copiar resumo da semana</button></div>';
+  h+='<div class="btns" style="margin-top:12px">'+(wkOff===0?'<button class="btn btn-p btn-full" data-act="plan">Planejar a próxima semana</button>':'')+'<button class="btn btn-s btn-full" data-act="copy-summary">Copiar resumo da semana</button></div>';
   h+='</div><div class="col">';
   if(open.length){
     h+=secHTML('Ficou aberto',open.length)+listHTML(open.sort(function(a,b){return (b.slips||0)-(a.slips||0)}),{},null);
@@ -1363,7 +1392,7 @@ function towerHTML(o,fresh){
   var nm={f:'tijolo',o:'folga',p:'pausa',x:'em branco',t:'hoje'};
   var h='<div class="tower" role="list" aria-label="Andares da obra, do mais recente ao mais antigo">'+fl.map(function(f){
     var d=parseISO(f.wk),lab=d.getDate()+' '+MESC[d.getMonth()];
-    return '<div class="floor'+(f.prumo?' pr':'')+'" role="listitem" aria-label="Semana de '+lab+': '+f.n+(f.n===1?' tijolo':' tijolos')+(f.prumo?', no prumo':'')+'"><span class="fl-l" aria-hidden="true">'+lab+'</span><div class="fl-b" aria-hidden="true">'+f.cells.map(function(c,i){var dd=addDays(f.wk,i);return '<i class="bk'+(c?' '+c:'')+(dd===td?' td':'')+(fresh&&dd===td&&c==='f'?' new':'')+'" title="'+(c?nm[c]:'')+'"></i>'}).join('')+'</div></div>'}).join('')+'</div>';
+    return '<div class="floor'+(f.prumo?' pr':'')+'" role="listitem" aria-label="Semana de '+lab+': '+f.n+(f.n===1?' tijolo':' tijolos')+(f.plan?', planejada':'')+(f.prumo?', no prumo':'')+'"><span class="fl-l" aria-hidden="true">'+(f.plan?'<i class="ob-pl"></i>':'')+lab+'</span><div class="fl-b" aria-hidden="true">'+f.cells.map(function(c,i){var dd=addDays(f.wk,i);return '<i class="bk'+(c?' '+c:'')+(dd===td?' td':'')+(fresh&&dd===td&&c==='f'?' new':'')+'" title="'+(c?nm[c]:'')+'"></i>'}).join('')+'</div></div>'}).join('')+'</div>';
   h+='<div class="fl-d" aria-hidden="true"><span></span><div>'+['S','T','Q','Q','S','S','D'].map(function(x){return '<i>'+x+'</i>'}).join('')+'</div></div>';
   if(more>0)h+='<p class="hint" style="margin:6px 0 0">E mais '+more+(more>1?' andares':' andar')+' abaixo.</p>';
   return h;
@@ -1376,9 +1405,9 @@ function obraSheetHTML(){
     '<br>'+an+(an===1?' andar':' andares')+' · '+o.bricks+(o.bricks===1?' tijolo':' tijolos')+'<br>Pausa desta semana: '+(o.pauseLeft>0?'disponível':'usada')+'</p></div>';
   if(fresh)h+='<p class="cl-st ok" role="status">'+(o.firm?'Tijolo de hoje assentado.':'Dia fechado. Amanhã tem mais.')+'</p>';
   h+=towerHTML(o,fresh);
-  h+='<div class="ob-leg" aria-hidden="true"><span><i class="bk f"></i>dia firme</span><span><i class="bk o"></i>folga ou pausa</span><span><i class="bk x"></i>em branco</span><span><i class="ob-pr"></i>semana fechada</span></div>';
+  h+='<div class="ob-leg" aria-hidden="true"><span><i class="bk f"></i>dia firme</span><span><i class="bk o"></i>folga ou pausa</span><span><i class="bk x"></i>em branco</span><span><i class="ob-pl"></i>semana planejada</span><span><i class="ob-pr"></i>semana fechada</span></div>';
   var offN=gOff().slice().sort(function(a,b){return ((a+6)%7)-((b+6)%7)}).map(function(w){return DABR[w]}).join(', ');
-  h+='<p class="hint" style="margin:0">Dia firme: '+(o.meta>1?o.meta+' tarefas concluídas ou blocos de 25 min de foco.':'1 tarefa concluída ou 25 min de foco.')+' Folga ('+(offN||'nenhum dia')+') não quebra a sequência e, se você fizer algo, vale tijolo. Uma pausa por semana cobre um dia útil em branco. Fechar a semana na Revisão deixa o andar no prumo.</p>';
+  h+='<p class="hint" style="margin:0">Dia firme: '+(o.meta>1?o.meta+' tarefas concluídas ou blocos de 25 min de foco.':'1 tarefa concluída ou 25 min de foco.')+' Folga ('+(offN||'nenhum dia')+') não quebra a sequência e, se você fizer algo, vale tijolo. Uma pausa por semana cobre um dia útil em branco. Planejar a semana marca o andar; fechar a semana na Revisão deixa o andar no prumo.</p>';
   h+='<div class="sh-actions"><button class="btn btn-s" data-act="perfil-game">Ajustar regras</button></div>';
   return h;
 }
@@ -1394,6 +1423,103 @@ function gameSettings(){
 function closeDay(){
   var td=todayISO();setDay(td,{c:Date.now()});persist();
   sh={kind:'obra',fresh:td};renderSheet();render();
+}
+/* ---------- planejar a semana (ritual) ---------- */
+// Os 7 dias à frente (a partir de amanhã se o dia já foi fechado): carga contra capacidade, o que ficou
+// para trás, e uma sugestão de distribuição das tarefas sem data que a pessoa ajusta antes de aplicar.
+function wpDays(){var td=todayISO(),s=dayClosed(td)?addDays(td,1):td;return [0,1,2,3,4,5,6].map(function(i){return addDays(s,i)})}
+function capOf(d){return S.cap[parseISO(d).getDay()]||0}
+function semData(){return S.tasks.filter(function(t){return !t.day&&!isDone(t)&&!t.rid})}
+function wpPropose(){
+  // depois das 17h a sugestão começa amanhã: o resto de hoje já tem dono
+  var days=wpDays().filter(function(d){return d!==todayISO()||new Date().getHours()<17}),load={};days.forEach(function(d){load[d]=dayLoad(d)});
+  var pool=semData().sort(function(a,b){return quad(a)-quad(b)||(b.slips||0)-(a.slips||0)||b.est-a.est}),out=[];
+  pool.forEach(function(t){
+    var fits=days.filter(function(d){return capOf(d)>0&&load[d]+t.est<=capOf(d)});
+    if(!fits.length){out.push({id:t.id,d:''});return}
+    // urgente vai para o primeiro dia que cabe; o resto vai para o dia com mais folga (a semana fica equilibrada)
+    var d=t.urg?fits[0]:fits.reduce(function(a,b){return capOf(b)-load[b]>capOf(a)-load[a]?b:a});
+    load[d]+=t.est;out.push({id:t.id,d:d});
+  });
+  return out;
+}
+function dayName(d){var td=todayISO();return d===td?'Hoje':(d===addDays(td,1)?'Amanhã':DABR[parseISO(d).getDay()]+' '+parseISO(d).getDate())}
+function planWk(d){return weekStart(parseISO(d).getDay()===0?addDays(d,1):d)}
+function weekPlanned(wk){return Object.keys(S.days||{}).some(function(d){return S.days[d].p&&planWk(d)===wk})}
+function planSheetHTML(){
+  var days=wpDays(),prop=sh.prop||null,add={};
+  if(prop)prop.forEach(function(x){var t=byId(x.id);if(t&&x.d)add[x.d]=(add[x.d]||0)+t.est});
+  var d0=parseISO(days[0]),d6=parseISO(days[6]),over=overdue(),sd=semData();
+  var h='<div class="sh-head"><h2 class="h2">Planejar a semana</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>';
+  h+='<p class="hint" style="margin:-8px 0 0">'+DABR[d0.getDay()]+' '+d0.getDate()+' a '+DABR[d6.getDay()]+' '+d6.getDate()+' '+MONS[d6.getMonth()]+'. Cinco minutos para a semana caber nos seus dias.</p>';
+  if(over.length)h+='<div class="alert" style="margin:0"><span><b>'+over.length+(over.length>1?' tarefas ficaram':' tarefa ficou')+' para trás.</b> Comece por elas.</span><button class="btn btn-s sm" data-act="late" data-back="plan">Resolver</button></div>';
+  h+='<div><span class="lab">Carga de cada dia</span><div class="wp-days">'+days.map(function(d){
+    var w=parseISO(d).getDay(),c=capOf(d),m=dayLoad(d),a=add[d]||0,tot=m+a,base=Math.max(c,tot,1);
+    return '<div class="wp-d'+(tot>c?' over':'')+'"><span class="wp-n">'+dayName(d)+(isFolga(d)?' <small>folga</small>':'')+'</span>'+
+      '<span class="wp-bar" role="img" aria-label="'+fmt(m)+(a?' mais '+fmt(a)+' sugeridos':'')+' de '+(c?fmt(c):'nada')+'"><i style="width:'+(m/base*100).toFixed(1)+'%"></i>'+(a?'<i class="add" style="width:'+(a/base*100).toFixed(1)+'%"></i>':'')+(c&&c<base?'<b style="left:'+(c/base*100).toFixed(1)+'%"></b>':'')+'</span>'+
+      '<span class="wp-v">'+fmt(tot)+' de '+(c?fmt(c):'0')+'</span>'+
+      '<span class="wp-c"><button class="ib" data-act="cap" data-i="'+w+'" data-d="-30" aria-label="Menos 30 minutos de capacidade em '+DAYS[w]+'">'+ic('left',18)+'</button><button class="ib" data-act="cap" data-i="'+w+'" data-d="30" aria-label="Mais 30 minutos de capacidade em '+DAYS[w]+'">'+ic('right',18)+'</button></span></div>'}).join('')+'</div>'+
+    '<p class="hint" style="margin:8px 2px 0">Capacidade é o tempo de foco real que cabe no dia, sem reuniões e imprevistos. As setas ajustam esse dia da semana em 30 min.</p></div>';
+  h+='<div><span class="lab">Sem data · '+sd.length+'</span>';
+  if(!sd.length)h+='<p class="hint" style="margin:0 2px">Nada sem data. Use o + de cada dia na Semana para planejar direto no dia.</p>';
+  else if(!prop)h+='<p class="hint" style="margin:0 2px 10px">O app sugere um dia para cada uma, pela prioridade e pela folga de cada dia. Você ajusta antes de aplicar.</p><div class="btns"><button class="btn btn-s sm" data-act="wp-prop">Sugerir dias</button></div>';
+  else h+='<div class="stack">'+prop.map(function(x){var t=byId(x.id);if(!t)return '';
+      return '<div class="wp-p"><label for="wp-'+t.id+'"><b>'+esc(t.title)+'</b><small>'+fmt(t.est)+(t.mit?' · prioridade':'')+'</small></label><select id="wp-'+t.id+'" class="inp" data-in="wp-d" data-id="'+t.id+'">'+
+        '<option value=""'+(x.d?'':' selected')+'>Deixar sem data</option>'+days.map(function(d){return '<option value="'+d+'"'+(x.d===d?' selected':'')+'>'+dayName(d)+'</option>'}).join('')+'</select></div>'}).join('')+'</div>'+
+      '<div class="btns" style="margin-top:10px"><button class="btn btn-p sm" data-act="wp-apply">Aplicar</button><button class="btn btn-s sm" data-act="wp-drop">Descartar sugestão</button></div>';
+  h+='</div>';
+  h+='<div class="sh-actions"><button class="btn btn-p" data-act="wp-done">Pronto, semana planejada</button></div>';
+  return h;
+}
+function wpApply(quiet){
+  var prop=(sh&&sh.prop)||[],was=[];
+  prop.forEach(function(x){var t=byId(x.id);if(t&&x.d&&!t.day&&!isDone(t)){was.push(t.id);t.day=x.d}});
+  if(sh)sh.prop=null;
+  persist();render();
+  if(!quiet&&was.length)toast(was.length+(was.length>1?' tarefas planejadas.':' tarefa planejada.'),'Desfazer',function(){was.forEach(function(id){var t=byId(id);if(t&&!isDone(t))t.day=null});persist();render();if(sh&&sh.kind==='plan')renderSheet()});
+  return was.length;
+}
+function wpDone(){
+  var n=sh&&sh.prop?wpApply(true):0,td=todayISO();
+  setDay(td,{p:Date.now()});persist();sh=null;renderSheet();render();
+  toast('Semana planejada'+(n?', com '+n+(n>1?' tarefas novas nos dias':' tarefa nova nos dias'):'')+'.');
+}
+// convite na tela Hoje: domingo ou segunda, se a semana ainda não foi planejada
+function planCardHTML(){
+  var td=todayISO(),w=parseISO(td).getDay();
+  if(w!==0&&w!==1)return '';
+  if(weekPlanned(planWk(td)))return '';
+  try{if(localStorage.getItem('prumo.wpno')===td)return ''}catch(e){}
+  return '<section class="closec plan"><div><b>Planejar a semana</b><span>'+(w===0?'Deixe a próxima semana pronta':'Comece a semana com a carga de cada dia')+' em 5 minutos.</span></div><div class="btns"><button class="btn btn-p sm" data-act="plan">Planejar</button><button class="btn btn-s sm" data-act="wp-later">Agora não</button></div></section>';
+}
+/* ---------- buscar tarefas ---------- */
+function cap1(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function fold(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
+function searchTasks(q){
+  var terms=fold(q).split(/\s+/).filter(Boolean);if(!terms.length)return [];
+  var hit=S.tasks.filter(function(t){
+    var hay=fold([t.title,cname(t.ctx)].concat((t.dod||[]).map(function(x){return x.t})).join(' '));
+    return terms.every(function(w){return hay.indexOf(w)>=0});
+  });
+  var open=hit.filter(function(t){return !isDone(t)}).sort(function(a,b){return (a.day||'9999')<(b.day||'9999')?-1:(a.day||'9999')>(b.day||'9999')?1:0});
+  var done=hit.filter(isDone).sort(function(a,b){return (b.doneAt||0)-(a.doneAt||0)});
+  return open.concat(done);
+}
+function searchResHTML(q){
+  if(!fold(q).trim())return '<p class="hint" style="margin:4px 2px">Busca no título, nas etapas e no contexto, em todas as tarefas, inclusive as concluídas.</p>';
+  var r=searchTasks(q),shown=r.slice(0,40),td=todayISO();
+  var h='<p class="hint bs-n" style="margin:4px 2px 8px">'+(r.length?r.length+(r.length>1?' tarefas':' tarefa')+(r.length>40?', mostrando 40':''):'Nada encontrado.')+'</p>';
+  if(!shown.length)return h;
+  return h+'<div class="bs-list">'+shown.map(function(t){
+    var c=ctxOf(t.ctx),done=isDone(t);
+    var when=done?'Concluída '+(t.doneAt?relDay(iso(new Date(t.doneAt))).toLowerCase():''):(t.day?(lastDay(t)<td?'Era para '+shortDate(lastDay(t)):(t.end?shortDate(t.day)+' a '+shortDate(t.end):cap1(relDay(t.day)))):'Sem data');
+    return '<button class="bs-r'+(done?' done':'')+'" data-act="bs-open" data-id="'+t.id+'"><b>'+esc(t.title)+'</b><small><i class="dot" style="background:var('+c.v+')"></i>'+esc(cname(c.id))+' · '+esc(when)+'</small></button>'}).join('')+'</div>';
+}
+function searchSheetHTML(){
+  var q=(sh&&sh.q)||'';
+  return '<div class="sh-head"><h2 class="h2">Buscar</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>'+
+    '<div><label class="lab" for="bs-q">Tarefa, etapa ou contexto</label><input id="bs-q" class="inp" type="search" data-in="busca" autocomplete="off" enterkeyhint="search" maxlength="80" value="'+esc(q)+'"></div>'+
+    '<div id="bs-res" aria-live="polite">'+searchResHTML(q)+'</div>';
 }
 /* ---------- render ---------- */
 function initNav(){
@@ -1727,16 +1853,6 @@ function pwSheetHTML(){
     '<p class="hint" id="pw-msg" style="margin:0" aria-live="polite">Use uma senha longa e única. Ao salvar, os outros aparelhos conectados saem da conta.</p>'+
     '<div class="sh-actions"><button class="btn btn-p" data-act="pw-save">Salvar nova senha</button><button class="btn btn-s" data-act="sh-close">Cancelar</button></div>';
 }
-function planSheetHTML(){
-  var wk=curWk();
-  var h='<div class="sh-head"><h2 class="h2">Planejar a semana</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>';
-  h+='<p class="hint" style="margin:0">Capacidade é o tempo de foco real que cabe em cada dia, sem contar reuniões e imprevistos. Comece com menos do que você acha que consegue.</p><div>';
-  h+=[0,1,2,3,4,5,6].map(function(i){var dw=(i+1)%7,d=addDays(wk,i);
-    return '<div class="step"><span>'+DAYS[dw]+' <span class="muted" style="font-size:.8125rem">'+parseISO(d).getDate()+'</span></span><span style="display:flex;align-items:center"><button class="ib" data-act="cap" data-i="'+dw+'" data-d="-30" aria-label="Menos 30 minutos">'+ic('left',20)+'</button><span class="val">'+(S.cap[dw]?fmt(S.cap[dw]):'livre')+'</span><button class="ib" data-act="cap" data-i="'+dw+'" data-d="30" aria-label="Mais 30 minutos">'+ic('right',20)+'</button></span></div>'}).join('');
-  h+='</div><p class="hint" style="margin:0">As tarefas sem data são distribuídas por prioridade: primeiro o que é urgente e importante, depois o importante, sem passar da capacidade de cada dia.</p>';
-  h+='<div class="sh-actions"><button class="btn btn-p" data-act="autoplan">Distribuir tarefas sem data</button><button class="btn btn-s" data-act="sh-close">Fechar</button></div>';
-  return h;
-}
 // Folhas: diálogo com nome (o título h2), fundo inerte enquanto aberta, foco entra ao abrir,
 // fica no mesmo controle quando a folha se redesenha e volta para quem abriu ao fechar.
 var shOpener=null,SHBG=['.wrap','#tabs','#mini'];
@@ -1752,7 +1868,7 @@ function renderSheet(){
   }
   var old=host.querySelector('.sheet'),sc=old?old.scrollTop:0,fk=old?focusKey(document.activeElement):null;
   if(!old)shOpener=document.activeElement&&document.activeElement!==document.body?document.activeElement:null;
-  host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+({plan:planSheetHTML,help:helpSheetHTML,pw:pwSheetHTML,del:delSheetHTML,menu:menuSheetHTML,late:lateSheetHTML,note:noteSheetHTML,close:closeSheetHTML,obra:obraSheetHTML}[sh.kind]||taskSheetHTML)()+'</div></div>';
+  host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+({plan:planSheetHTML,help:helpSheetHTML,pw:pwSheetHTML,del:delSheetHTML,menu:menuSheetHTML,late:lateSheetHTML,note:noteSheetHTML,close:closeSheetHTML,obra:obraSheetHTML,busca:searchSheetHTML}[sh.kind]||taskSheetHTML)()+'</div></div>';
   document.documentElement.classList.add('lock');sheetBg(true);
   var n=host.querySelector('.sheet');if(!n)return;
   n.scrollTop=sc;
@@ -1815,21 +1931,6 @@ function dropTask(id){
   if(S.session&&ids.indexOf(S.session.tid)>=0){S.session=null;unlock()}
   persist();render();
   toast('Tarefa excluída.','Desfazer',function(){gone.forEach(function(t){S.tasks.push(t)});skipped.forEach(function(x){var a=S.rec&&S.rec[x[0]];if(a)a.skip=(a.skip||[]).filter(function(d){return d!==x[1]})});persist();render()});
-}
-function autoPlan(){
-  var wk=curWk(),td=todayISO();
-  var days=[0,1,2,3,4,5,6].map(function(i){return addDays(wk,i)}).filter(function(d){return d>=td});
-  if(!days.length){toast('Esta semana já passou. Vá para a próxima.');return}
-  var load={};days.forEach(function(d){load[d]=sum(tasksOn(d),function(t){return t.est})});
-  var cap=function(d){return S.cap[parseISO(d).getDay()]||0};
-  var pool=S.tasks.filter(function(t){return !t.day&&!isDone(t)}).sort(function(a,b){return quad(a)-quad(b)||(b.slips||0)-(a.slips||0)||b.est-a.est});
-  var placed=0,left=0;
-  pool.forEach(function(t){
-    var d=days.find(function(x){return load[x]+t.est<=cap(x)});
-    if(d){t.day=d;load[d]+=t.est;placed++}else left++;
-  });
-  persist();render();renderSheet();
-  toast(placed?(placed+' tarefa'+(placed>1?'s':'')+' distribuída'+(placed>1?'s':'')+(left?'. '+left+' sem espaço.':'.')):(left?'Nenhuma coube na capacidade. Aumente os dias ou tire algo.':'Não há tarefas sem data.'));
 }
 // Concluir: a tarefa passa a "morar" no dia da conclusão; um período termina nesse dia
 function markDone(t){
@@ -1951,7 +2052,7 @@ var pushState='boot',tmLast='-';
 var IOSDEV=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 var STANDALONE=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
 function b64u(s){var p='='.repeat((4-s.length%4)%4),b=(s+p).replace(/-/g,'+').replace(/_/g,'/'),r=atob(b),o=new Uint8Array(r.length);for(var i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o}
-var BUILD='04/11 14:39',pushDiag='';
+var BUILD='04/11 15:07',pushDiag='';
 function pushBanner(){
   if(pushState!=='off')return '';
   try{if(localStorage.getItem('prumo.pushno')==='1')return ''}catch(e){}
@@ -2493,8 +2594,14 @@ function act(a,el){
     case 'clear-ex':S.tasks=S.tasks.filter(function(t){return !t.ex});if(S.session&&!byId(S.session.tid)&&S.session.tid){S.session=null;unlock()}persist();render();toast('Exemplos removidos. Agora é com você.');break;
     case 'wk':{var d=Number(el.dataset.d);wkOff=d===0?0:wkOff+d;render();break}
     case 'plan':sh={kind:'plan'};renderSheet();break;
+    case 'wp-prop':sh.prop=wpPropose();renderSheet();break;
+    case 'wp-apply':wpApply();renderSheet();break;
+    case 'wp-drop':sh.prop=null;renderSheet();break;
+    case 'wp-done':wpDone();break;
+    case 'wp-later':try{localStorage.setItem('prumo.wpno',todayISO())}catch(e){}render();break;
+    case 'busca':sh={kind:'busca',q:''};renderSheet();setTimeout(function(){var i=$('#bs-q');if(i)i.focus()},60);break;
+    case 'bs-open':openTask(el.dataset.id);break;
     case 'cap':{var i=Number(el.dataset.i),dl=Number(el.dataset.d);S.cap[i]=Math.max(0,Math.min(720,(S.cap[i]||0)+dl));persist();renderSheet();render();break}
-    case 'autoplan':autoPlan();break;
     case 'push-later':try{localStorage.setItem('prumo.pushno','1')}catch(e){}render();break;
     case 'brief':try{localStorage.setItem('prumo.brief',el.dataset.v)}catch(e){}remSig='';if(el.dataset.v==='off'&&SB&&SBU)SB.from('prumo_reminders').delete().eq('user_id',SBU).eq('sent',false).then(function(){},function(){});else remSync();render();break;
     case 'push-check':pushState='boot';pushRefresh();break;
@@ -2506,9 +2613,9 @@ function act(a,el){
     case 'rowdel':if(sh&&sh.kind==='menu'){sh=null;renderSheet()}dropTask(el.dataset.id);break;
     case 'rowmenu':closeSwipe();sh={kind:'menu',id:el.dataset.id,back:el.dataset.back||null};renderSheet();break;
     case 'mv':{var mid=el.dataset.id,md=el.dataset.d||null,inLate=sh&&sh.kind==='late',back=sh&&(sh.kind==='close'?'close':sh.back);closeSwipe();var was=moveTask(mid,md);if(!was)break;
-      if(back){sh={kind:back};renderSheet()}else if(inLate&&overdue().length)renderSheet();else{sh=null;renderSheet()}
+      if(inLate&&overdue().length)renderSheet();else if(back){sh={kind:back};renderSheet()}else{sh=null;renderSheet()}
       render();toast('Movida para '+(md?relDay(md):'Sem data')+'.','Desfazer',function(){undoMove(mid,was)});flashTask(mid);break}
-    case 'late':sh={kind:'late'};renderSheet();break;
+    case 'late':sh={kind:'late',back:el.dataset.back||null};renderSheet();break;
     case 'obra':sh={kind:'obra'};renderSheet();break;
     case 'close':sh={kind:'close'};renderSheet();break;
     case 'close-done':closeDay();break;
@@ -2522,7 +2629,7 @@ function act(a,el){
     case 'fold':doneOpen=!doneOpen;render();break;
     case 'sem':{var sd=Number(el.dataset.d);semOff=sd===0?0:Math.max(0,semOff+sd);render();scrollTop();break}
     case 'goday':{var gd=document.getElementById('d-'+el.dataset.d);if(gd)try{gd.scrollIntoView({block:'start',behavior:RM?'auto':'smooth'})}catch(x){gd.scrollIntoView()}break}
-    case 'sh-close':{var wasNote=sh&&sh.kind==='note';if(sh&&sh.kind==='help'&&helpPrev){sh=helpPrev;helpPrev=null}else sh=null;renderSheet();if(wasNote)render();break}
+    case 'sh-close':{var wasNote=sh&&sh.kind==='note';if(sh&&sh.kind==='help'&&helpPrev){sh=helpPrev;helpPrev=null}else if(sh&&sh.back){sh={kind:sh.back}}else sh=null;renderSheet();if(wasNote)render();break}
     case 'sh-save':saveTask();break;
     case 'sh-del':{var tt=sh.mode==='edit'&&byId(sh.id);if(tt&&tt.rid&&S.rec[tt.rid]){sh.del=!sh.del;renderSheet()}else if(!sh.del){sh.del=true;renderSheet()}else{var did=sh.id;sh=null;renderSheet();dropTask(did)}break}
     case 'sh-usesug':sh.d.fw=null;renderSheet();break;
@@ -2596,6 +2703,7 @@ document.addEventListener('input',function(e){
   else if(k==='retro'){var wk=curWk();S.retro[wk]=S.retro[wk]||{};S.retro[wk][el.dataset.f]=el.value;persist()}
   else if(k==='ctxname'){S.ctx=S.ctx||{};var v=el.value.trim();if(v)S.ctx[el.dataset.c]=v;else delete S.ctx[el.dataset.c];persist()}
   else if(k==='restore'){restoreTxt=el.value}
+  else if(k==='busca'){if(sh&&sh.kind==='busca'){sh.q=el.value;var br=$('#bs-res');if(br)br.innerHTML=searchResHTML(el.value)}}
   else if(k==='pname'){S.prof=Object.assign({},S.prof,{name:cleanName(el.value).trim()});persist()}
   else if(k==='est'){var n=Math.round(Number(el.value));if(n>=1&&n<=960&&sh&&sh.d){sh.d.est=n;Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-est"]'),function(b){b.setAttribute('aria-pressed',String(Number(b.dataset.v)===n))});var pn=document.getElementById('pomo-n');if(pn)pn.textContent=pomoText(sh.d,sh.d.fw||suggestFw(sh.d));var sm=document.getElementById('tk-pills');if(sm&&sh.kind==='task')liveTask();var cf=sh.d.fw||suggestFw(sh.d);Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-fw"]'),function(b){b.setAttribute('aria-pressed',String(b.dataset.v===cf))})}}
 });
@@ -2608,6 +2716,7 @@ document.addEventListener('change',function(e){
     Array.prototype.forEach.call(document.querySelectorAll('[data-act="sh-day"]'),function(b){b.setAttribute('aria-pressed','false')});
     if(lab)lab.setAttribute('aria-pressed',String(!!el.value));
   }
+  if(el.dataset&&el.dataset.in==='wp-d'&&sh&&sh.kind==='plan'&&sh.prop){sh.prop.forEach(function(x){if(x.id===el.dataset.id)x.d=el.value});renderSheet()}
   if(el.dataset&&el.dataset.in==='photo'&&el.files&&el.files[0]){var f=el.files[0];el.value='';setPhoto(f)}
 });
 document.addEventListener('keydown',function(e){
@@ -2627,6 +2736,7 @@ document.addEventListener('keydown',function(e){
   var g=document.getElementById('gate');if(g&&!g.hidden)return;
   var k=e.key;
   if(k==='n'||k==='N'){e.preventDefault();act('new',{dataset:{}})}
+  else if(k==='/'){e.preventDefault();act('busca',{dataset:{}})}
   else if(k==='1'||k==='2'||k==='3'||k==='4'){var TT=['hoje','semana','foco','revisao'];act('tab',{dataset:{t:TT[Number(k)-1]}})}
   else if(k===' '&&tag!=='BUTTON'&&S.session&&!S.session.alerted){e.preventDefault();act(S.session.running?'pause':'resume',{dataset:{}})}
 });
@@ -2711,7 +2821,9 @@ async function boot(){
   render();
   tick();
   try{if(/[?&]retro=1/.test(location.search)){history.replaceState(null,'',location.pathname);wrOpen(weekStart(todayISO()))}}catch(e){}
-  try{if(/[?&]fechar=1/.test(location.search)){history.replaceState(null,'',location.pathname);sh={kind:'close'};renderSheet()}}catch(e){}
+  // ?fechar=1 vem do lembrete; os outros, dos atalhos do ícone (segurar o ícone no Android ou clicar com o botão direito no Mac)
+  try{var qs=location.search,go=/[?&](fechar|nova|foco|buscar|planejar)=1/.exec(qs);if(go){history.replaceState(null,'',location.pathname);
+    if(go[1]==='fechar'){sh={kind:'close'};renderSheet()}else if(go[1]==='nova')openTask(null,todayISO());else if(go[1]==='foco'){tab='foco';render()}else if(go[1]==='buscar')act('busca',{dataset:{}});else{sh={kind:'plan'};renderSheet()}}}catch(e){}
   try{navigator.serviceWorker.addEventListener('message',function(e){if(e.data&&e.data.go==='retro')wrOpen(weekStart(todayISO()));if(e.data&&e.data.go==='fechar'){sh={kind:'close'};renderSheet()}})}catch(e){}
 }
 boot();

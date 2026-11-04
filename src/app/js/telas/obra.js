@@ -36,7 +36,7 @@ function towerHTML(o,fresh){
   var nm={f:'tijolo',o:'folga',p:'pausa',x:'em branco',t:'hoje'};
   var h='<div class="tower" role="list" aria-label="Andares da obra, do mais recente ao mais antigo">'+fl.map(function(f){
     var d=parseISO(f.wk),lab=d.getDate()+' '+MESC[d.getMonth()];
-    return '<div class="floor'+(f.prumo?' pr':'')+'" role="listitem" aria-label="Semana de '+lab+': '+f.n+(f.n===1?' tijolo':' tijolos')+(f.prumo?', no prumo':'')+'"><span class="fl-l" aria-hidden="true">'+lab+'</span><div class="fl-b" aria-hidden="true">'+f.cells.map(function(c,i){var dd=addDays(f.wk,i);return '<i class="bk'+(c?' '+c:'')+(dd===td?' td':'')+(fresh&&dd===td&&c==='f'?' new':'')+'" title="'+(c?nm[c]:'')+'"></i>'}).join('')+'</div></div>'}).join('')+'</div>';
+    return '<div class="floor'+(f.prumo?' pr':'')+'" role="listitem" aria-label="Semana de '+lab+': '+f.n+(f.n===1?' tijolo':' tijolos')+(f.plan?', planejada':'')+(f.prumo?', no prumo':'')+'"><span class="fl-l" aria-hidden="true">'+(f.plan?'<i class="ob-pl"></i>':'')+lab+'</span><div class="fl-b" aria-hidden="true">'+f.cells.map(function(c,i){var dd=addDays(f.wk,i);return '<i class="bk'+(c?' '+c:'')+(dd===td?' td':'')+(fresh&&dd===td&&c==='f'?' new':'')+'" title="'+(c?nm[c]:'')+'"></i>'}).join('')+'</div></div>'}).join('')+'</div>';
   h+='<div class="fl-d" aria-hidden="true"><span></span><div>'+['S','T','Q','Q','S','S','D'].map(function(x){return '<i>'+x+'</i>'}).join('')+'</div></div>';
   if(more>0)h+='<p class="hint" style="margin:6px 0 0">E mais '+more+(more>1?' andares':' andar')+' abaixo.</p>';
   return h;
@@ -49,9 +49,9 @@ function obraSheetHTML(){
     '<br>'+an+(an===1?' andar':' andares')+' · '+o.bricks+(o.bricks===1?' tijolo':' tijolos')+'<br>Pausa desta semana: '+(o.pauseLeft>0?'disponível':'usada')+'</p></div>';
   if(fresh)h+='<p class="cl-st ok" role="status">'+(o.firm?'Tijolo de hoje assentado.':'Dia fechado. Amanhã tem mais.')+'</p>';
   h+=towerHTML(o,fresh);
-  h+='<div class="ob-leg" aria-hidden="true"><span><i class="bk f"></i>dia firme</span><span><i class="bk o"></i>folga ou pausa</span><span><i class="bk x"></i>em branco</span><span><i class="ob-pr"></i>semana fechada</span></div>';
+  h+='<div class="ob-leg" aria-hidden="true"><span><i class="bk f"></i>dia firme</span><span><i class="bk o"></i>folga ou pausa</span><span><i class="bk x"></i>em branco</span><span><i class="ob-pl"></i>semana planejada</span><span><i class="ob-pr"></i>semana fechada</span></div>';
   var offN=gOff().slice().sort(function(a,b){return ((a+6)%7)-((b+6)%7)}).map(function(w){return DABR[w]}).join(', ');
-  h+='<p class="hint" style="margin:0">Dia firme: '+(o.meta>1?o.meta+' tarefas concluídas ou blocos de 25 min de foco.':'1 tarefa concluída ou 25 min de foco.')+' Folga ('+(offN||'nenhum dia')+') não quebra a sequência e, se você fizer algo, vale tijolo. Uma pausa por semana cobre um dia útil em branco. Fechar a semana na Revisão deixa o andar no prumo.</p>';
+  h+='<p class="hint" style="margin:0">Dia firme: '+(o.meta>1?o.meta+' tarefas concluídas ou blocos de 25 min de foco.':'1 tarefa concluída ou 25 min de foco.')+' Folga ('+(offN||'nenhum dia')+') não quebra a sequência e, se você fizer algo, vale tijolo. Uma pausa por semana cobre um dia útil em branco. Planejar a semana marca o andar; fechar a semana na Revisão deixa o andar no prumo.</p>';
   h+='<div class="sh-actions"><button class="btn btn-s" data-act="perfil-game">Ajustar regras</button></div>';
   return h;
 }

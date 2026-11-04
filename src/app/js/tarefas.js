@@ -30,21 +30,6 @@ function dropTask(id){
   persist();render();
   toast('Tarefa excluída.','Desfazer',function(){gone.forEach(function(t){S.tasks.push(t)});skipped.forEach(function(x){var a=S.rec&&S.rec[x[0]];if(a)a.skip=(a.skip||[]).filter(function(d){return d!==x[1]})});persist();render()});
 }
-function autoPlan(){
-  var wk=curWk(),td=todayISO();
-  var days=[0,1,2,3,4,5,6].map(function(i){return addDays(wk,i)}).filter(function(d){return d>=td});
-  if(!days.length){toast('Esta semana já passou. Vá para a próxima.');return}
-  var load={};days.forEach(function(d){load[d]=sum(tasksOn(d),function(t){return t.est})});
-  var cap=function(d){return S.cap[parseISO(d).getDay()]||0};
-  var pool=S.tasks.filter(function(t){return !t.day&&!isDone(t)}).sort(function(a,b){return quad(a)-quad(b)||(b.slips||0)-(a.slips||0)||b.est-a.est});
-  var placed=0,left=0;
-  pool.forEach(function(t){
-    var d=days.find(function(x){return load[x]+t.est<=cap(x)});
-    if(d){t.day=d;load[d]+=t.est;placed++}else left++;
-  });
-  persist();render();renderSheet();
-  toast(placed?(placed+' tarefa'+(placed>1?'s':'')+' distribuída'+(placed>1?'s':'')+(left?'. '+left+' sem espaço.':'.')):(left?'Nenhuma coube na capacidade. Aumente os dias ou tire algo.':'Não há tarefas sem data.'));
-}
 // Concluir: a tarefa passa a "morar" no dia da conclusão; um período termina nesse dia
 function markDone(t){
   var td=todayISO();t.status='done';t.doneAt=Date.now();

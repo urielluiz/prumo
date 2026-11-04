@@ -96,12 +96,18 @@ open(os.path.join(OUT, 'manifest.webmanifest'), 'w', encoding='utf-8').write('''
     {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
     {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
     {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Nova tarefa", "url": "./?nova=1", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+    {"name": "Começar foco", "url": "./?foco=1", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+    {"name": "Buscar", "url": "./?buscar=1", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+    {"name": "Fechar o dia", "url": "./?fechar=1", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]}
   ]
 }
 ''')
 
 # ---- service worker ----
-open(os.path.join(OUT, 'sw.js'), 'w', encoding='utf-8').write('''const V = 'prumo-v7';
+open(os.path.join(OUT, 'sw.js'), 'w', encoding='utf-8').write('''const V = 'prumo-v8';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'supabase.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

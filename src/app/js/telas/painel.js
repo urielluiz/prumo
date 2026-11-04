@@ -114,7 +114,7 @@ function viewRevisao(){
     '<div class="btns"><button class="btn btn-s sm" data-act="wr-open" data-wk="'+wk+'">'+ic('play',16)+'Retrô em stories</button>'+(wkOff!==0?'<button class="btn btn-s sm" data-act="wk" data-d="0">Voltar para esta semana</button>':'')+'</div></section>';
   h+=secHTML('Fechar a semana')+'<div class="stack">'+
     [['worked','O que funcionou?'],['stuck','O que travou?'],['tweak','O que muda na próxima semana?']].map(function(x){return '<div><label class="lab" for="rt-'+x[0]+'">'+x[1]+'</label><textarea id="rt-'+x[0]+'" class="inp" data-in="retro" data-f="'+x[0]+'" rows="2">'+esc(rt[x[0]]||'')+'</textarea></div>'}).join('')+'</div>';
-  h+='<div class="btns" style="margin-top:12px"><button class="btn btn-p btn-full" data-act="copy-summary">Copiar resumo da semana</button></div>';
+  h+='<div class="btns" style="margin-top:12px">'+(wkOff===0?'<button class="btn btn-p btn-full" data-act="plan">Planejar a próxima semana</button>':'')+'<button class="btn btn-s btn-full" data-act="copy-summary">Copiar resumo da semana</button></div>';
   h+='</div><div class="col">';
   if(open.length){
     h+=secHTML('Ficou aberto',open.length)+listHTML(open.sort(function(a,b){return (b.slips||0)-(a.slips||0)}),{},null);

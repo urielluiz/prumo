@@ -16,6 +16,7 @@ function viewHoje(){
   h+=wrapBanner();
   h+=pushBanner();
   h+=heroHTML(now,sapo&&now&&sapo.id===now.id);
+  h+=planCardHTML();
   h+='</div><div class="col">';
   if(rest.length)h+=secHTML('Depois',fmt(sum(rest,function(t){return t.est})))+listHTML(rest,{day:td},sapo&&(!now||sapo.id!==now.id)?sapo.id:null);
   else if(now)h+='<p class="hint" style="margin:14px 4px">Só isso por hoje. Toque em ⋯ num card para trazer algo de outro dia.</p>';
@@ -36,7 +37,7 @@ function viewSemana(){
   var per=S.tasks.filter(function(t){return t.end&&!isDone(t)});
   var d0=parseISO(days[0]),d6=parseISO(days[6]);
   var h='<header class="top"><div><div class="eyebrow">'+(semOff?'Mais adiante':'Próximos 7 dias')+'</div><h1 class="h1">'+d0.getDate()+(d0.getMonth()!==d6.getMonth()?' '+MONS[d0.getMonth()]:'')+' a '+d6.getDate()+' '+MONS[d6.getMonth()]+'</h1></div><div class="nav">'+
-    (semOff?'<button class="btn btn-s sm" data-act="sem" data-d="0">Hoje</button>':'')+'<button class="ib" data-act="sem" data-d="-1" aria-label="7 dias antes"'+(semOff?'':' disabled')+'>'+ic('left')+'</button><button class="ib" data-act="sem" data-d="1" aria-label="Próximos 7 dias">'+ic('right')+'</button></div></header>';
+    (semOff?'<button class="btn btn-s sm" data-act="sem" data-d="0">Hoje</button>':'')+'<button class="ib" data-act="busca" aria-label="Buscar tarefas">'+ic('search')+'</button><button class="ib" data-act="sem" data-d="-1" aria-label="7 dias antes"'+(semOff?'':' disabled')+'>'+ic('left')+'</button><button class="ib" data-act="sem" data-d="1" aria-label="Próximos 7 dias">'+ic('right')+'</button></div></header>';
   h+='<div class="wstrip"><div class="strip">'+days.map(function(d,i){
     var p=parseISO(d),m=dayLoad(d),cap=S.cap[p.getDay()]||0,pct=cap?Math.min(100,m/cap*100):(m?100:0),over=m>cap;
     var pp=per.find(function(t){return covers(t,d)}),bar='';
