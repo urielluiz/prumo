@@ -26,11 +26,13 @@ Abra uma issue **sem detalhes técnicos** pedindo um contato privado, ou use o "
 - Foto em bucket privado: cada conta só lê e grava o próprio arquivo, com nome fixo, até 256 KB, só JPEG/WebP. O app reduz para 256 px e regrava a imagem antes de enviar, então os metadados do arquivo original (como a localização do GPS) não saem do aparelho.
 - Nome limitado a 60 caracteres, sem caracteres de controle nem de inversão de direção do texto; sempre exibido como texto.
 - Exportar meus dados: um arquivo JSON com tudo o que a conta guarda (itens, lembretes, perfil e foto). Dos aparelhos com aviso, só o serviço e a data, nunca o endereço de push.
+- Minimização: um job diário (`prumo-cleanup`) apaga lembretes enviados há mais de 2 dias e cronômetros enviados há mais de 1 dia.
+- Política de privacidade e termos de uso em páginas estáticas (`privacidade.html`, `termos.html`), sem script e com CSP própria; links no login, no cadastro e no Perfil.
 - Excluir minha conta: pede a senha e uma confirmação. A Edge Function confere no servidor que houve login com senha nos últimos 5 minutos (pela claim `amr`, que não muda quando o token é renovado), aceita chamadas só da origem do app, apaga a foto e a conta; as tabelas caem junto por cascade.
 
 **Aparelho**
 - Os dados locais têm dono. Ao sair, o app envia o que falta (ou pede confirmação se estiver sem rede), desliga o aviso push deste aparelho e apaga tudo o que guardou. Se aparecerem dados de outra conta, eles são apagados antes de qualquer sincronização.
-- Content Security Policy: só rodam os scripts do próprio app (inline liberado por hash, calculado no build) e a rede só alcança o próprio site, o Supabase e a checagem de senha vazada. `object-src`, `base-uri`, `form-action` e `frame-src` bloqueados.
+- Content Security Policy: só rodam os scripts do próprio app (inline liberado por hash, calculado no build) e a rede só alcança o próprio site, o Supabase e a checagem de senha vazada. As fontes são servidas pelo próprio site (nada de Google Fonts, que receberia o IP de quem abre o app). `object-src`, `base-uri`, `form-action` e `frame-src` bloqueados.
 - O app se recusa a carregar dentro de um iframe de outro site (clickjacking).
 - `Referrer-Policy: no-referrer`.
 - Todo texto vindo do usuário entra na tela escapado ou por `textContent`.

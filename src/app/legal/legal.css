@@ -1,0 +1,23 @@
+/* @include fonts/fonts.css */
+:root{--bg:#EEF0F4;--surface:#FFFFFF;--ink:#12141F;--muted:#585E6E;--line:#DCDFE7;--accent-text:#A8300A;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0D0F17;--surface:#161925;--ink:#EEF0F7;--muted:#9AA1B4;--line:#272C3C;--accent-text:#FF9B72;color-scheme:dark}}
+html{-webkit-text-size-adjust:100%}
+@supports (font:-apple-system-body) and (-webkit-touch-callout:none){html{font:-apple-system-body}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Instrument Sans',system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.6;
+  padding:max(24px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(48px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+main{max-width:42rem;margin:0 auto;display:grid;gap:12px}
+.eyebrow{margin:0;font-size:.75rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--accent-text)}
+h1{margin:0;font:800 2.25rem/1.05 'Bricolage Grotesque','Avenir Next',system-ui,sans-serif;letter-spacing:-.025em}
+h2{margin:20px 0 0;font:800 1.25rem/1.2 'Bricolage Grotesque','Avenir Next',system-ui,sans-serif}
+p,ul{margin:0}
+ul{padding-left:1.2rem;display:grid;gap:6px}
+.meta{color:var(--muted);font-size:.875rem}
+a{color:var(--accent-text);text-underline-offset:3px}
+a:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px;border-radius:4px}
+table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:12px;overflow:hidden;font-size:.9375rem}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+@media (max-width:520px){table,tbody,tr,th,td{display:block}tr:first-child{display:none}td:first-child{font-weight:600;padding-bottom:2px;border-bottom:0}td:last-child{padding-top:0}}
+.back{margin-top:24px;font-weight:600}
+.back a{display:inline-block;padding:10px 0;min-height:44px;box-sizing:border-box}

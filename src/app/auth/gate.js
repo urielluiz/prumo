@@ -66,7 +66,7 @@ var V={
   in:{t:'Entrar',b:'Entrar',p:'Entre com a sua conta para ver e sincronizar suas tarefas.',f:function(){return EMAIL()+pwField('g-pw','Senha','current-password')},
     l:[['up','Criar conta'],['forgot','Esqueci minha senha']]},
   up:{t:'Criar conta',b:'Criar conta',p:'Use um e-mail que você acessa: vamos mandar um código para confirmar.',
-    f:function(){return EMAIL()+pwField('g-pw','Senha','new-password','Pelo menos '+PW_MIN+' caracteres. Uma frase longa funciona bem, ou deixe o gerenciador de senhas criar uma.')+pwField('g-pw2','Repita a senha','new-password')},
+    f:function(){return EMAIL()+pwField('g-pw','Senha','new-password','Pelo menos '+PW_MIN+' caracteres. Uma frase longa funciona bem, ou deixe o gerenciador de senhas criar uma.')+pwField('g-pw2','Repita a senha','new-password')+'<p class="g-hint">Ao criar a conta, você concorda com os <a href="termos.html" target="_blank" rel="noopener">Termos de uso</a> e a <a href="privacidade.html" target="_blank" rel="noopener">Política de privacidade</a>.</p>'},
     l:[['in','Já tenho conta']]},
   forgot:{t:'Recuperar acesso',b:'Enviar código',p:'Informe o e-mail da conta. Se ele estiver cadastrado, você recebe um código para criar uma nova senha.',f:function(){return EMAIL()},l:[['in','Voltar']]},
   code:{t:'Confira seu e-mail',b:'Confirmar',p:'',f:function(){return field('g-code','Código','text','one-time-code','inputmode="numeric" maxlength="10" enterkeyhint="done"')},

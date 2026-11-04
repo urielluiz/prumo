@@ -21,6 +21,7 @@ PWA de organização semanal (iPhone + Mac/Chrome), com frameworks ágeis por ta
   - Perfil: aberto pelo avatar da tela Hoje (`tab='perfil'`, fora da barra de abas). Concentra conta, preferências, dados, privacidade e ajuda; a Revisão fica só com a semana.
   - `auth/`: tela de entrada (`gate.html/.css/.js`): login, cadastro, código por e-mail, recuperação, nova senha, regras de senha e checagem de vazamento (`window.prumoPw`). Roda fora do IIFE do app; fala com ele por `window.prumoSB` e `window.prumoLogout`.
   - Todos os JS rodam no mesmo escopo (o IIFE do shell), na ordem dos includes. A ordem importa para `var` inicializado no topo; funções são içadas.
+- `app/legal/`: `privacidade.html` e `termos.html` (+ `legal.css`), páginas estáticas sem script geradas na raiz; responsável e contato vêm de `src/legal.json` (`responsavel`, `contato`; sem ele, texto provisório). Mudou o que o app guarda ou com quem fala? Atualize a política. `app/fonts/`: fontes servidas pelo próprio site (sem Google Fonts).
 - `src/build.py`: junta shell + módulos num único HTML e gera `src/pwa/` (index.html, sw.js, manifest, ícones). Calcula a CSP com hash de cada script inline: script inline novo entra sozinho; script externo novo ou domínio novo de rede precisa ser liberado na CSP. Precisa de Pillow.
 - `src/deploy.sh`: build + copia para a raiz, que é o que o GitHub Pages publica. Raiz = saída gerada, não edite à mão.
 - `src/sb.json`: URL e chave publicável do Supabase e chave VAPID pública.
@@ -32,6 +33,7 @@ PWA de organização semanal (iPhone + Mac/Chrome), com frameworks ágeis por ta
 
 ## Backend (Supabase, projeto cpdeptlintjvdqcfrafg)
 - Tabelas: `prumo_items` (kinds task/cap/ctx/retro/blk/log/rec/prof/day; `cap/g` guarda as regras da obra, `day/<data>` o dia fechado e o Sapo; última escrita vence por `updated_at`), `prumo_push_subs`, `prumo_timers`, `prumo_reminders` (PK user_id, day, kind), `prumo_private` (chaves VAPID e segredo do cron, sem policy).
+- pg_cron `prumo-cleanup` diário apaga lembretes e timers já enviados.
 - pg_cron `prumo-push` a cada 10 s chama a Edge Function `prumo-push` (web-push) quando há timer ou lembrete vencido.
 - Trigger `prumo_signup_gate` em auth.users: cadastro só se `prumo_private.signup_open = 'true'` e abaixo de `signup_max` contas (o `owner_email` sempre entra).
 - Trigger `prumo_guard`: limites por conta (20 mil itens, 10 aparelhos com push, 40 lembretes) e por tempo; valida `day` (id é data, até 1 KB) e `cap` (só ids cap e g). Endpoint de push só de serviços conhecidos (SSRF).

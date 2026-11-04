@@ -1,5 +1,5 @@
-const V = 'prumo-v8';
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'supabase.js'];
+const V = 'prumo-v9';
+const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'supabase.js', 'fonts/instrument-sans.woff2', 'fonts/bricolage-grotesque.woff2', 'fonts/ibm-plex-mono-500.woff2'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
@@ -7,8 +7,7 @@ self.addEventListener('fetch', e => {
   if (r.method !== 'GET') return;
   const u = new URL(r.url);
   const same = u.origin === location.origin;
-  const font = u.hostname === 'fonts.googleapis.com' || u.hostname === 'fonts.gstatic.com';
-  if (!same && !font) return;
+  if (!same) return;
   if (r.mode === 'navigate' || (same && u.pathname.endsWith('index.html'))) {
     e.respondWith(fetch(r).then(res => { const cp = res.clone(); caches.open(V).then(c => c.put('index.html', cp)); return res; }).catch(() => caches.match('index.html')));
     return;

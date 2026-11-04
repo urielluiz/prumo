@@ -8,7 +8,7 @@ Login (Supabase), sincronização por item, tarefas com frameworks ágeis, pauta
 - Login com Google
 - Verificação em duas etapas (TOTP) e reautenticação para ações sensíveis
 - CAPTCHA (Cloudflare Turnstile) no cadastro e na recuperação
-- Privacidade: política de privacidade e termos de uso (exportar e excluir conta já entregues)
+- Privacidade: preencher responsável e contato em `src/legal.json` (política e termos já publicados)
 - Trocar o e-mail da conta pelo Perfil (com confirmação nos dois endereços)
 - Limites de uso por conta
 

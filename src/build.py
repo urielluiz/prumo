@@ -66,8 +66,8 @@ sbhost = re.sub(r'^https://', '', json.load(open(SBJ))['url']).rstrip('/') if os
 CSP = '; '.join([
     "default-src 'self'",
     "script-src 'self' " + ' '.join(hashes),
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     "img-src 'self' data: blob:",
     "connect-src 'self' https://api.pwnedpasswords.com" + (' https://' + sbhost + ' wss://' + sbhost if sbhost else ''),
     "worker-src 'self' blob:",
@@ -107,8 +107,8 @@ open(os.path.join(OUT, 'manifest.webmanifest'), 'w', encoding='utf-8').write('''
 ''')
 
 # ---- service worker ----
-open(os.path.join(OUT, 'sw.js'), 'w', encoding='utf-8').write('''const V = 'prumo-v8';
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'supabase.js'];
+open(os.path.join(OUT, 'sw.js'), 'w', encoding='utf-8').write('''const V = 'prumo-v9';
+const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'supabase.js', 'fonts/instrument-sans.woff2', 'fonts/bricolage-grotesque.woff2', 'fonts/ibm-plex-mono-500.woff2'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
@@ -116,8 +116,7 @@ self.addEventListener('fetch', e => {
   if (r.method !== 'GET') return;
   const u = new URL(r.url);
   const same = u.origin === location.origin;
-  const font = u.hostname === 'fonts.googleapis.com' || u.hostname === 'fonts.gstatic.com';
-  if (!same && !font) return;
+  if (!same) return;
   if (r.mode === 'navigate' || (same && u.pathname.endsWith('index.html'))) {
     e.respondWith(fetch(r).then(res => { const cp = res.clone(); caches.open(V).then(c => c.put('index.html', cp)); return res; }).catch(() => caches.match('index.html')));
     return;
@@ -174,6 +173,22 @@ open(os.path.join(OUT, 'LEIA-ME.txt'), 'w', encoding='utf-8').write('''PRUMO - c
 
 Entre com seu e-mail e senha: as tarefas sincronizam entre iPhone e Mac (Supabase). Também funciona offline; use Revisão > Ajustes > Copiar backup de vez em quando.
 ''')
+
+# ---- fontes servidas pelo próprio site e páginas de privacidade e termos ----
+os.makedirs(os.path.join(OUT, 'fonts'), exist_ok=True)
+for f in os.listdir(os.path.join(APP, 'fonts')):
+    if f.endswith('.woff2'):
+        shutil.copy(os.path.join(APP, 'fonts', f), os.path.join(OUT, 'fonts', f))
+# responsável e contato ficam em src/legal.json (não versionar dado pessoal sem querer: o arquivo é opcional)
+LJ = os.path.join(D, 'legal.json')
+legal = json.load(open(LJ, encoding='utf-8')) if os.path.exists(LJ) else {}
+for name in ('privacidade', 'termos'):
+    txt = open(os.path.join(APP, 'legal', name + '.html'), encoding='utf-8').read()
+    for _ in range(2):
+        txt = re.sub(r'^[ \t]*/\* @include (\S+) \*/\n', include, txt, flags=re.M)
+    txt = txt.replace('{{RESPONSAVEL}}', legal.get('responsavel', 'o mantenedor do Prumo'))
+    txt = txt.replace('{{CONTATO}}', legal.get('contato', 'o contato que será publicado aqui antes da abertura do cadastro'))
+    open(os.path.join(OUT, name + '.html'), 'w', encoding='utf-8').write(txt)
 
 # ---- zip ----
 zp = os.path.join(D, 'prumo-pwa.zip')

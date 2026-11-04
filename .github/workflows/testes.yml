@@ -39,7 +39,7 @@ jobs:
           # o que o GitHub Pages serve (raiz) tem que ser igual ao build, tirando o carimbo de horário
           # (o hash da CSP muda junto com o carimbo; o conteúdo dos scripts é comparado do mesmo jeito)
           norm() { sed -E "s/var BUILD='[^']*'/var BUILD='X'/; s/'sha256-[A-Za-z0-9+\/=]+'/'sha256-X'/g" "$1"; }
-          for f in index.html sw.js manifest.webmanifest supabase.js; do
+          for f in index.html sw.js manifest.webmanifest supabase.js privacidade.html termos.html; do
             cmp -s <(norm "src/pwa/$f") <(norm "$f") || { echo "::error file=$f::$f está desatualizado. Rode: sh src/deploy.sh"; exit 1; }
           done
         shell: bash

@@ -21,3 +21,7 @@
 /* alvos de toque de 44 px */
 #gate .g-eye{height:44px;bottom:2px;right:2px}
 #gate .g-link{min-height:44px;display:inline-flex;align-items:center}
+#gate .g-hint a,#gate .g-legal a{color:var(--ink);text-underline-offset:3px}
+#gate .g-legal{display:flex;gap:16px;justify-content:center;margin:4px 0 0;font-size:.8125rem}
+#gate .g-legal a{color:var(--muted);min-height:44px;display:inline-flex;align-items:center}
+#gate a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
