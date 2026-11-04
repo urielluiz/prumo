@@ -186,8 +186,10 @@ for name in ('privacidade', 'termos'):
     txt = open(os.path.join(APP, 'legal', name + '.html'), encoding='utf-8').read()
     for _ in range(2):
         txt = re.sub(r'^[ \t]*/\* @include (\S+) \*/\n', include, txt, flags=re.M)
-    txt = txt.replace('{{RESPONSAVEL}}', legal.get('responsavel', 'o mantenedor do Prumo'))
-    txt = txt.replace('{{CONTATO}}', legal.get('contato', 'o contato que será publicado aqui antes da abertura do cadastro'))
+    import html as _h
+    txt = txt.replace('{{RESPONSAVEL}}', _h.escape(legal.get('responsavel', 'o mantenedor do Prumo')))
+    ct = legal.get('contato', '')
+    txt = txt.replace('{{CONTATO}}', ('<a href="mailto:' + _h.escape(ct) + '">' + _h.escape(ct) + '</a>') if '@' in ct else (_h.escape(ct) or 'o contato que será publicado aqui antes da abertura do cadastro'))
     open(os.path.join(OUT, name + '.html'), 'w', encoding='utf-8').write(txt)
 
 # ---- zip ----

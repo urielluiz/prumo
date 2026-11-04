@@ -7,7 +7,7 @@ Login (Supabase), sincronização por item, tarefas com frameworks ágeis, pauta
 - Abrir o cadastro: concluir os ajustes do painel em `SECURITY.md` (SMTP próprio, confirmação de e-mail, modelos, URLs) e virar `signup_open` para `'true'`
 - Login com Google
 - CAPTCHA (Cloudflare Turnstile) no cadastro e na recuperação
-- Privacidade: preencher responsável e contato em `src/legal.json` (política e termos já publicados)
+- Privacidade: trocar responsável e contato provisórios em `src/legal.json` (de preferência um e-mail próprio no domínio)
 - Trocar o e-mail da conta pelo Perfil (com confirmação nos dois endereços)
 - Limites de uso por conta
 
