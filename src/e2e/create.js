@@ -72,7 +72,7 @@ await typeTitle('Ideia de post');
 await click('[data-act=sh-sec][data-v=when]');await sleep(80);
 await click('[data-act=sh-day][data-v=none]');await sleep(80);
 await click('[data-act=sh-save]');await sleep(300);
-ok('no date: backlog toast',/backlog/.test(await toastTxt())&&!(await task('Ideia de post')).day);
+ok('no date: toast says sem data',/criada sem data/.test(await toastTxt())&&!(await task('Ideia de post')).day);
 
 // ---------- repetição não combina com período ----------
 await typeTitle('Treino');

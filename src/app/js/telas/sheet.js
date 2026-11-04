@@ -34,8 +34,8 @@ function planSheetHTML(){
   h+='<p class="hint" style="margin:0">Capacidade é o tempo de foco real que cabe em cada dia, sem contar reuniões e imprevistos. Comece com menos do que você acha que consegue.</p><div>';
   h+=[0,1,2,3,4,5,6].map(function(i){var dw=(i+1)%7,d=addDays(wk,i);
     return '<div class="step"><span>'+DAYS[dw]+' <span class="muted" style="font-size:13px">'+parseISO(d).getDate()+'</span></span><span style="display:flex;align-items:center"><button class="ib" data-act="cap" data-i="'+dw+'" data-d="-30" aria-label="Menos 30 minutos">'+ic('left',20)+'</button><span class="val">'+(S.cap[dw]?fmt(S.cap[dw]):'livre')+'</span><button class="ib" data-act="cap" data-i="'+dw+'" data-d="30" aria-label="Mais 30 minutos">'+ic('right',20)+'</button></span></div>'}).join('');
-  h+='</div><p class="hint" style="margin:0">O backlog é distribuído por prioridade: primeiro o que é urgente e importante, depois o importante, sem passar da capacidade de cada dia.</p>';
-  h+='<div class="sh-actions"><button class="btn btn-p" data-act="autoplan">Distribuir o backlog</button><button class="btn btn-s" data-act="sh-close">Fechar</button></div>';
+  h+='</div><p class="hint" style="margin:0">As tarefas sem data são distribuídas por prioridade: primeiro o que é urgente e importante, depois o importante, sem passar da capacidade de cada dia.</p>';
+  h+='<div class="sh-actions"><button class="btn btn-p" data-act="autoplan">Distribuir tarefas sem data</button><button class="btn btn-s" data-act="sh-close">Fechar</button></div>';
   return h;
 }
 function renderSheet(){

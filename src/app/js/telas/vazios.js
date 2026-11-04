@@ -1,8 +1,8 @@
 function emptyHTML(kind,btn){
   var T={
     hoje:['Dia livre por enquanto','Escolha o que realmente importa hoje. Três prioridades bastam.','Nova tarefa','new'],
-    dia:['Nada neste dia','Puxe algo do backlog ou crie uma tarefa para este dia.','Adicionar tarefa','new'],
-    back:['Backlog vazio','Despeje ideias aqui sem data. Quando houver espaço, é só puxar para o dia.','Adicionar ao backlog','newb'],
+    dia:['Nada neste dia','Traga uma tarefa sem data pelo ⋯ ou crie uma para este dia.','Adicionar tarefa','new'],
+    back:['Nada sem data','Ideias sem dia ficam aqui. Quando houver espaço, toque em ⋯ para trazer para um dia.','Adicionar sem data','newb'],
     rev:['Nada concluído nesta semana','Uma tarefa de 5 minutos já muda isso. Volte aqui no fim da semana.',null,null],
     painel:['O painel começa com os primeiros dados','Conclua tarefas e use o cronômetro. Aqui você vê estimado contra real e para onde foi seu tempo.',null,null],
     foco:['Nada para focar agora','Sem tarefas abertas hoje. Crie uma ou comece uma sessão livre de 5 minutos.','Nova tarefa','new']

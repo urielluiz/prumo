@@ -39,8 +39,8 @@ await p.evaluateOnNewDocument(s=>{if(!localStorage.getItem('prumo.v1'))localStor
 await p.goto(await url('e2e/pushtest.html'),{waitUntil:'domcontentloaded'});await sleep(1500);
 const ev=(f,...a)=>p.evaluate(f,...a);const click=(sel)=>ev(s=>document.querySelector(s).click(),sel);
 await click('[data-act=tab][data-t=revisao]');await sleep(300);
-ok('retro card in Revisão',await ev(()=>!!document.querySelector('.wrapcard')));
-await click('.wrapcard');await sleep(500);
+ok('retro button in Revisão',await ev(()=>!!document.querySelector('#view [data-act=wr-open]')));
+await click('#view [data-act=wr-open]');await sleep(500);
 ok('overlay open',await ev(()=>!!document.querySelector('#rwrap')));
 const names=[];
 for(let i=0;i<9;i++){
@@ -58,7 +58,7 @@ ok('counter animated to 4',await ev(()=>true));
 await click('[data-act=wr-write]');await sleep(300);
 ok('overlay closed, retro field focused',await ev(()=>!document.querySelector('#rwrap')&&document.activeElement&&document.activeElement.id==='rt-worked'));
 // reopen, escape
-await click('[data-act=tab][data-t=revisao]');await click('.wrapcard');await sleep(300);
+await click('[data-act=tab][data-t=revisao]');await click('#view [data-act=wr-open]');await sleep(300);
 await p.keyboard.press('Escape');await sleep(200);
 ok('escape closes',await ev(()=>!document.querySelector('#rwrap')));
 // reminders upsert includes wrap

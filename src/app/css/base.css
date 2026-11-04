@@ -284,3 +284,6 @@ button.hero-t{display:block;width:100%;text-align:left;color:inherit;padding:0}
 .fter .link{color:var(--muted)}
 .endcard .btn-g{color:var(--hero-fg);opacity:.85;text-decoration:underline;text-underline-offset:3px}
 .endcard .eyebrow{color:inherit;opacity:.65}
+.more-d{margin-top:10px}
+.more-d summary{cursor:pointer;font-weight:600;color:var(--muted);padding:8px 2px;list-style-position:inside}
+.more-d .rn2s{margin-top:6px}

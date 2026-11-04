@@ -41,7 +41,7 @@ function autoPlan(){
     if(d){t.day=d;load[d]+=t.est;placed++}else left++;
   });
   persist();render();renderSheet();
-  toast(placed?(placed+' tarefa'+(placed>1?'s':'')+' distribuída'+(placed>1?'s':'')+(left?'. '+left+' sem espaço.':'.')):(left?'Nenhuma coube na capacidade. Aumente os dias ou tire algo.':'O backlog está vazio.'));
+  toast(placed?(placed+' tarefa'+(placed>1?'s':'')+' distribuída'+(placed>1?'s':'')+(left?'. '+left+' sem espaço.':'.')):(left?'Nenhuma coube na capacidade. Aumente os dias ou tire algo.':'Não há tarefas sem data.'));
 }
 // Concluir: a tarefa passa a "morar" no dia da conclusão; um período termina nesse dia
 function markDone(t){
@@ -51,7 +51,7 @@ function markDone(t){
   if(t.end===t.day)delete t.end;
 }
 function whenText(t){
-  if(!t.day)return 'no backlog, sem data';
+  if(!t.day)return 'sem data';
   var td=todayISO(),f=function(d){return d===td?'hoje':shortDate(d)};
   return t.end?'de '+f(t.day)+' a '+f(t.end)+' ('+spanOf(t)+' dias)':'para '+f(t.day);
 }
