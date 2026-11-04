@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-+NoTsqHnxCgfWzEj9VAR5ABY8M3QdCCXDvtb3hPVTpo=' 'sha256-1Qmcy4j6aNFgRwdLngcAKq/W1vScASZ8669jMVnaf3k=' 'sha256-M83SiRaxQw8WWPr1qdbElLabaNfhtC6YMMJDVWU3QNA=' 'sha256-WSaTyIcG/4A0XRG5I5akAXJUOUO9a1HHpUzWTQFnc5s=' 'sha256-wNBm0LO9t0JKUloaWmeP9HoGpjFq3dG9AuBOcy/YQ4g='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.pwnedpasswords.com https://cpdeptlintjvdqcfrafg.supabase.co wss://cpdeptlintjvdqcfrafg.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-1Qmcy4j6aNFgRwdLngcAKq/W1vScASZ8669jMVnaf3k=' 'sha256-E7nSVVcy1iDxTeh3iQgGdhTaDSHsI/kt6NxtGDXBlsw=' 'sha256-M83SiRaxQw8WWPr1qdbElLabaNfhtC6YMMJDVWU3QNA=' 'sha256-WSaTyIcG/4A0XRG5I5akAXJUOUO9a1HHpUzWTQFnc5s=' 'sha256-wNBm0LO9t0JKUloaWmeP9HoGpjFq3dG9AuBOcy/YQ4g='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.pwnedpasswords.com https://cpdeptlintjvdqcfrafg.supabase.co wss://cpdeptlintjvdqcfrafg.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <meta name="referrer" content="no-referrer">
 <script>if(window.top!==window.self){window.stop();document.documentElement.innerHTML=''}</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -522,6 +522,45 @@ html.lock .toast{bottom:auto;top:calc(14px + env(safe-area-inset-top,0px))}
 .wline .link{min-height:44px}
 [tabindex="-1"]:focus{outline:none}
 .tk-title{min-height:44px}
+/* ---------- obra: anéis do dia, fechar o dia, andares ---------- */
+.drings{position:relative;width:68px;height:68px;flex:none;border-radius:50%}
+.drings b{position:absolute;inset:0;display:grid;place-items:center;font:600 .8125rem var(--mono)}
+.drings:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.closec{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding:14px 14px 14px 16px;border-radius:16px;background:var(--surface);box-shadow:var(--shadow)}
+.closec>div{display:grid;gap:2px;min-width:0}
+.closec b{font-weight:600}
+.closec span{color:var(--muted);font-size:.875rem;overflow-wrap:anywhere}
+.closec.done{background:var(--ok-soft);box-shadow:none}
+.closec.done span{color:var(--ink)}
+.cl-st{margin:0;padding:10px 12px;border-radius:12px;background:var(--soft);font-size:.9375rem}
+.cl-st.ok{background:var(--ok-soft)}
+.cl-sapo .chip{max-width:100%}
+.ob-top{display:flex;gap:16px;align-items:center}
+.ob-top p{margin:0;color:var(--muted);font-size:.875rem;line-height:1.5}
+.ob-n{display:grid;justify-items:center;min-width:76px}
+.ob-n b{font:800 2.75rem/1 var(--display);letter-spacing:-.03em;color:var(--accent-text)}
+.ob-n span{font-size:.75rem;color:var(--muted);text-align:center}
+.tower{display:grid;gap:5px}
+.floor,.fl-d{display:grid;grid-template-columns:3.4rem minmax(0,1fr);gap:8px;align-items:center}
+.fl-l{font:500 .6875rem var(--mono);color:var(--muted);white-space:nowrap}
+.fl-b,.fl-d>div{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;padding-left:6px;border-left:3px solid transparent}
+.floor.pr .fl-b{border-left-color:var(--ok)}
+.fl-d i{font:600 .625rem var(--body);color:var(--muted);text-align:center;font-style:normal}
+.bk{display:block;height:18px;border-radius:4px;background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.bk.f{background:var(--accent);box-shadow:none}
+.bk.o,.bk.p{background:repeating-linear-gradient(135deg,var(--line) 0 3px,transparent 3px 7px)}
+.bk.x{background:var(--soft);box-shadow:none}
+.bk.td{box-shadow:inset 0 0 0 2px var(--ink)}
+.bk.f.td{box-shadow:inset 0 0 0 2px var(--accent-text)}
+.ob-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.75rem;color:var(--muted)}
+.ob-leg span{display:inline-flex;align-items:center;gap:6px}
+.ob-leg .bk{width:14px;height:10px}
+.ob-pr{display:inline-block;width:3px;height:12px;background:var(--ok);border-radius:2px}
+@media (prefers-reduced-motion:no-preference){
+  .bk.new{animation:bkdrop .55s cubic-bezier(.2,.9,.3,1.25) .15s both}
+  @keyframes bkdrop{from{transform:translateY(-26px);opacity:0}to{transform:none;opacity:1}}
+  .rg-a{transition:stroke-dashoffset .5s ease}
+}
 </style>
 
 <div class="wrap"><main id="view" aria-live="polite"></main></div>
@@ -597,7 +636,7 @@ function ic(n,s,w){s=s||22;return '<svg class="ic" width="'+s+'" height="'+s+'" 
 
 /* ---------- estado e persistencia ---------- */
 var LS='prumo.v1';
-function blank(){return {v:1,upd:0,owner:null,prof:{},seeded:false,tasks:[],rec:{},cap:[0,300,300,300,300,300,120],ctx:{},retro:{},blockers:{},log:{},session:null,u:{},dirty:{},del:{},synced:false}}
+function blank(){return {v:1,upd:0,owner:null,prof:{},seeded:false,tasks:[],rec:{},cap:[0,300,300,300,300,300,120],ctx:{},retro:{},blockers:{},log:{},days:{},g:{},session:null,u:{},dirty:{},del:{},synced:false}}
 function readLocal(){try{var r=localStorage.getItem(LS);if(r){return Object.assign(blank(),JSON.parse(r))}}catch(e){}return blank()}
 var S=readLocal();
 function writeLocal(){if(wiped)return;try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
@@ -622,6 +661,7 @@ function prune(days){
   S.tasks=S.tasks.filter(function(t){return t.parent||!(t.status==='done'&&t.doneAt&&t.doneAt<lim)});
   var keep=iso(new Date(Date.now()-400*864e5));
   Object.keys(S.log).forEach(function(k){if(k<keep)delete S.log[k]});
+  Object.keys(S.days||{}).forEach(function(k){if(k<keep)delete S.days[k]});
 }
 async function pushRemote(){
   if(!remote)return;
@@ -682,6 +722,8 @@ function itemsOf(){
   Object.keys(S.retro||{}).forEach(function(k){m['retro/'+k]=S.retro[k]});
   Object.keys(S.blockers||{}).forEach(function(k){m['blk/'+k]={t:S.blockers[k]}});
   Object.keys(S.log||{}).forEach(function(k){m['log/'+k]={s:S.log[k]}});
+  Object.keys(S.days||{}).forEach(function(k){m['day/'+k]=S.days[k]});
+  if(S.g&&Object.keys(S.g).length)m['cap/g']=S.g;
   if(S.prof&&(S.prof.name||S.prof.avk||S.prof.av))m['prof/me']=S.prof;
   return m;
 }
@@ -695,6 +737,8 @@ function applyItem(k,data){
   var kind=kindOf(k),id=idOf(k);
   if(kind==='task'){data.id=id;var i=S.tasks.findIndex(function(t){return t.id===id});if(i>=0)S.tasks[i]=data;else S.tasks.push(data)}
   else if(kind==='rec'){data.id=id;S.rec=S.rec||{};S.rec[id]=data}
+  else if(kind==='cap'&&id==='g')S.g=cleanG(data);
+  else if(kind==='day'){if(/^\d{4}-\d{2}-\d{2}$/.test(id)){S.days=S.days||{};S.days[id]=cleanDay(data)}}
   else if(kind==='cap'){if(Array.isArray(data.cap)&&data.cap.length===7)S.cap=data.cap}
   else if(kind==='ctx')S.ctx=data||{};
   else if(kind==='retro')S.retro[id]=data;
@@ -709,6 +753,8 @@ function dropItem(k){
   else if(kind==='retro')delete S.retro[id];
   else if(kind==='blk')delete S.blockers[id];
   else if(kind==='log')delete S.log[id];
+  else if(kind==='day'){if(S.days)delete S.days[id]}
+  else if(kind==='cap'&&id==='g')S.g={};
   else if(kind==='ctx')S.ctx={};
   else if(kind==='prof')S.prof={};
 }
@@ -889,9 +935,11 @@ function nextTask(){
   var td=todayISO();
   var open=S.tasks.filter(function(t){return !isDone(t)&&covers(t,td)});
   var doing=open.filter(function(t){return t.status==='doing'});
-  var mits=open.filter(function(t){return t.mit&&t.status!=='doing'}).sort(byPrio);
-  var rest=open.filter(function(t){return !t.mit&&t.status!=='doing'}).sort(byPrio);
-  return doing.concat(mits,rest)[0]||null;
+  // o Sapo escolhido ao fechar o dia anterior vem antes das outras prioridades
+  var sp=sapoOf(td),first=sp&&sp.status!=='doing'?[sp]:[],nsp=function(t){return !sp||t.id!==sp.id};
+  var mits=open.filter(function(t){return t.mit&&t.status!=='doing'&&nsp(t)}).sort(byPrio);
+  var rest=open.filter(function(t){return !t.mit&&t.status!=='doing'&&nsp(t)}).sort(byPrio);
+  return doing.concat(first,mits,rest)[0]||null;
 }
 function seed(){
   var td=todayISO(),tm=addDays(td,1),d2=addDays(td,2),y=addDays(td,-1);
@@ -912,6 +960,49 @@ function seed(){
   S.seeded=true;persist();
 }
 
+/* ---------- obra: dia firme, sequência e andares ---------- */
+// Dia firme: concluir tarefas e/ou blocos de 25 min de foco até a meta do dia (padrão 1).
+// Folga (padrão sábado e domingo, mais dias com capacidade zero) não quebra a sequência; se for firme, vale tijolo.
+// Uma pausa por semana cobre um dia útil em branco. A obra só cresce: cada semana com tijolo é um andar,
+// e o andar fica "no prumo" quando a semana foi fechada na retrospectiva.
+var FOCOBLK=25*60,OFFDEF=[0,6],PAUSAS=1;
+function gOff(){var o=S.g&&S.g.off;return Array.isArray(o)?o.filter(function(x){return x>=0&&x<=6}):OFFDEF}
+function gMeta(){var m=Number(S.g&&S.g.meta);return m>=1&&m<=5?Math.floor(m):1}
+function isFolga(d){var w=parseISO(d).getDay();return gOff().indexOf(w)>=0||!(S.cap[w]>0)}
+function doneMap(){var m={};S.tasks.forEach(function(t){if(isDone(t)&&t.doneAt){var d=iso(new Date(t.doneAt));m[d]=(m[d]||0)+1}});return m}
+function dayUnits(d,dm){return ((dm||doneMap())[d]||0)+Math.floor((S.log[d]||0)/FOCOBLK)}
+function dayOf(d){return (S.days&&S.days[d])||{}}
+function dayClosed(d){return !!dayOf(d).c}
+function retroDone(wk){var r=S.retro[wk];return !!(r&&(r.worked||r.stuck||r.tweak))}
+// estado de cada dia desde a primeira atividade: f firme, o folga, p pausa usada, x em branco, t hoje ainda aberto
+function obra(){
+  var td=todayISO(),dm=doneMap(),meta=gMeta(),start=td;
+  Object.keys(dm).concat(Object.keys(S.log||{}).filter(function(k){return S.log[k]>=FOCOBLK})).forEach(function(k){if(k<start)start=k});
+  var lim=addDays(td,-400);if(start<lim)start=lim;
+  var days=[],run=0,best=0,used={},bricks=0,d=start;
+  while(d<=td){
+    var u=dayUnits(d,dm),wk=weekStart(d),s;
+    if(u>=meta){s='f';run++;bricks++;if(run>best)best=run}
+    else if(d===td)s='t';
+    else if(isFolga(d))s='o';
+    else if((used[wk]||0)<PAUSAS){s='p';used[wk]=(used[wk]||0)+1}
+    else{s='x';run=0}
+    days.push({d:d,s:s,u:u});d=addDays(d,1);
+  }
+  var floors=[],by={};
+  days.forEach(function(x){var wk=weekStart(x.d);if(!by[wk]){by[wk]={wk:wk,cells:['','','','','','',''],n:0};floors.push(by[wk])}var f=by[wk];f.cells[(parseISO(x.d).getDay()+6)%7]=x.s;if(x.s==='f')f.n++});
+  floors=floors.filter(function(f){return f.n>0||f.wk===weekStart(td)});
+  floors.forEach(function(f){f.prumo=retroDone(f.wk)});
+  var last=days[days.length-1]||{u:0};
+  return {cur:run,best:best,bricks:bricks,floors:floors,today:last.u,meta:meta,firm:last.u>=meta,pauseLeft:PAUSAS-(used[weekStart(td)]||0),broke:run===0&&best>0&&days.some(function(x){return x.s==='x'})};
+}
+function planned(d){return !!(S.blockers[d]||dayOf(d).s||tasksOn(d).length)}
+// Sapo escolhido ao fechar o dia anterior, se ainda estiver aberto hoje
+function sapoOf(d){var id=dayOf(d).s,t=id&&byId(id);return t&&!isDone(t)&&covers(t,d)?t:null}
+function setDay(d,o){S.days=S.days||{};var cur=Object.assign({},S.days[d]||{},o);Object.keys(cur).forEach(function(k){if(cur[k]==null||cur[k]==='')delete cur[k]});if(Object.keys(cur).length)S.days[d]=cur;else delete S.days[d]}
+// dados vindos da nuvem passam por aqui antes de entrar no estado
+function cleanDay(o){o=o||{};var r={};if(Number(o.c)>0)r.c=Number(o.c);if(typeof o.s==='string'&&o.s.length<=64)r.s=o.s;return r}
+function cleanG(o){o=o||{};var r={};if(Array.isArray(o.off))r.off=o.off.map(Number).filter(function(x,i,a){return x>=0&&x<=6&&a.indexOf(x)===i});var m=Number(o.meta);if(m>=1&&m<=5)r.meta=Math.floor(m);return r}
 /* ---------- toast ---------- */
 var toastT=null,toastFn=null;
 // com ação (Desfazer), dura mais e fica parado enquanto há foco, toque ou mouse em cima
@@ -966,10 +1057,10 @@ function viewHoje(){
   if(!booted&&!S.tasks.length)return '<header class="top"><div><div class="eyebrow">'+DAYS[d.getDay()]+', '+d.getDate()+' de '+MONF[d.getMonth()]+'</div><h1 class="h1">Hoje</h1></div></header><p class="hint">Carregando seus dados...</p>';
   var all=tasksOn(td),done=all.filter(isDone),open=all.filter(function(t){return !isDone(t)}).concat(dueNow());
   var now=nextTask(),over=overdue(),nm=profName().split(' ')[0];
-  var sapo=open.filter(function(t){return t.mit}).sort(byPrio)[0];
+  var sapo=sapoOf(td)||open.filter(function(t){return t.mit}).sort(byPrio)[0],ob=obra();
   // ordem da lista: em andamento, prioridades (estrela) e o resto; a tarefa do "Agora" não se repete
   var rest=open.filter(function(t){return !now||t.id!==now.id}).sort(function(a,b){return ((b.status==='doing')-(a.status==='doing'))||((b.mit?1:0)-(a.mit?1:0))||byPrio(a,b)});
-  var h='<header class="top"><div><div class="eyebrow">'+(nm?'Olá, '+esc(nm)+' · ':'')+DAYS[d.getDay()]+', '+d.getDate()+' de '+MONF[d.getMonth()]+'</div><h1 class="h1">Hoje</h1></div><div class="hd-r">'+ringHTML(done.length,all.length)+avatarBtn()+'</div></header>';
+  var h='<header class="top"><div><div class="eyebrow">'+(nm?'Olá, '+esc(nm)+' · ':'')+DAYS[d.getDay()]+', '+d.getDate()+' de '+MONF[d.getMonth()]+'</div><h1 class="h1">Hoje</h1></div><div class="hd-r">'+ringsHTML(ob)+avatarBtn()+'</div></header>';
   h+='<div class="cols"><div class="col stick">';
   var blk=S.blockers[td];
   h+='<button class="note" data-act="note">'+ic('target',16)+(blk?'<span class="note-t">'+esc(blk)+'</span>':'<span>O que pode te travar hoje?</span><b>Anotar</b>')+'</button>';
@@ -985,6 +1076,7 @@ function viewHoje(){
     h+='<button class="fold" data-act="fold" aria-expanded="'+doneOpen+'"><span>'+done.length+(done.length>1?' concluídas':' concluída')+' hoje</span>'+ic(doneOpen?'up':'down',18)+'</button>';
     if(doneOpen)h+=listHTML(done,{day:td},null);
   }
+  h+=closeCardHTML(ob,open.length);
   var tm=addDays(td,1),tl=tasksOn(tm).filter(function(t){return !isDone(t)});
   h+='<button class="peek" data-act="tab" data-t="semana"><span><b>Amanhã</b> · '+(tl.length?tl.length+(tl.length>1?' tarefas, ':' tarefa, ')+fmt(sum(tl,function(t){return t.est})):'nada planejado ainda')+'</span><span class="peek-r">Ver semana'+ic('right',16)+'</span></button>';
   h+='</div></div>';
@@ -1222,6 +1314,7 @@ function viewPerfil(){
   if(SB)h+=secHTML('Conta')+'<div class="panel"><div><span class="lab">E-mail</span><p style="margin:0;word-break:break-all">'+esc(meEmail||'...')+'</p></div><div class="btns"><button class="btn btn-s sm" data-act="pw-open">Alterar senha</button><button class="btn btn-s sm" data-act="lock">Sair da conta</button><button class="btn btn-s sm" data-act="lock-all">Sair de todos os aparelhos</button></div><p class="hint" style="margin:0">Ao sair, suas tarefas continuam guardadas na sua conta. Este aparelho só apaga a cópia local.</p></div>';
   // preferências
   h+=secHTML('Preferências')+'<div class="panel">'+timerSettings()+'<div><span class="lab">Nome dos contextos</span><div class="stack">'+CTX.map(function(c){return '<div class="rn"><i class="dot" style="background:var('+c.v+')"></i><input class="inp" id="cn-'+c.id+'" data-in="ctxname" data-c="'+c.id+'" value="'+esc(cname(c.id))+'" aria-label="Nome do contexto" autocomplete="off"></div>'}).join('')+'</div></div></div>';
+  h+='<div id="pf-game"></div>'+secHTML('Sequência e obra')+'<div class="panel">'+gameSettings()+'</div>';
   h+='</div><div class="col">';
   // dados
   h+=secHTML('Dados')+'<div class="panel"><div><span class="lab">Sincronização</span><p class="sync" id="sync" style="margin:0 0 10px">'+syncText()+'</p><div class="btns"><button class="btn btn-s sm" data-act="copy-backup">Copiar backup</button></div></div><div><label class="lab" for="restore">Restaurar backup</label><textarea id="restore" class="inp" data-in="restore" rows="2" placeholder="Cole aqui o backup copiado antes">'+esc(restoreTxt)+'</textarea><div class="btns" style="margin-top:10px"><button class="btn btn-s sm" data-act="restore">Restaurar</button></div></div></div>';
@@ -1231,6 +1324,76 @@ function viewPerfil(){
   h+=secHTML('Ajuda')+'<div class="panel"><div class="btns"><button class="btn btn-s sm" data-act="help">Guia do Prumo</button></div><p class="hint" style="margin:0">Versão '+esc(BUILD)+'</p></div>';
   h+='</div></div>';
   return h;
+}
+/* ---------- obra: anéis do dia, fechar o dia, folha da obra, preferências ---------- */
+var MESC=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function ringsHTML(o){
+  var td=todayISO(),pl=planned(td),fz=Math.min(1,o.today/o.meta),fc=dayClosed(td);
+  var arc=function(r,f,c){var C=2*Math.PI*r;return '<circle cx="34" cy="34" r="'+r+'" fill="none" stroke="var(--soft)" stroke-width="5.5"/><circle class="rg-a" cx="34" cy="34" r="'+r+'" fill="none" stroke="var('+c+')" stroke-width="5.5" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-f)).toFixed(1)+'" transform="rotate(-90 34 34)"/>'};
+  var lab='Seu dia: planejar '+(pl?'feito':'pendente')+', fazer '+Math.min(o.today,o.meta)+' de '+o.meta+', fechar '+(fc?'feito':'pendente')+'. Sequência de '+o.cur+(o.cur===1?' dia':' dias')+'. Ver sua obra';
+  return '<button class="drings" data-act="obra" aria-label="'+lab+'"><svg width="68" height="68" viewBox="0 0 68 68" aria-hidden="true">'+arc(29,pl?1:0,'--c1')+arc(21.5,fz,'--accent')+arc(14,fc?1:0,'--ok')+'</svg><b aria-hidden="true">'+o.cur+'</b></button>';
+}
+function closeCardHTML(o,openN){
+  var td=todayISO(),dd=dayOf(td),tm=addDays(td,1),sp=dayOf(tm).s&&byId(dayOf(tm).s);
+  if(dd.c)return '<section class="closec done"><div><b>Dia fechado.</b><span>'+(sp&&!isDone(sp)?'Amanhã começa com '+esc(sp.title)+'.':'Até amanhã.')+'</span></div><button class="btn btn-s sm" data-act="close">Rever</button></section>';
+  var late=new Date().getHours()>=17||!openN;
+  return '<section class="closec"><div><b>Fechar o dia</b><span>O que sobrou e o Sapo de amanhã, em 30 segundos.</span></div><button class="btn '+(late?'btn-p':'btn-s')+' sm" data-act="close">Fechar</button></section>';
+}
+function leftovers(td){return tasksOn(td).filter(function(t){return !isDone(t)&&!(t.end&&t.end>td)})}
+function nextWork(d){var x=addDays(d,1);for(var i=0;i<7&&isFolga(x);i++)x=addDays(x,1);return x}
+function closeSheetHTML(){
+  var td=todayISO(),tm=addDays(td,1),o=obra(),dm=doneMap(),all=tasksOn(td),dn=all.filter(isDone).length,left=leftovers(td),secs=S.log[td]||0;
+  var h='<div class="sh-head"><h2 class="h2">Fechar o dia</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>';
+  h+='<p class="hint" style="margin:-8px 0 0">Você concluiu '+(dm[td]||0)+(all.length?' de '+all.length:'')+' hoje'+(secs>=60?' · '+fmt(secs/60)+' em foco':'')+'.</p>';
+  var falta=o.meta-o.today;
+  h+='<p class="cl-st'+(o.firm?' ok':'')+'">'+(o.firm?'Dia firme: mais um tijolo na obra.':(isFolga(td)?'Hoje é folga: não conta contra a sequência.':'Para virar tijolo: '+(falta>1?'mais '+falta+' tarefas ou blocos':'concluir 1 tarefa ou fazer 25 min')+' de foco.'))+'</p>';
+  if(left.length){
+    var nw=nextWork(tm);
+    h+='<div><span class="lab">O que sobrou</span><div class="stack">'+left.map(function(t){
+      return '<div class="res"><b>'+esc(t.title)+'</b><div class="chips"><button class="chip" data-act="mv" data-id="'+t.id+'" data-d="'+tm+'">Amanhã</button>'+('<button class="chip" data-act="mv" data-id="'+t.id+'" data-d="'+nw+'">'+DABR[parseISO(nw).getDay()]+' '+parseISO(nw).getDate()+'</button>')+'<button class="chip" data-act="mv" data-id="'+t.id+'" data-d="">Sem data</button><button class="chip" data-act="rowmenu" data-id="'+t.id+'" data-back="close">Outro dia</button></div></div>'}).join('')+'</div>'+
+      (left.length>1?'<div class="btns" style="margin-top:10px"><button class="btn btn-s sm" data-act="close-all">Tudo para amanhã</button></div>':'')+'</div>';
+  }
+  var cand=tasksOn(tm).filter(function(t){return !isDone(t)}).sort(byPrio).slice(0,8),cur=dayOf(tm).s;
+  h+='<div><span class="lab">Sapo de amanhã</span>'+(cand.length?'<p class="hint" style="margin:-2px 2px 10px">A tarefa mais pesada, para fazer antes de tudo.</p><div class="chips cl-sapo">'+cand.map(function(t){return chip(esc(t.title),t.id===cur,'data-act="close-sapo" data-id="'+t.id+'"')}).join('')+'</div>':'<p class="hint" style="margin:0 2px">Nada planejado para amanhã ainda. O que você mandar para amanhã aparece aqui.</p>')+'</div>';
+  h+='<div class="sh-actions"><button class="btn btn-p" data-act="close-done">'+(dayClosed(td)?'Salvar':'Fechar o dia')+'</button></div>';
+  return h;
+}
+function towerHTML(o,fresh){
+  var td=todayISO(),fl=o.floors.slice(-12).reverse(),more=o.floors.length-fl.length;
+  var nm={f:'tijolo',o:'folga',p:'pausa',x:'em branco',t:'hoje'};
+  var h='<div class="tower" role="list" aria-label="Andares da obra, do mais recente ao mais antigo">'+fl.map(function(f){
+    var d=parseISO(f.wk),lab=d.getDate()+' '+MESC[d.getMonth()];
+    return '<div class="floor'+(f.prumo?' pr':'')+'" role="listitem" aria-label="Semana de '+lab+': '+f.n+(f.n===1?' tijolo':' tijolos')+(f.prumo?', no prumo':'')+'"><span class="fl-l" aria-hidden="true">'+lab+'</span><div class="fl-b" aria-hidden="true">'+f.cells.map(function(c,i){var dd=addDays(f.wk,i);return '<i class="bk'+(c?' '+c:'')+(dd===td?' td':'')+(fresh&&dd===td&&c==='f'?' new':'')+'" title="'+(c?nm[c]:'')+'"></i>'}).join('')+'</div></div>'}).join('')+'</div>';
+  h+='<div class="fl-d" aria-hidden="true"><span></span><div>'+['S','T','Q','Q','S','S','D'].map(function(x){return '<i>'+x+'</i>'}).join('')+'</div></div>';
+  if(more>0)h+='<p class="hint" style="margin:6px 0 0">E mais '+more+(more>1?' andares':' andar')+' abaixo.</p>';
+  return h;
+}
+function obraSheetHTML(){
+  var o=obra(),td=todayISO(),fresh=sh&&sh.fresh===td,an=o.floors.filter(function(f){return f.n>0}).length;
+  var h='<div class="sh-head"><h2 class="h2">Sua obra</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>';
+  h+='<div class="ob-top"><div class="ob-n"><b>'+o.cur+'</b><span>'+(o.cur===1?'dia':'dias')+' no prumo</span></div><p>'+
+    (o.cur===0&&o.best>0?'Recomeço. Seu recorde é '+o.best+(o.best===1?' dia.':' dias.'):(o.best>o.cur?'Recorde: '+o.best+' dias.':(o.cur>0?'Este é o seu recorde.':'O primeiro tijolo vem do primeiro dia firme.')))+
+    '<br>'+an+(an===1?' andar':' andares')+' · '+o.bricks+(o.bricks===1?' tijolo':' tijolos')+'<br>Pausa desta semana: '+(o.pauseLeft>0?'disponível':'usada')+'</p></div>';
+  if(fresh)h+='<p class="cl-st ok" role="status">'+(o.firm?'Tijolo de hoje assentado.':'Dia fechado. Amanhã tem mais.')+'</p>';
+  h+=towerHTML(o,fresh);
+  h+='<div class="ob-leg" aria-hidden="true"><span><i class="bk f"></i>dia firme</span><span><i class="bk o"></i>folga ou pausa</span><span><i class="bk x"></i>em branco</span><span><i class="ob-pr"></i>semana fechada</span></div>';
+  var offN=gOff().slice().sort(function(a,b){return ((a+6)%7)-((b+6)%7)}).map(function(w){return DABR[w]}).join(', ');
+  h+='<p class="hint" style="margin:0">Dia firme: '+(o.meta>1?o.meta+' tarefas concluídas ou blocos de 25 min de foco.':'1 tarefa concluída ou 25 min de foco.')+' Folga ('+(offN||'nenhum dia')+') não quebra a sequência e, se você fizer algo, vale tijolo. Uma pausa por semana cobre um dia útil em branco. Fechar a semana na Revisão deixa o andar no prumo.</p>';
+  h+='<div class="sh-actions"><button class="btn btn-s" data-act="perfil-game">Ajustar regras</button></div>';
+  return h;
+}
+function closeHour(){try{var v=localStorage.getItem('prumo.closeh');return v===null?18:(v==='off'?null:Number(v))}catch(e){return 18}}
+function gameSettings(){
+  var meta=gMeta(),off=gOff(),ch=closeHour();
+  var h='<div><span class="lab">Meta do dia</span><div class="chips">'+[1,2,3].map(function(n){return chip(n===1?'1 tarefa ou bloco':n+' tarefas ou blocos',meta===n,'data-act="g-meta" data-v="'+n+'"')}).join('')+'</div><p class="hint" style="margin:8px 2px 0">Bloco = 25 min de foco.</p></div>';
+  h+='<div><span class="lab">Dias de folga</span><div class="chips">'+[1,2,3,4,5,6,0].map(function(w){return chip(DABR[w],off.indexOf(w)>=0,'data-act="g-off" data-v="'+w+'"')}).join('')+'</div><p class="hint" style="margin:8px 2px 0">Não quebram a sequência. Você ainda pode planejar tarefas nesses dias.</p></div>';
+  h+='<div><span class="lab">Lembrete para fechar o dia</span>'+(pushState==='on'?'<div class="chips">'+[['off','Desligado'],['17','17h'],['18','18h'],['19','19h'],['20','20h'],['21','21h']].map(function(x){var on=x[0]==='off'?ch===null:ch===Number(x[0]);return chip(x[1],on,'data-act="close-hr" data-v="'+x[0]+'"')}).join('')+'</div>':'<p class="hint" style="margin:0 2px">Ative os avisos neste aparelho (em Preferências) para receber o lembrete.</p>')+'</div>';
+  h+='<div class="btns"><button class="btn btn-s sm" data-act="obra">Ver sua obra</button></div>';
+  return h;
+}
+function closeDay(){
+  var td=todayISO();setDay(td,{c:Date.now()});persist();
+  sh={kind:'obra',fresh:td};renderSheet();render();
 }
 /* ---------- render ---------- */
 function initNav(){
@@ -1589,7 +1752,7 @@ function renderSheet(){
   }
   var old=host.querySelector('.sheet'),sc=old?old.scrollTop:0,fk=old?focusKey(document.activeElement):null;
   if(!old)shOpener=document.activeElement&&document.activeElement!==document.body?document.activeElement:null;
-  host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+({plan:planSheetHTML,help:helpSheetHTML,pw:pwSheetHTML,del:delSheetHTML,menu:menuSheetHTML,late:lateSheetHTML,note:noteSheetHTML}[sh.kind]||taskSheetHTML)()+'</div></div>';
+  host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+({plan:planSheetHTML,help:helpSheetHTML,pw:pwSheetHTML,del:delSheetHTML,menu:menuSheetHTML,late:lateSheetHTML,note:noteSheetHTML,close:closeSheetHTML,obra:obraSheetHTML}[sh.kind]||taskSheetHTML)()+'</div></div>';
   document.documentElement.classList.add('lock');sheetBg(true);
   var n=host.querySelector('.sheet');if(!n)return;
   n.scrollTop=sc;
@@ -1626,11 +1789,13 @@ function toggleDone(id){
   var t=byId(id);if(!t)return;
   if(isDone(t)){t.status='todo';t.doneAt=null}
   else{
+    var u0=dayUnits(todayISO());
     markDone(t);
     if(S.session&&S.session.tid===id){settleFocus();S.session=null;unlock()}
     var left=tasksOn(todayISO()).filter(function(x){return !isDone(x)}).length;
     popId=id;if(left===0)confetti(document.body,46);
-    toast(left===0?'Dia fechado. Bom trabalho.':'Feito. Faltam '+left+' hoje.');
+    var mt=gMeta(),firm=u0<mt&&dayUnits(todayISO())>=mt;
+    toast(firm?'Dia firme. Mais um tijolo na obra.':(left===0?'Tudo feito por hoje. Bom trabalho.':'Feito. Faltam '+left+' hoje.'));
   }
   persist();render();
 }
@@ -1786,7 +1951,7 @@ var pushState='boot',tmLast='-';
 var IOSDEV=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 var STANDALONE=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
 function b64u(s){var p='='.repeat((4-s.length%4)%4),b=(s+p).replace(/-/g,'+').replace(/_/g,'/'),r=atob(b),o=new Uint8Array(r.length);for(var i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o}
-var BUILD='04/11 13:59',pushDiag='';
+var BUILD='04/11 14:39',pushDiag='';
 function pushBanner(){
   if(pushState!=='off')return '';
   try{if(localStorage.getItem('prumo.pushno')==='1')return ''}catch(e){}
@@ -1848,6 +2013,12 @@ function remBuild(){
     var wd=addDays(td,j),wp=parseISO(wd);if(wp.getDay()!==0)continue;wp.setHours(19,0,0,0);
     if(wp.getTime()<=now+60000)continue;
     out.push({day:wd,kind:'wrap',url:'./?retro=1',fire_at:wp.toISOString(),title:'Prumo · Sua semana está pronta',body:'Toque para ver a retrô: números, foco e conquistas.'});
+  }
+  var ch=closeHour();
+  if(ch!=null)for(var c=0;c<8;c++){
+    var cd=addDays(td,c),cp=parseISO(cd);cp.setHours(ch,0,0,0);
+    if(cp.getTime()<=now+60000||isFolga(cd)||dayClosed(cd))continue;
+    out.push({day:cd,kind:'close',url:'./?fechar=1',fire_at:cp.toISOString(),title:'Prumo · Fechar o dia',body:'30 segundos: o que sobrou vai para onde e qual é o Sapo de amanhã.',sent:false});
   }
   if(h==null)return out;
   for(var i=0;i<8;i++){
@@ -2333,11 +2504,20 @@ function act(a,el){
     case 'rev':revMode=el.dataset.v;render();scrollTop();break;
     case 'drange':dashRange=el.dataset.v;render();break;
     case 'rowdel':if(sh&&sh.kind==='menu'){sh=null;renderSheet()}dropTask(el.dataset.id);break;
-    case 'rowmenu':closeSwipe();sh={kind:'menu',id:el.dataset.id};renderSheet();break;
-    case 'mv':{var mid=el.dataset.id,md=el.dataset.d||null,inLate=sh&&sh.kind==='late';closeSwipe();var was=moveTask(mid,md);if(!was)break;
-      if(inLate&&overdue().length)renderSheet();else{sh=null;renderSheet()}
+    case 'rowmenu':closeSwipe();sh={kind:'menu',id:el.dataset.id,back:el.dataset.back||null};renderSheet();break;
+    case 'mv':{var mid=el.dataset.id,md=el.dataset.d||null,inLate=sh&&sh.kind==='late',back=sh&&(sh.kind==='close'?'close':sh.back);closeSwipe();var was=moveTask(mid,md);if(!was)break;
+      if(back){sh={kind:back};renderSheet()}else if(inLate&&overdue().length)renderSheet();else{sh=null;renderSheet()}
       render();toast('Movida para '+(md?relDay(md):'Sem data')+'.','Desfazer',function(){undoMove(mid,was)});flashTask(mid);break}
     case 'late':sh={kind:'late'};renderSheet();break;
+    case 'obra':sh={kind:'obra'};renderSheet();break;
+    case 'close':sh={kind:'close'};renderSheet();break;
+    case 'close-done':closeDay();break;
+    case 'close-all':{var ctd=todayISO(),ctm=addDays(ctd,1),cl=leftovers(ctd),cw=cl.map(function(t){return [t.id,moveTask(t.id,ctm)]});renderSheet();render();toast(cw.length+' tarefas movidas para amanhã.','Desfazer',function(){cw.forEach(function(x){if(x[1])undoMove(x[0],x[1])});if(sh&&sh.kind==='close')renderSheet()});break}
+    case 'close-sapo':{var stm=addDays(todayISO(),1),sid=el.dataset.id;setDay(stm,{s:dayOf(stm).s===sid?null:sid});persist();renderSheet();break}
+    case 'perfil-game':sh=null;renderSheet();if(tab!=='perfil')prevTab=tab;tab='perfil';render();setTimeout(function(){var g=document.getElementById('pf-game');if(g)try{g.scrollIntoView({block:'start'})}catch(x){}},30);break;
+    case 'g-meta':S.g=Object.assign({},S.g||{},{meta:Number(el.dataset.v)});persist();render();break;
+    case 'g-off':{var gw=Number(el.dataset.v),go=gOff().slice(),gi=go.indexOf(gw);if(gi>=0)go.splice(gi,1);else go.push(gw);S.g=Object.assign({},S.g||{},{off:go});persist();render();break}
+    case 'close-hr':try{localStorage.setItem('prumo.closeh',el.dataset.v)}catch(e){}remSig='';remSync();render();break;
     case 'note':sh={kind:'note'};renderSheet();setTimeout(function(){var i=$('#blk');if(i)i.focus()},60);break;
     case 'fold':doneOpen=!doneOpen;render();break;
     case 'sem':{var sd=Number(el.dataset.d);semOff=sd===0?0:Math.max(0,semOff+sd);render();scrollTop();break}
@@ -2531,7 +2711,8 @@ async function boot(){
   render();
   tick();
   try{if(/[?&]retro=1/.test(location.search)){history.replaceState(null,'',location.pathname);wrOpen(weekStart(todayISO()))}}catch(e){}
-  try{navigator.serviceWorker.addEventListener('message',function(e){if(e.data&&e.data.go==='retro')wrOpen(weekStart(todayISO()))})}catch(e){}
+  try{if(/[?&]fechar=1/.test(location.search)){history.replaceState(null,'',location.pathname);sh={kind:'close'};renderSheet()}}catch(e){}
+  try{navigator.serviceWorker.addEventListener('message',function(e){if(e.data&&e.data.go==='retro')wrOpen(weekStart(todayISO()));if(e.data&&e.data.go==='fechar'){sh={kind:'close'};renderSheet()}})}catch(e){}
 }
 boot();
 })();

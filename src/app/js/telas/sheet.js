@@ -53,7 +53,7 @@ function renderSheet(){
   }
   var old=host.querySelector('.sheet'),sc=old?old.scrollTop:0,fk=old?focusKey(document.activeElement):null;
   if(!old)shOpener=document.activeElement&&document.activeElement!==document.body?document.activeElement:null;
-  host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+({plan:planSheetHTML,help:helpSheetHTML,pw:pwSheetHTML,del:delSheetHTML,menu:menuSheetHTML,late:lateSheetHTML,note:noteSheetHTML}[sh.kind]||taskSheetHTML)()+'</div></div>';
+  host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+({plan:planSheetHTML,help:helpSheetHTML,pw:pwSheetHTML,del:delSheetHTML,menu:menuSheetHTML,late:lateSheetHTML,note:noteSheetHTML,close:closeSheetHTML,obra:obraSheetHTML}[sh.kind]||taskSheetHTML)()+'</div></div>';
   document.documentElement.classList.add('lock');sheetBg(true);
   var n=host.querySelector('.sheet');if(!n)return;
   n.scrollTop=sc;

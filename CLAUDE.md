@@ -14,6 +14,7 @@ PWA de organização semanal (iPhone + Mac/Chrome), com frameworks ágeis por ta
   - Revisão: abas Semana e Tendências. Semana: resumo (concluídas só até hoje, foco, planejado por contexto, retrô em stories), "Fechar a semana" (retrospectiva), "Ficou aberto" (só dias que já passaram), concluídas, travas. Tendências compara com o período anterior até o mesmo ponto (`periodStats(p, corte)`) e começa na primeira semana com dados.
 - Nos textos, o grupo sem dia se chama "Sem data" (não "backlog").
   - Card (`rowHTML`): concluir, título (estrela se prioridade), uma linha de detalhe, play e ⋯. Estrela, editar, excluir e mudar de dia ficam no menu ⋯ (folha `menu`, `moveTask()` com desfazer). Deslizar para a esquerda é atalho (Amanhã, Outro dia); todo gesto tem caminho por botão.
+  - Obra (`js/obra.js` cálculo, `telas/obra.js` telas): dia firme = tarefas concluídas + blocos de 25 min de foco (`S.log`) até a meta (`S.g.meta`, padrão 1). Folga (`S.g.off`, padrão sáb e dom, mais dias com capacidade 0) não quebra a sequência e, se firme, vale tijolo; 1 pausa por semana cobre um dia útil em branco. `obra()` calcula sequência, recorde e andares (semana com tijolo; "no prumo" se a retrô foi feita). Hoje: anéis Planejar/Fazer/Fechar (`ringsHTML`, abre a folha `obra`) e cartão "Fechar o dia" (folha `close`: o que sobrou, Sapo de amanhã em `S.days[amanhã].s`, `S.days[hoje].c` ao fechar). `sapoOf(d)` põe o Sapo escolhido em "Agora". Lembrete `close` por push no horário do Perfil (`prumo.closeh`, padrão 18h, só em dias úteis), abre `./?fechar=1`. Nada de ranking, ponto negativo, moeda ou mensagem de culpa.
   - Perfil: aberto pelo avatar da tela Hoje (`tab='perfil'`, fora da barra de abas). Concentra conta, preferências, dados, privacidade e ajuda; a Revisão fica só com a semana.
   - `auth/`: tela de entrada (`gate.html/.css/.js`): login, cadastro, código por e-mail, recuperação, nova senha, regras de senha e checagem de vazamento (`window.prumoPw`). Roda fora do IIFE do app; fala com ele por `window.prumoSB` e `window.prumoLogout`.
   - Todos os JS rodam no mesmo escopo (o IIFE do shell), na ordem dos includes. A ordem importa para `var` inicializado no topo; funções são içadas.
@@ -27,10 +28,10 @@ PWA de organização semanal (iPhone + Mac/Chrome), com frameworks ágeis por ta
 - `ROADMAP.md`: próximas fases. `SECURITY.md`: proteções e ajustes do painel.
 
 ## Backend (Supabase, projeto cpdeptlintjvdqcfrafg)
-- Tabelas: `prumo_items` (kinds task/cap/ctx/retro/blk/log/rec/prof, última escrita vence por `updated_at`), `prumo_push_subs`, `prumo_timers`, `prumo_reminders` (PK user_id, day, kind), `prumo_private` (chaves VAPID e segredo do cron, sem policy).
+- Tabelas: `prumo_items` (kinds task/cap/ctx/retro/blk/log/rec/prof/day; `cap/g` guarda as regras da obra, `day/<data>` o dia fechado e o Sapo; última escrita vence por `updated_at`), `prumo_push_subs`, `prumo_timers`, `prumo_reminders` (PK user_id, day, kind), `prumo_private` (chaves VAPID e segredo do cron, sem policy).
 - pg_cron `prumo-push` a cada 10 s chama a Edge Function `prumo-push` (web-push) quando há timer ou lembrete vencido.
 - Trigger `prumo_signup_gate` em auth.users: cadastro só se `prumo_private.signup_open = 'true'` e abaixo de `signup_max` contas (o `owner_email` sempre entra).
-- Trigger `prumo_guard`: limites por conta (20 mil itens, 10 aparelhos com push, 40 lembretes) e por tempo. Endpoint de push só de serviços conhecidos (SSRF).
+- Trigger `prumo_guard`: limites por conta (20 mil itens, 10 aparelhos com push, 40 lembretes) e por tempo; valida `day` (id é data, até 1 KB) e `cap` (só ids cap e g). Endpoint de push só de serviços conhecidos (SSRF).
 - `anon` não tem acesso a nenhuma tabela.
 - Storage: bucket privado `avatars` (256 KB, jpeg/webp), cada conta só lê e grava `<id>/avatar.(jpg|webp)`. Foto reduzida a 256 px e regravada no aparelho (sem EXIF/GPS).
 - Edge Function `prumo-delete-account`: valida o token no servidor, exige login com senha há menos de 5 min (claim `amr`), CORS só da origem do app; apaga a foto e o usuário (tabelas caem por cascade). Ao trocar de domínio, atualizar `ORIGINS` nela.

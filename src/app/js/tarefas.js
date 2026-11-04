@@ -3,11 +3,13 @@ function toggleDone(id){
   var t=byId(id);if(!t)return;
   if(isDone(t)){t.status='todo';t.doneAt=null}
   else{
+    var u0=dayUnits(todayISO());
     markDone(t);
     if(S.session&&S.session.tid===id){settleFocus();S.session=null;unlock()}
     var left=tasksOn(todayISO()).filter(function(x){return !isDone(x)}).length;
     popId=id;if(left===0)confetti(document.body,46);
-    toast(left===0?'Dia fechado. Bom trabalho.':'Feito. Faltam '+left+' hoje.');
+    var mt=gMeta(),firm=u0<mt&&dayUnits(todayISO())>=mt;
+    toast(firm?'Dia firme. Mais um tijolo na obra.':(left===0?'Tudo feito por hoje. Bom trabalho.':'Feito. Faltam '+left+' hoje.'));
   }
   persist();render();
 }

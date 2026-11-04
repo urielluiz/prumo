@@ -17,6 +17,7 @@ async function boot(){
   render();
   tick();
   try{if(/[?&]retro=1/.test(location.search)){history.replaceState(null,'',location.pathname);wrOpen(weekStart(todayISO()))}}catch(e){}
-  try{navigator.serviceWorker.addEventListener('message',function(e){if(e.data&&e.data.go==='retro')wrOpen(weekStart(todayISO()))})}catch(e){}
+  try{if(/[?&]fechar=1/.test(location.search)){history.replaceState(null,'',location.pathname);sh={kind:'close'};renderSheet()}}catch(e){}
+  try{navigator.serviceWorker.addEventListener('message',function(e){if(e.data&&e.data.go==='retro')wrOpen(weekStart(todayISO()));if(e.data&&e.data.go==='fechar'){sh={kind:'close'};renderSheet()}})}catch(e){}
 }
 boot();

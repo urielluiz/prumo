@@ -66,6 +66,12 @@ function remBuild(){
     if(wp.getTime()<=now+60000)continue;
     out.push({day:wd,kind:'wrap',url:'./?retro=1',fire_at:wp.toISOString(),title:'Prumo · Sua semana está pronta',body:'Toque para ver a retrô: números, foco e conquistas.'});
   }
+  var ch=closeHour();
+  if(ch!=null)for(var c=0;c<8;c++){
+    var cd=addDays(td,c),cp=parseISO(cd);cp.setHours(ch,0,0,0);
+    if(cp.getTime()<=now+60000||isFolga(cd)||dayClosed(cd))continue;
+    out.push({day:cd,kind:'close',url:'./?fechar=1',fire_at:cp.toISOString(),title:'Prumo · Fechar o dia',body:'30 segundos: o que sobrou vai para onde e qual é o Sapo de amanhã.',sent:false});
+  }
   if(h==null)return out;
   for(var i=0;i<8;i++){
     var d=addDays(td,i),p=parseISO(d);p.setHours(h,0,0,0);

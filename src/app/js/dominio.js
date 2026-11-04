@@ -48,9 +48,11 @@ function nextTask(){
   var td=todayISO();
   var open=S.tasks.filter(function(t){return !isDone(t)&&covers(t,td)});
   var doing=open.filter(function(t){return t.status==='doing'});
-  var mits=open.filter(function(t){return t.mit&&t.status!=='doing'}).sort(byPrio);
-  var rest=open.filter(function(t){return !t.mit&&t.status!=='doing'}).sort(byPrio);
-  return doing.concat(mits,rest)[0]||null;
+  // o Sapo escolhido ao fechar o dia anterior vem antes das outras prioridades
+  var sp=sapoOf(td),first=sp&&sp.status!=='doing'?[sp]:[],nsp=function(t){return !sp||t.id!==sp.id};
+  var mits=open.filter(function(t){return t.mit&&t.status!=='doing'&&nsp(t)}).sort(byPrio);
+  var rest=open.filter(function(t){return !t.mit&&t.status!=='doing'&&nsp(t)}).sort(byPrio);
+  return doing.concat(first,mits,rest)[0]||null;
 }
 function seed(){
   var td=todayISO(),tm=addDays(td,1),d2=addDays(td,2),y=addDays(td,-1);

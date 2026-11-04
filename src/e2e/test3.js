@@ -68,6 +68,8 @@ let c=await calls();
 const rems=c.filter(x=>x.tbl==='prumo_reminders'&&x.op==='upsert');
 ok('reminders upserted',rems.length>=1);
 const rows=rems[rems.length-1].row;
+const cls=rows.filter(r=>r.kind==='close');
+ok('close-the-day reminder at 18h on workdays only, opens the close sheet',cls.length>=3&&cls.every(r=>new Date(r.fire_at).getHours()===18&&r.url==='./?fechar=1'&&![0,6].includes(new Date(r.fire_at).getDay())));
 ok('reminder for tomorrow 08:00 local',rows.some(r=>{const d=new Date(r.fire_at);return d.getHours()===8&&/Entrega do cliente/.test(r.body)&&r.sent===false}));
 ok('reminder groups project sessions',rows.some(r=>/2h em Projeto X/.test(r.body)));
 ok('unsent reminders cleared before upsert',c.some(x=>x.tbl==='prumo_reminders'&&x.op==='delete'));

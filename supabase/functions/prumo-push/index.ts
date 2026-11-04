@@ -39,7 +39,7 @@ Deno.serve(async (req: Request) => {
       }
     }
   }
-  const url = (u: unknown) => (u === "./?retro=1" ? u : "./");
+  const url = (u: unknown) => (u === "./?retro=1" || u === "./?fechar=1" ? u : "./");
 
   // 1) timers vencidos (folga de 4 s para o app cancelar primeiro)
   const cutoff = new Date(Date.now() - 4000).toISOString();
@@ -51,7 +51,7 @@ Deno.serve(async (req: Request) => {
   const { data: rem } = await sb.from("prumo_reminders").update({ sent: true }).eq("sent", false).lte("fire_at", new Date().toISOString()).select();
   for (const r of rem ?? []) {
     if (Date.now() - Date.parse(r.fire_at) > 2 * 3600 * 1000) { skipped++; continue; }
-    await push(r.user_id, { title: cut(r.title, 200), body: cut(r.body, 1000), tag: r.kind === "wrap" ? "prumo-wrap" : "prumo-day", url: url(r.url) }, 3600);
+    await push(r.user_id, { title: cut(r.title, 200), body: cut(r.body, 1000), tag: r.kind === "wrap" ? "prumo-wrap" : r.kind === "close" ? "prumo-close" : "prumo-day", url: url(r.url) }, 3600);
   }
   return new Response(JSON.stringify({ timers: due?.length ?? 0, reminders: rem?.length ?? 0, sent, failed, skipped }), { headers: { "Content-Type": "application/json" } });
 });

@@ -4,10 +4,10 @@ function viewHoje(){
   if(!booted&&!S.tasks.length)return '<header class="top"><div><div class="eyebrow">'+DAYS[d.getDay()]+', '+d.getDate()+' de '+MONF[d.getMonth()]+'</div><h1 class="h1">Hoje</h1></div></header><p class="hint">Carregando seus dados...</p>';
   var all=tasksOn(td),done=all.filter(isDone),open=all.filter(function(t){return !isDone(t)}).concat(dueNow());
   var now=nextTask(),over=overdue(),nm=profName().split(' ')[0];
-  var sapo=open.filter(function(t){return t.mit}).sort(byPrio)[0];
+  var sapo=sapoOf(td)||open.filter(function(t){return t.mit}).sort(byPrio)[0],ob=obra();
   // ordem da lista: em andamento, prioridades (estrela) e o resto; a tarefa do "Agora" não se repete
   var rest=open.filter(function(t){return !now||t.id!==now.id}).sort(function(a,b){return ((b.status==='doing')-(a.status==='doing'))||((b.mit?1:0)-(a.mit?1:0))||byPrio(a,b)});
-  var h='<header class="top"><div><div class="eyebrow">'+(nm?'Olá, '+esc(nm)+' · ':'')+DAYS[d.getDay()]+', '+d.getDate()+' de '+MONF[d.getMonth()]+'</div><h1 class="h1">Hoje</h1></div><div class="hd-r">'+ringHTML(done.length,all.length)+avatarBtn()+'</div></header>';
+  var h='<header class="top"><div><div class="eyebrow">'+(nm?'Olá, '+esc(nm)+' · ':'')+DAYS[d.getDay()]+', '+d.getDate()+' de '+MONF[d.getMonth()]+'</div><h1 class="h1">Hoje</h1></div><div class="hd-r">'+ringsHTML(ob)+avatarBtn()+'</div></header>';
   h+='<div class="cols"><div class="col stick">';
   var blk=S.blockers[td];
   h+='<button class="note" data-act="note">'+ic('target',16)+(blk?'<span class="note-t">'+esc(blk)+'</span>':'<span>O que pode te travar hoje?</span><b>Anotar</b>')+'</button>';
@@ -23,6 +23,7 @@ function viewHoje(){
     h+='<button class="fold" data-act="fold" aria-expanded="'+doneOpen+'"><span>'+done.length+(done.length>1?' concluídas':' concluída')+' hoje</span>'+ic(doneOpen?'up':'down',18)+'</button>';
     if(doneOpen)h+=listHTML(done,{day:td},null);
   }
+  h+=closeCardHTML(ob,open.length);
   var tm=addDays(td,1),tl=tasksOn(tm).filter(function(t){return !isDone(t)});
   h+='<button class="peek" data-act="tab" data-t="semana"><span><b>Amanhã</b> · '+(tl.length?tl.length+(tl.length>1?' tarefas, ':' tarefa, ')+fmt(sum(tl,function(t){return t.est})):'nada planejado ainda')+'</span><span class="peek-r">Ver semana'+ic('right',16)+'</span></button>';
   h+='</div></div>';

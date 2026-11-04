@@ -13,6 +13,8 @@ function itemsOf(){
   Object.keys(S.retro||{}).forEach(function(k){m['retro/'+k]=S.retro[k]});
   Object.keys(S.blockers||{}).forEach(function(k){m['blk/'+k]={t:S.blockers[k]}});
   Object.keys(S.log||{}).forEach(function(k){m['log/'+k]={s:S.log[k]}});
+  Object.keys(S.days||{}).forEach(function(k){m['day/'+k]=S.days[k]});
+  if(S.g&&Object.keys(S.g).length)m['cap/g']=S.g;
   if(S.prof&&(S.prof.name||S.prof.avk||S.prof.av))m['prof/me']=S.prof;
   return m;
 }
@@ -26,6 +28,8 @@ function applyItem(k,data){
   var kind=kindOf(k),id=idOf(k);
   if(kind==='task'){data.id=id;var i=S.tasks.findIndex(function(t){return t.id===id});if(i>=0)S.tasks[i]=data;else S.tasks.push(data)}
   else if(kind==='rec'){data.id=id;S.rec=S.rec||{};S.rec[id]=data}
+  else if(kind==='cap'&&id==='g')S.g=cleanG(data);
+  else if(kind==='day'){if(/^\d{4}-\d{2}-\d{2}$/.test(id)){S.days=S.days||{};S.days[id]=cleanDay(data)}}
   else if(kind==='cap'){if(Array.isArray(data.cap)&&data.cap.length===7)S.cap=data.cap}
   else if(kind==='ctx')S.ctx=data||{};
   else if(kind==='retro')S.retro[id]=data;
@@ -40,6 +44,8 @@ function dropItem(k){
   else if(kind==='retro')delete S.retro[id];
   else if(kind==='blk')delete S.blockers[id];
   else if(kind==='log')delete S.log[id];
+  else if(kind==='day'){if(S.days)delete S.days[id]}
+  else if(kind==='cap'&&id==='g')S.g={};
   else if(kind==='ctx')S.ctx={};
   else if(kind==='prof')S.prof={};
 }

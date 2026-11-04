@@ -33,7 +33,7 @@ const axe=async p=>{
   await p.evaluate(()=>Promise.race([Promise.all(document.getAnimations().map(x=>x.finished.catch(()=>{}))),new Promise(r=>setTimeout(r,3000))]));
   await p.evaluate(AXE);return p.evaluate(async()=>(await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa','best-practice']},resultTypes:['violations']})).violations.map(v=>v.id+'('+v.nodes.length+'): '+v.nodes.slice(0,3).map(n=>n.target.join(' ')+' ['+((n.any[0]&&n.any[0].message)||'').slice(0,160)+'] '+n.html.slice(0,120)).join(' ; ')))};
 const small=p=>p.evaluate(()=>[...document.querySelectorAll('button,a,input,textarea,select,label.chip')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&!e.closest('[hidden],[inert],.sw')&&getComputedStyle(e).visibility!=='hidden'}).filter(e=>{const r=e.getBoundingClientRect();return Math.min(r.width,r.height)<44}).map(e=>(e.dataset.act||e.id||e.className)+':'+Math.round(e.getBoundingClientRect().width)+'x'+Math.round(e.getBoundingClientRect().height)));
-const screens=[['Hoje',null],['menu ⋯','[data-act=rowmenu][data-id=c]'],['atrasadas','[data-act=late]'],['nova tarefa','.tab-add'],['Semana','.tab[data-t=semana]'],['Foco','.tab[data-t=foco]'],['Revisão','.tab[data-t=revisao]'],['Tendências','[data-act=rev][data-v=dash]'],['Perfil','.tab[data-t=hoje]']];
+const screens=[['Hoje',null],['menu ⋯','[data-act=rowmenu][data-id=c]'],['atrasadas','[data-act=late]'],['fechar o dia','[data-act=close]'],['obra','.drings'],['nova tarefa','.tab-add'],['Semana','.tab[data-t=semana]'],['Foco','.tab[data-t=foco]'],['Revisão','.tab[data-t=revisao]'],['Tendências','[data-act=rev][data-v=dash]'],['Perfil','.tab[data-t=hoje]']];
 for(const scheme of ['light','dark']){
   const p=await open(scheme);
   for(const [name,sel] of screens){
@@ -42,7 +42,7 @@ for(const scheme of ['light','dark']){
     if(name==='nova tarefa'){await go(p,'[data-act=sh-sec][data-v=when]');}
     const v=await axe(p);ok('axe '+scheme+' '+name+': no violations'+(v.length?' '+v.join(','):''),v.length===0);
     if(scheme==='light'){const s=await small(p);ok('targets '+name+': all at least 44px'+(s.length?' '+s.slice(0,4).join(' '):''),s.length===0)}
-    if(sel&&/rowmenu|late|tab-add/.test(sel)){await p.keyboard.press('Escape');await sleep(150)}
+    if(sel&&/rowmenu|late|tab-add|close|drings/.test(sel)){await p.keyboard.press('Escape');await sleep(150)}
   }
   if(scheme==='light'){
     await p.evaluate(()=>window.prumoLogout('local'));await sleep(1500);

@@ -32,11 +32,20 @@ function act(a,el){
     case 'rev':revMode=el.dataset.v;render();scrollTop();break;
     case 'drange':dashRange=el.dataset.v;render();break;
     case 'rowdel':if(sh&&sh.kind==='menu'){sh=null;renderSheet()}dropTask(el.dataset.id);break;
-    case 'rowmenu':closeSwipe();sh={kind:'menu',id:el.dataset.id};renderSheet();break;
-    case 'mv':{var mid=el.dataset.id,md=el.dataset.d||null,inLate=sh&&sh.kind==='late';closeSwipe();var was=moveTask(mid,md);if(!was)break;
-      if(inLate&&overdue().length)renderSheet();else{sh=null;renderSheet()}
+    case 'rowmenu':closeSwipe();sh={kind:'menu',id:el.dataset.id,back:el.dataset.back||null};renderSheet();break;
+    case 'mv':{var mid=el.dataset.id,md=el.dataset.d||null,inLate=sh&&sh.kind==='late',back=sh&&(sh.kind==='close'?'close':sh.back);closeSwipe();var was=moveTask(mid,md);if(!was)break;
+      if(back){sh={kind:back};renderSheet()}else if(inLate&&overdue().length)renderSheet();else{sh=null;renderSheet()}
       render();toast('Movida para '+(md?relDay(md):'Sem data')+'.','Desfazer',function(){undoMove(mid,was)});flashTask(mid);break}
     case 'late':sh={kind:'late'};renderSheet();break;
+    case 'obra':sh={kind:'obra'};renderSheet();break;
+    case 'close':sh={kind:'close'};renderSheet();break;
+    case 'close-done':closeDay();break;
+    case 'close-all':{var ctd=todayISO(),ctm=addDays(ctd,1),cl=leftovers(ctd),cw=cl.map(function(t){return [t.id,moveTask(t.id,ctm)]});renderSheet();render();toast(cw.length+' tarefas movidas para amanhã.','Desfazer',function(){cw.forEach(function(x){if(x[1])undoMove(x[0],x[1])});if(sh&&sh.kind==='close')renderSheet()});break}
+    case 'close-sapo':{var stm=addDays(todayISO(),1),sid=el.dataset.id;setDay(stm,{s:dayOf(stm).s===sid?null:sid});persist();renderSheet();break}
+    case 'perfil-game':sh=null;renderSheet();if(tab!=='perfil')prevTab=tab;tab='perfil';render();setTimeout(function(){var g=document.getElementById('pf-game');if(g)try{g.scrollIntoView({block:'start'})}catch(x){}},30);break;
+    case 'g-meta':S.g=Object.assign({},S.g||{},{meta:Number(el.dataset.v)});persist();render();break;
+    case 'g-off':{var gw=Number(el.dataset.v),go=gOff().slice(),gi=go.indexOf(gw);if(gi>=0)go.splice(gi,1);else go.push(gw);S.g=Object.assign({},S.g||{},{off:go});persist();render();break}
+    case 'close-hr':try{localStorage.setItem('prumo.closeh',el.dataset.v)}catch(e){}remSig='';remSync();render();break;
     case 'note':sh={kind:'note'};renderSheet();setTimeout(function(){var i=$('#blk');if(i)i.focus()},60);break;
     case 'fold':doneOpen=!doneOpen;render();break;
     case 'sem':{var sd=Number(el.dataset.d);semOff=sd===0?0:Math.max(0,semOff+sd);render();scrollTop();break}
