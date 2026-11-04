@@ -24,7 +24,7 @@ function pwSheetHTML(){
   return '<div class="sh-head"><h2 class="h2">Alterar senha</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>'+
     pf('pw0','Senha atual','current-password')+
     pf('pw1','Nova senha','new-password','Mínimo de 12 caracteres')+
-    pf('pw2','Repita a nova senha','new-password')+
+    pf('pw2','Repita a nova senha','new-password')+(mfaOn?mfaCodeField('pw-c'):'')+
     '<p class="hint" id="pw-msg" style="margin:0" aria-live="polite">Use uma senha longa e única. Ao salvar, os outros aparelhos conectados saem da conta.</p>'+
     '<div class="sh-actions"><button class="btn btn-p" data-act="pw-save">Salvar nova senha</button><button class="btn btn-s" data-act="sh-close">Cancelar</button></div>';
 }
@@ -43,7 +43,7 @@ function renderSheet(){
   }
   var old=host.querySelector('.sheet'),sc=old?old.scrollTop:0,fk=old?focusKey(document.activeElement):null;
   if(!old)shOpener=document.activeElement&&document.activeElement!==document.body?document.activeElement:null;
-  host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+({plan:planSheetHTML,help:helpSheetHTML,pw:pwSheetHTML,del:delSheetHTML,menu:menuSheetHTML,late:lateSheetHTML,note:noteSheetHTML,close:closeSheetHTML,obra:obraSheetHTML,busca:searchSheetHTML}[sh.kind]||taskSheetHTML)()+'</div></div>';
+  host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+({plan:planSheetHTML,help:helpSheetHTML,pw:pwSheetHTML,del:delSheetHTML,menu:menuSheetHTML,late:lateSheetHTML,note:noteSheetHTML,close:closeSheetHTML,obra:obraSheetHTML,busca:searchSheetHTML,mfa:mfaSheetHTML}[sh.kind]||taskSheetHTML)()+'</div></div>';
   document.documentElement.classList.add('lock');sheetBg(true);
   var n=host.querySelector('.sheet');if(!n)return;
   n.scrollTop=sc;
@@ -68,6 +68,7 @@ async function savePw(){
     // confirma a senha atual antes de trocar (quem pegar o aparelho desbloqueado não troca a senha)
     var v=await SB.auth.signInWithPassword({email:me,password:c});
     if(v.error){say(v.error.status===429?'Muitas tentativas. Aguarde alguns minutos.':'A senha atual não confere.',true);return}
+    if(mfaOn){var mc=await mfaVerify(mfaCode('pw-c'));if(mc.error){say('Código do app autenticador incorreto.',true);return}}
     var r=await SB.auth.updateUser({password:a});
     if(r.error){say(r.error.code==='same_password'?'Escolha uma senha diferente da atual.':(r.error.code==='weak_password'?'Essa senha é fraca ou apareceu em vazamentos. Escolha outra.':'Não consegui alterar. Tente de novo.'),true);return}
     try{await SB.auth.signOut({scope:'others'})}catch(e){}

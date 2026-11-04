@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-1Qmcy4j6aNFgRwdLngcAKq/W1vScASZ8669jMVnaf3k=' 'sha256-B9HIEmMYlL9AaK0O8q8vD+rPYgRvrJ2CTG24q573iEY=' 'sha256-M83SiRaxQw8WWPr1qdbElLabaNfhtC6YMMJDVWU3QNA=' 'sha256-rWKWaR5iSfV0M7HqkEtbETCzpSfy3W9/fGerEQFC74k=' 'sha256-wNBm0LO9t0JKUloaWmeP9HoGpjFq3dG9AuBOcy/YQ4g='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://api.pwnedpasswords.com https://cpdeptlintjvdqcfrafg.supabase.co wss://cpdeptlintjvdqcfrafg.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-+VVYTKB41ESbnpL0j965nHEFcOlPJ1HTEeq6AJQ8dkk=' 'sha256-1Qmcy4j6aNFgRwdLngcAKq/W1vScASZ8669jMVnaf3k=' 'sha256-M83SiRaxQw8WWPr1qdbElLabaNfhtC6YMMJDVWU3QNA=' 'sha256-lZ6gx6DA0h1hBVbWnLZizoWWaU3sEPqo5LwCpc655po=' 'sha256-wNBm0LO9t0JKUloaWmeP9HoGpjFq3dG9AuBOcy/YQ4g='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://api.pwnedpasswords.com https://cpdeptlintjvdqcfrafg.supabase.co wss://cpdeptlintjvdqcfrafg.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <meta name="referrer" content="no-referrer">
 <script>if(window.top!==window.self){window.stop();document.documentElement.innerHTML=''}</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -651,6 +651,14 @@ html.lock .toast{bottom:auto;top:calc(14px + env(safe-area-inset-top,0px))}
 .est-wk{margin:10px 2px 0;padding:10px 12px;border-radius:12px;background:var(--accent-soft);font-size:.875rem}
 .pf-legal{display:flex;flex-wrap:wrap;gap:4px 18px}
 .pf-legal a{color:var(--accent-text);font-weight:600;font-size:.9375rem;min-height:44px;display:inline-flex;align-items:center;text-underline-offset:3px}
+/* verificação em duas etapas */
+.mfa-on{color:var(--ok)}
+.mfa-steps{margin:-6px 0 0;padding-left:1.2rem;display:grid;gap:6px;font-size:.9375rem}
+.mfa-qr{display:grid;justify-items:center;gap:10px}
+.mfa-qr img{background:#fff;padding:8px;border-radius:12px;max-width:100%}
+.mfa-key{margin:0;font:500 1rem/1.5 var(--mono);letter-spacing:.04em;word-break:break-all;user-select:all;-webkit-user-select:all}
+.mfa-code{font:500 1.375rem/1 var(--mono);letter-spacing:.3em}
+a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 </style>
 
 <div class="wrap"><main id="view" aria-live="polite"></main></div>
@@ -742,6 +750,7 @@ function syncText(){
   if(sync==='ok')return 'Sincronizado com a sua conta.';
   if(sync==='err')return 'Não consegui sincronizar agora. Tento de novo na próxima alteração.';
   if(sync==='boot')return 'Conectando...';
+  if(sync==='mfa')return 'Falta o código do app autenticador para sincronizar.';
   if(sync==='off')return 'Sem conexão. As alterações serão enviadas quando voltar.';
   if(sync==='out')return 'Você saiu da conta. Este aparelho não está sincronizando.';
   return 'Salvo só neste aparelho. Faça backup de vez em quando.';
@@ -912,6 +921,8 @@ async function syncNow(pull){
   sbBusy=true;
   try{
     if(navigator.onLine===false){setSync('off');return}
+    // conta com verificação em duas etapas: sem o código ainda, o banco não entrega nada
+    if(!(await aalOk())){setSync('mfa');return}
     var changed=false;
     if(pull||!S.synced){changed=mergeRemote(await sbFetchAll());rebase();if(convertPautas()){stamp();changed=true}}
     await sbPush();
@@ -962,6 +973,7 @@ function initSB(){
         if(S.owner&&S.owner!==id){wipeLocal();location.reload();return}
         if(!S.owner){S.owner=id;writeLocal()}
         if(id!==SBU){SBU=id;startSync()}
+        else if(ev==='MFA_CHALLENGE_VERIFIED')syncNow(true);
       }
       else if(ev==='SIGNED_OUT'){SBU=null;stopSync();wipeLocal();location.reload()}
     },0);
@@ -1423,7 +1435,7 @@ function viewPerfil(){
     '<div><label class="lab" for="pf-name">Como quer ser chamado</label><input id="pf-name" class="inp" data-in="pname" maxlength="60" autocomplete="nickname" value="'+esc(profName())+'" placeholder="Seu nome ou apelido"></div>'+
     (SB?'<p class="hint" style="margin:0">A foto é reduzida e regravada no aparelho antes de ser enviada: informações escondidas no arquivo, como o local onde foi tirada, não saem do seu celular.</p>':'')+'</div>';
   // conta
-  if(SB)h+=secHTML('Conta')+'<div class="panel"><div><span class="lab">E-mail</span><p style="margin:0;word-break:break-all">'+esc(meEmail||'...')+'</p></div><div class="btns"><button class="btn btn-s sm" data-act="pw-open">Alterar senha</button><button class="btn btn-s sm" data-act="lock">Sair da conta</button><button class="btn btn-s sm" data-act="lock-all">Sair de todos os aparelhos</button></div><p class="hint" style="margin:0">Ao sair, suas tarefas continuam guardadas na sua conta. Este aparelho só apaga a cópia local.</p></div>';
+  if(SB)h+=secHTML('Conta')+'<div class="panel"><div><span class="lab">E-mail</span><p style="margin:0;word-break:break-all">'+esc(meEmail||'...')+'</p></div><div class="btns"><button class="btn btn-s sm" data-act="pw-open">Alterar senha</button><button class="btn btn-s sm" data-act="lock">Sair da conta</button><button class="btn btn-s sm" data-act="lock-all">Sair de todos os aparelhos</button></div><p class="hint" style="margin:0">Ao sair, suas tarefas continuam guardadas na sua conta. Este aparelho só apaga a cópia local.</p>'+mfaPanelHTML()+'</div>';
   // preferências
   h+=secHTML('Preferências')+'<div class="panel">'+timerSettings()+'<div><span class="lab">Nome dos contextos</span><div class="stack">'+CTX.map(function(c){return '<div class="rn"><i class="dot" style="background:var('+c.v+')"></i><input class="inp" id="cn-'+c.id+'" data-in="ctxname" data-c="'+c.id+'" value="'+esc(cname(c.id))+'" aria-label="Nome do contexto" autocomplete="off"></div>'}).join('')+'</div></div></div>';
   h+='<div id="pf-game"></div>'+secHTML('Sequência e obra')+'<div class="panel">'+gameSettings()+'</div>';
@@ -1941,7 +1953,7 @@ function pwSheetHTML(){
   return '<div class="sh-head"><h2 class="h2">Alterar senha</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>'+
     pf('pw0','Senha atual','current-password')+
     pf('pw1','Nova senha','new-password','Mínimo de 12 caracteres')+
-    pf('pw2','Repita a nova senha','new-password')+
+    pf('pw2','Repita a nova senha','new-password')+(mfaOn?mfaCodeField('pw-c'):'')+
     '<p class="hint" id="pw-msg" style="margin:0" aria-live="polite">Use uma senha longa e única. Ao salvar, os outros aparelhos conectados saem da conta.</p>'+
     '<div class="sh-actions"><button class="btn btn-p" data-act="pw-save">Salvar nova senha</button><button class="btn btn-s" data-act="sh-close">Cancelar</button></div>';
 }
@@ -1960,7 +1972,7 @@ function renderSheet(){
   }
   var old=host.querySelector('.sheet'),sc=old?old.scrollTop:0,fk=old?focusKey(document.activeElement):null;
   if(!old)shOpener=document.activeElement&&document.activeElement!==document.body?document.activeElement:null;
-  host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+({plan:planSheetHTML,help:helpSheetHTML,pw:pwSheetHTML,del:delSheetHTML,menu:menuSheetHTML,late:lateSheetHTML,note:noteSheetHTML,close:closeSheetHTML,obra:obraSheetHTML,busca:searchSheetHTML}[sh.kind]||taskSheetHTML)()+'</div></div>';
+  host.innerHTML='<div class="scrim"><div class="backdrop" data-act="sh-close"></div><div class="sheet" role="dialog" aria-modal="true">'+({plan:planSheetHTML,help:helpSheetHTML,pw:pwSheetHTML,del:delSheetHTML,menu:menuSheetHTML,late:lateSheetHTML,note:noteSheetHTML,close:closeSheetHTML,obra:obraSheetHTML,busca:searchSheetHTML,mfa:mfaSheetHTML}[sh.kind]||taskSheetHTML)()+'</div></div>';
   document.documentElement.classList.add('lock');sheetBg(true);
   var n=host.querySelector('.sheet');if(!n)return;
   n.scrollTop=sc;
@@ -1985,6 +1997,7 @@ async function savePw(){
     // confirma a senha atual antes de trocar (quem pegar o aparelho desbloqueado não troca a senha)
     var v=await SB.auth.signInWithPassword({email:me,password:c});
     if(v.error){say(v.error.status===429?'Muitas tentativas. Aguarde alguns minutos.':'A senha atual não confere.',true);return}
+    if(mfaOn){var mc=await mfaVerify(mfaCode('pw-c'));if(mc.error){say('Código do app autenticador incorreto.',true);return}}
     var r=await SB.auth.updateUser({password:a});
     if(r.error){say(r.error.code==='same_password'?'Escolha uma senha diferente da atual.':(r.error.code==='weak_password'?'Essa senha é fraca ou apareceu em vazamentos. Escolha outra.':'Não consegui alterar. Tente de novo.'),true);return}
     try{await SB.auth.signOut({scope:'others'})}catch(e){}
@@ -2144,7 +2157,7 @@ var pushState='boot',tmLast='-';
 var IOSDEV=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 var STANDALONE=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
 function b64u(s){var p='='.repeat((4-s.length%4)%4),b=(s+p).replace(/-/g,'+').replace(/_/g,'/'),r=atob(b),o=new Uint8Array(r.length);for(var i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o}
-var BUILD='04/11 15:43',pushDiag='';
+var BUILD='04/11 15:57',pushDiag='';
 function pushBanner(){
   if(pushState!=='off')return '';
   try{if(localStorage.getItem('prumo.pushno')==='1')return ''}catch(e){}
@@ -2472,6 +2485,7 @@ function delSheetHTML(){
   return '<div class="sh-head"><h2 class="h2">Excluir minha conta</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>'+
     '<p class="hint" style="margin:0">Isso apaga para sempre a sua conta, todas as tarefas, retrôs, histórico de foco e a sua foto, em todos os aparelhos. Não dá para desfazer. Se quiser guardar uma cópia, use antes "Exportar meus dados".</p>'+
     '<div><label class="lab" for="del-pw">Sua senha</label><input id="del-pw" class="inp" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="128"></div>'+
+    (mfaOn?mfaCodeField('del-c'):'')+
     '<label class="chk"><input type="checkbox" id="del-ok"> <span>Entendo que a exclusão é permanente.</span></label>'+
     '<p class="hint" id="del-msg" style="margin:0" aria-live="polite"></p>'+
     '<div class="sh-actions"><button class="btn btn-d" data-act="del-go">Excluir conta</button><button class="btn btn-s" data-act="sh-close">Cancelar</button></div>';
@@ -2488,6 +2502,7 @@ async function deleteAccount(){
     var u=await SB.auth.getUser(),me=u&&u.data&&u.data.user?u.data.user.email:meEmail;
     var v=await SB.auth.signInWithPassword({email:me,password:pw});
     if(v.error){say(v.error.status===429?'Muitas tentativas. Aguarde alguns minutos.':'Senha incorreta.');return}
+    if(mfaOn){var mc=await mfaVerify(mfaCode('del-c'));if(mc.error){say('Código do app autenticador incorreto.');return}}
     var r=await SB.functions.invoke('prumo-delete-account',{method:'POST',body:{}});
     if(r.error){say('Não consegui excluir agora. Nada foi apagado. Tente de novo.');return}
     try{var reg=await Promise.race([navigator.serviceWorker.ready,new Promise(function(ok){setTimeout(function(){ok(null)},2000)})]);var sub=reg&&await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe()}catch(e){}
@@ -2500,6 +2515,70 @@ async function deleteAccount(){
   finally{delBusy=false}
 }
 
+/* ---------- verificação em duas etapas (TOTP, app autenticador) ---------- */
+// Ativar pede a senha de novo; desativar pede o código. Quem ativou só lê e grava dados com sessão aal2
+// (policies restritivas no banco). Trocar a senha e excluir a conta também pedem o código.
+var mfaOn=null,mfaBusy=false;
+async function mfaFactors(){var r=await SB.auth.mfa.listFactors();if(r.error)throw r.error;return (r.data&&r.data.totp)||[]}
+async function mfaRefresh(){
+  if(!SB||!SBU)return;
+  try{var on=(await mfaFactors()).some(function(f){return f.status==='verified'});
+    if(on!==mfaOn){mfaOn=on;if(sh&&/^(pw|del)$/.test(sh.kind))renderSheet();else if(tab==='perfil'&&!sh)softRender()}}catch(e){}
+}
+// a sessão já passou pelo segundo fator, ou a conta não usa
+async function aalOk(){try{var a=await SB.auth.mfa.getAuthenticatorAssuranceLevel();return !(a.data&&a.data.nextLevel==='aal2'&&a.data.currentLevel!=='aal2')}catch(e){return true}}
+async function mfaVerify(code){
+  var f=(await mfaFactors()).filter(function(x){return x.status==='verified'})[0];
+  if(!f)return {error:{message:'sem fator'}};
+  return SB.auth.mfa.challengeAndVerify({factorId:f.id,code:code});
+}
+function mfaCode(id){return String(($('#'+id)||{}).value||'').replace(/\D/g,'')}
+function mfaCodeField(id,label){return '<div><label class="lab" for="'+id+'">'+(label||'Código do app autenticador')+'</label><input id="'+id+'" class="inp mfa-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" autocapitalize="none" autocorrect="off" spellcheck="false"></div>'}
+function mfaPanelHTML(){
+  return '<div><span class="lab">Verificação em duas etapas</span>'+
+    (mfaOn===null?'<p class="hint" style="margin:0">Verificando...</p>':
+    mfaOn?'<p style="margin:0 0 10px"><b class="mfa-on">Ativada.</b> Ao entrar num aparelho, o Prumo pede também o código do seu app autenticador.</p><div class="btns"><button class="btn btn-s sm" data-act="mfa-open">Desativar</button></div>':
+    '<p class="hint" style="margin:0 0 10px">Além da senha, pede um código de 6 dígitos do app autenticador (Senhas do iPhone, Google Authenticator, 1Password...). Mesmo que alguém descubra a sua senha, não entra.</p><div class="btns"><button class="btn btn-s sm" data-act="mfa-open">Ativar</button></div>')+'</div>';
+}
+function mfaSheetHTML(){
+  var st=sh.step,h='<div class="sh-head"><h2 class="h2">'+(st==='off'?'Desativar a verificação':'Verificação em duas etapas')+'</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>';
+  if(st==='pw')h+='<p class="hint" style="margin:-8px 0 0">Primeiro, confirme que é você.</p><div><label class="lab" for="mfa-pw">Sua senha</label><input id="mfa-pw" class="inp" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="128"></div>'+
+    '<p class="hint" id="mfa-msg" style="margin:0" aria-live="polite"></p><div class="sh-actions"><button class="btn btn-p" data-act="mfa-start">Continuar</button></div>';
+  else if(st==='qr')h+='<ol class="mfa-steps"><li>No iPhone, toque em <b>Adicionar ao app de senhas</b>. Em outro aparelho, leia o QR code com o app autenticador.</li><li>Digite abaixo o código de 6 dígitos que aparecer.</li></ol>'+
+    '<div class="mfa-qr"><img src="'+esc(sh.qr)+'" width="176" height="176" alt="QR code para o app autenticador"><div class="btns"><a class="btn btn-s sm" href="'+esc(sh.uri)+'">Adicionar ao app de senhas</a></div></div>'+
+    '<div><span class="lab">Ou digite esta chave no app</span><p class="mfa-key" id="mfa-key">'+esc(String(sh.secret).replace(/(.{4})/g,'$1 ').trim())+'</p><div class="btns"><button class="btn btn-s sm" data-act="mfa-copy">Copiar chave</button></div></div>'+
+    mfaCodeField('mfa-c')+'<p class="hint" id="mfa-msg" style="margin:0" aria-live="polite">Ao ativar, os outros aparelhos saem da conta e pedem o código no próximo login.</p><div class="sh-actions"><button class="btn btn-p" data-act="mfa-confirm">Ativar</button></div>';
+  else h+='<p class="hint" style="margin:-8px 0 0">Sem a verificação, a sua conta fica protegida só pela senha.</p>'+mfaCodeField('mfa-c')+
+    '<p class="hint" id="mfa-msg" style="margin:0" aria-live="polite"></p><div class="sh-actions"><button class="btn btn-d" data-act="mfa-off">Desativar</button><button class="btn btn-s" data-act="sh-close">Cancelar</button></div>';
+  return h;
+}
+function mfaSay(t,ok){var m=$('#mfa-msg');if(m){m.textContent=t;m.style.color=ok?'':'var(--bad)'}}
+async function mfaRun(fn){if(mfaBusy)return;mfaBusy=true;try{await fn()}catch(e){mfaSay('Sem conexão. Tente de novo.')}finally{mfaBusy=false}}
+function mfaStart(){return mfaRun(async function(){
+  var pw=($('#mfa-pw')||{}).value||'';if(!pw){mfaSay('Digite sua senha.');return}
+  mfaSay('Verificando...',true);
+  var v=await SB.auth.signInWithPassword({email:meEmail,password:pw});
+  if(v.error){mfaSay(v.error.status===429?'Muitas tentativas. Aguarde alguns minutos.':'Senha incorreta.');return}
+  // tentativa anterior que não foi até o fim: descarta
+  var fs=await mfaFactors();for(var i=0;i<fs.length;i++)if(fs[i].status!=='verified')await SB.auth.mfa.unenroll({factorId:fs[i].id});
+  var r=await SB.auth.mfa.enroll({factorType:'totp',issuer:'Prumo'});
+  if(r.error||!r.data){mfaSay('Não consegui começar agora. Tente de novo.');return}
+  sh={kind:'mfa',step:'qr',fid:r.data.id,qr:r.data.totp.qr_code,secret:r.data.totp.secret,uri:r.data.totp.uri};renderSheet();
+  setTimeout(function(){var c=$('#mfa-c');if(c)c.focus()},60);
+})}
+function mfaConfirm(){return mfaRun(async function(){
+  var c=mfaCode('mfa-c');if(c.length!==6){mfaSay('Digite os 6 dígitos do app.');return}
+  var r=await SB.auth.mfa.challengeAndVerify({factorId:sh.fid,code:c});
+  if(r.error){mfaSay('Código incorreto. Confira se o horário do aparelho está certo e tente de novo.');return}
+  mfaOn=true;sh=null;renderSheet();render();toast('Verificação em duas etapas ativada.');
+})}
+function mfaOff(){return mfaRun(async function(){
+  var c=mfaCode('mfa-c');if(c.length!==6){mfaSay('Digite os 6 dígitos do app.');return}
+  var v=await mfaVerify(c);if(v.error){mfaSay('Código incorreto.');return}
+  var fs=await mfaFactors();for(var i=0;i<fs.length;i++){var u=await SB.auth.mfa.unenroll({factorId:fs[i].id});if(u.error){mfaSay('Não consegui desativar. Tente de novo.');return}}
+  try{await SB.auth.refreshSession()}catch(e){}
+  mfaOn=false;sh=null;renderSheet();render();toast('Verificação em duas etapas desativada.');
+})}
 /* ---------- retrô em stories ---------- */
 var wr=null,wrRaf=0,popId=null,RM=false;
 try{RM=window.matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
@@ -2744,7 +2823,7 @@ function act(a,el){
     case 'sh-del1':{var d1=sh.id;sh=null;renderSheet();dropTask(d1);break}
     case 'sh-delall':{var d2=sh.id;sh=null;renderSheet();endSeries(d2);break}
     case 'help':helpPrev=(sh&&sh.kind==='task')?sh:null;sh={kind:'help'};renderSheet();break;
-    case 'pw-open':sh={kind:'pw'};renderSheet();break;
+    case 'pw-open':sh={kind:'pw'};renderSheet();mfaRefresh();break;
     case 'pw-save':savePw();break;
     case 'sh-ctx':sh.d.ctx=el.dataset.v;renderSheet();break;
     case 'sh-day':sh.d.day=el.dataset.v==='none'?null:el.dataset.v;sh.d.end=null;sh.multi=false;sh.pick=null;if(sh.d.day)sh.mon=(sh.d.day>todayISO()?sh.d.day:todayISO()).slice(0,7);renderSheet();break;
@@ -2766,11 +2845,16 @@ function act(a,el){
     case 'pip':openPip();break;
     case 'pip-auto':try{localStorage.setItem('prumo.pip',pipAuto()?'off':'on')}catch(e){}render();break;
     case 'notif':try{Notification.requestPermission().then(function(){render()})}catch(e){}break;
-    case 'perfil':if(tab!=='perfil')prevTab=tab;tab='perfil';render();scrollTop();break;
+    case 'perfil':if(tab!=='perfil')prevTab=tab;tab='perfil';render();scrollTop();mfaRefresh();break;
+    case 'mfa-open':sh={kind:'mfa',step:mfaOn?'off':'pw'};renderSheet();break;
+    case 'mfa-start':mfaStart();break;
+    case 'mfa-confirm':mfaConfirm();break;
+    case 'mfa-off':mfaOff();break;
+    case 'mfa-copy':copyText(String(sh&&sh.secret||''),'Chave copiada.');break;
     case 'perfil-back':tab=prevTab||'hoje';render();scrollTop();break;
     case 'photo-del':removePhoto();break;
     case 'export':exportData();break;
-    case 'del-open':sh={kind:'del'};renderSheet();setTimeout(function(){var i=$('#del-pw');if(i)i.focus()},50);break;
+    case 'del-open':sh={kind:'del'};renderSheet();mfaRefresh();setTimeout(function(){var i=$('#del-pw');if(i)i.focus()},50);break;
     case 'del-go':deleteAccount();break;
     case 'lock':logout('local');break;
     case 'lock-all':if(confirm('Encerrar a sessão em todos os aparelhos? Você vai precisar entrar de novo em cada um.'))logout('global');break;
@@ -2817,6 +2901,7 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Enter'&&e.target&&e.target.id==='f-title'){e.preventDefault();saveTask()}
   if(e.key==='Enter'&&e.target&&e.target.id==='f-step'){e.preventDefault();addStep()}
   if(e.key==='Enter'&&e.target&&e.target.id==='blk'){e.target.blur()}
+  if(e.key==='Enter'&&e.target&&/^mfa-(pw|c)$/.test(e.target.id)){e.preventDefault();act(e.target.id==='mfa-pw'?'mfa-start':(sh&&sh.step==='off'?'mfa-off':'mfa-confirm'),{dataset:{}})}
 });
 document.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='visible'){lock();tick();pullRemote();if(SBU)syncNow(true);rolloverRec()}
@@ -2970,7 +3055,7 @@ var gate=$g('gate'),form=$g('g-f'),body=$g('g-body'),err=$g('g-e'),btn=$g('g-b')
 var sb=window.prumoSB;
 var APPURL=location.origin+location.pathname.replace(/index\.html$/,'');
 var LOCKABLE=['.wrap','#tabs','#sheet','#toast','#mini'];
-var view='in',email='',otp='',busy=false,fails=0,until=0,resendAt=0,resendT=null;
+var view='in',email='',otp='',busy=false,fails=0,until=0,resendAt=0,resendT=null,afterMfa=null;
 
 /* ---------- senha: regras locais e checagem de vazamento (k-anonimato) ---------- */
 var PW_MIN=12,PW_MAXB=72;
@@ -3038,6 +3123,9 @@ var V={
     l:[['resend','Reenviar código'],['in','Voltar']]},
   newpw:{t:'Nova senha',b:'Salvar e entrar',p:'Crie uma nova senha para a sua conta. Os outros aparelhos conectados serão desconectados.',
     f:function(){return pwField('g-pw','Nova senha','new-password','Pelo menos '+PW_MIN+' caracteres.')+pwField('g-pw2','Repita a nova senha','new-password')},l:[]},
+  mfa:{t:'Verificação em duas etapas',b:'Confirmar',p:'Digite o código de 6 dígitos do seu app autenticador.',
+    f:function(){return field('g-mfa','Código','text','one-time-code','inputmode="numeric" maxlength="6" enterkeyhint="done"')+'<p class="g-hint">Perdeu o acesso ao app autenticador? Escreva para o contato da <a href="privacidade.html" target="_blank" rel="noopener">Política de privacidade</a> a partir do e-mail da conta.</p>'},
+    l:[['out','Entrar com outra conta']]},
   wait:{t:'Prumo',b:'Aguarde',p:'Confirmando...',f:function(){return ''},l:[]}
 };
 function go(v,keepMsg){
@@ -3050,7 +3138,7 @@ function go(v,keepMsg){
     var b=document.createElement('b');b.textContent=email;p.appendChild(b);
     p.appendChild(document.createTextNode(otp==='signup'?'. Digite o código ou toque no link do e-mail.':', enviamos um código. Digite-o abaixo.'));
   }else p.textContent=d.p;
-  var c=$g('g-code');if(c)c.className='inp g-code';
+  var c=$g('g-code')||$g('g-mfa');if(c)c.className='inp g-code';
   btn.textContent=d.b;btn.hidden=v==='wait';
   links.innerHTML=d.l.map(function(x){return '<button type="button" class="g-link" data-go="'+x[0]+'">'+x[1]+'</button>'}).join('');
   var em=$g('g-em');if(em&&email)em.value=email;
@@ -3072,6 +3160,10 @@ function stored(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.
 function unlock(){gate.hidden=true;setInert(false);body.innerHTML='';email='';otp=''}
 function lock(v){gate.hidden=false;setInert(true);go(v||'in')}
 
+/* ---------- segundo fator: depois da senha (ou do código do e-mail), se a conta usa ---------- */
+async function needMfa(){try{var a=await sb.auth.mfa.getAuthenticatorAssuranceLevel();return !!(a.data&&a.data.nextLevel==='aal2'&&a.data.currentLevel!=='aal2')}catch(e){return false}}
+async function enter(next){if(await needMfa()){afterMfa=next||null;fails=0;if(gate.hidden)lock('mfa');else go('mfa');return}if(next){if(gate.hidden)lock(next);else go(next)}else unlock()}
+
 /* ---------- ações ---------- */
 function val(id){var e=$g(id);return e?e.value:''}
 function readEmail(){var m=val('g-em').trim().toLowerCase();email=m;return m}
@@ -3082,7 +3174,7 @@ async function submit(){
     if(!m||!pw)return say('Informe e-mail e senha.');
     var wait=until-Date.now();if(wait>0)return say('Aguarde '+Math.ceil(wait/1000)+'s para tentar de novo.');
     var r=await sb.auth.signInWithPassword({email:m,password:pw});
-    if(!r.error){fails=0;unlock();return}
+    if(!r.error){fails=0;await enter();return}
     if(r.error.code==='email_not_confirmed'){otp='signup';go('code');say('Confirme o e-mail antes de entrar. Se o código venceu, peça outro.',true);return}
     fails++;var m0=msgOf(r.error);
     if(fails>=3&&r.error.code==='invalid_credentials'){var w=Math.min(60,(fails-2)*5);until=Date.now()+w*1000;m0+=' Aguarde '+w+'s para tentar de novo.'}
@@ -3094,7 +3186,7 @@ async function submit(){
     var bad=await pwCheck(a,b,m2);if(bad)return say(bad);
     var r2=await sb.auth.signUp({email:m2,password:a,options:{emailRedirectTo:APPURL}});
     if(r2.error)return say(msgOf(r2.error));
-    if(r2.data&&r2.data.session){unlock();return}
+    if(r2.data&&r2.data.session){await enter();return}
     otp='signup';resendAt=Date.now()+60000;go('code');return;
   }
   if(view==='forgot'){
@@ -3108,7 +3200,18 @@ async function submit(){
     if(tk.length<6)return say('Digite o código que chegou no e-mail.');
     var r4=await sb.auth.verifyOtp({email:email,token:tk,type:otp==='recovery'?'recovery':'email'});
     if(r4.error)return say(msgOf(r4.error));
-    if(otp==='recovery')go('newpw');else unlock();
+    await enter(otp==='recovery'?'newpw':null);
+    return;
+  }
+  if(view==='mfa'){
+    var mc=val('g-mfa').replace(/\D/g,'');
+    if(mc.length!==6)return say('Digite os 6 dígitos do app autenticador.');
+    var wt=until-Date.now();if(wt>0)return say('Aguarde '+Math.ceil(wt/1000)+'s para tentar de novo.');
+    var fl=await sb.auth.mfa.listFactors(),fac=((fl.data&&fl.data.totp)||[]).filter(function(x){return x.status==='verified'})[0];
+    if(!fac)return unlock();
+    var r6=await sb.auth.mfa.challengeAndVerify({factorId:fac.id,code:mc});
+    if(r6.error){fails++;var w6=fails>=3?Math.min(60,(fails-2)*5):0;if(w6)until=Date.now()+w6*1000;return say(r6.error.status===429?'Muitas tentativas. Aguarde alguns minutos.':'Código incorreto. Confira se o horário do aparelho está certo.'+(w6?' Aguarde '+w6+'s.':''))}
+    fails=0;var nx=afterMfa;afterMfa=null;if(nx)go(nx);else unlock();
     return;
   }
   if(view==='newpw'){
@@ -3139,6 +3242,7 @@ gate.addEventListener('click',function(e){
   var t=e.target.closest('button');if(!t)return;
   if(t.dataset.eye){var i=$g(t.dataset.eye),sh=i.type==='password';i.type=sh?'text':'password';t.textContent=sh?'Ocultar':'Mostrar';t.setAttribute('aria-pressed',String(sh));t.setAttribute('aria-label',sh?'Ocultar senha':'Mostrar senha');return}
   if(t.dataset.go==='resend'){resend();return}
+  if(t.dataset.go==='out'){afterMfa=null;sb.auth.signOut({scope:'local'});return}
   if(t.dataset.go){var em=$g('g-em');if(em)email=em.value.trim().toLowerCase();go(t.dataset.go)}
 });
 
@@ -3152,20 +3256,20 @@ async function fromLink(){
   lock('wait');
   var r=await sb.auth.verifyOtp({token_hash:th,type:ty==='signup'?'email':ty});
   if(r.error){go('in');say(msgOf(r.error)==='Código inválido ou expirado. Peça um novo.'?'O link é inválido ou expirou. Entre com sua senha ou peça um novo código.':msgOf(r.error));return true}
-  if(ty==='recovery')go('newpw');else unlock();
+  await enter(ty==='recovery'?'newpw':null);
   return true;
 }
 
 if(sb){
   sb.auth.onAuthStateChange(function(ev){
     if(ev==='SIGNED_OUT')lock('in');
-    else if(ev==='PASSWORD_RECOVERY'){if(view!=='newpw')lock('newpw')}
-    else if(ev==='SIGNED_IN'&&!gate.hidden&&view!=='newpw'&&!(view==='code'&&otp==='recovery'))unlock();
+    else if(ev==='PASSWORD_RECOVERY'){if(view!=='newpw'&&view!=='mfa'&&!busy)enter('newpw')}
+    else if(ev==='SIGNED_IN'&&!gate.hidden&&!busy&&view!=='newpw'&&view!=='mfa'&&!(view==='code'&&otp==='recovery'))enter();
   });
 }
 if(sb&&/token_hash=|error=/.test(location.hash))fromLink();
 else if(location.hash==='#conta-excluida'){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}lock('in');say('Sua conta foi excluída, com todos os dados. Obrigado por ter usado o Prumo.',true)}
-else if(stored())unlock();
+else if(stored()){unlock();if(sb)enter()}
 else lock('in');
 })();
 </script>

@@ -15,6 +15,7 @@ function syncText(){
   if(sync==='ok')return 'Sincronizado com a sua conta.';
   if(sync==='err')return 'Não consegui sincronizar agora. Tento de novo na próxima alteração.';
   if(sync==='boot')return 'Conectando...';
+  if(sync==='mfa')return 'Falta o código do app autenticador para sincronizar.';
   if(sync==='off')return 'Sem conexão. As alterações serão enviadas quando voltar.';
   if(sync==='out')return 'Você saiu da conta. Este aparelho não está sincronizando.';
   return 'Salvo só neste aparelho. Faça backup de vez em quando.';

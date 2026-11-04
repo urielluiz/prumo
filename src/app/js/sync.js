@@ -112,6 +112,8 @@ async function syncNow(pull){
   sbBusy=true;
   try{
     if(navigator.onLine===false){setSync('off');return}
+    // conta com verificação em duas etapas: sem o código ainda, o banco não entrega nada
+    if(!(await aalOk())){setSync('mfa');return}
     var changed=false;
     if(pull||!S.synced){changed=mergeRemote(await sbFetchAll());rebase();if(convertPautas()){stamp();changed=true}}
     await sbPush();
@@ -162,6 +164,7 @@ function initSB(){
         if(S.owner&&S.owner!==id){wipeLocal();location.reload();return}
         if(!S.owner){S.owner=id;writeLocal()}
         if(id!==SBU){SBU=id;startSync()}
+        else if(ev==='MFA_CHALLENGE_VERIFIED')syncNow(true);
       }
       else if(ev==='SIGNED_OUT'){SBU=null;stopSync();wipeLocal();location.reload()}
     },0);

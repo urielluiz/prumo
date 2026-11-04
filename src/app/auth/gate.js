@@ -5,7 +5,7 @@ var gate=$g('gate'),form=$g('g-f'),body=$g('g-body'),err=$g('g-e'),btn=$g('g-b')
 var sb=window.prumoSB;
 var APPURL=location.origin+location.pathname.replace(/index\.html$/,'');
 var LOCKABLE=['.wrap','#tabs','#sheet','#toast','#mini'];
-var view='in',email='',otp='',busy=false,fails=0,until=0,resendAt=0,resendT=null;
+var view='in',email='',otp='',busy=false,fails=0,until=0,resendAt=0,resendT=null,afterMfa=null;
 
 /* ---------- senha: regras locais e checagem de vazamento (k-anonimato) ---------- */
 var PW_MIN=12,PW_MAXB=72;
@@ -73,6 +73,9 @@ var V={
     l:[['resend','Reenviar código'],['in','Voltar']]},
   newpw:{t:'Nova senha',b:'Salvar e entrar',p:'Crie uma nova senha para a sua conta. Os outros aparelhos conectados serão desconectados.',
     f:function(){return pwField('g-pw','Nova senha','new-password','Pelo menos '+PW_MIN+' caracteres.')+pwField('g-pw2','Repita a nova senha','new-password')},l:[]},
+  mfa:{t:'Verificação em duas etapas',b:'Confirmar',p:'Digite o código de 6 dígitos do seu app autenticador.',
+    f:function(){return field('g-mfa','Código','text','one-time-code','inputmode="numeric" maxlength="6" enterkeyhint="done"')+'<p class="g-hint">Perdeu o acesso ao app autenticador? Escreva para o contato da <a href="privacidade.html" target="_blank" rel="noopener">Política de privacidade</a> a partir do e-mail da conta.</p>'},
+    l:[['out','Entrar com outra conta']]},
   wait:{t:'Prumo',b:'Aguarde',p:'Confirmando...',f:function(){return ''},l:[]}
 };
 function go(v,keepMsg){
@@ -85,7 +88,7 @@ function go(v,keepMsg){
     var b=document.createElement('b');b.textContent=email;p.appendChild(b);
     p.appendChild(document.createTextNode(otp==='signup'?'. Digite o código ou toque no link do e-mail.':', enviamos um código. Digite-o abaixo.'));
   }else p.textContent=d.p;
-  var c=$g('g-code');if(c)c.className='inp g-code';
+  var c=$g('g-code')||$g('g-mfa');if(c)c.className='inp g-code';
   btn.textContent=d.b;btn.hidden=v==='wait';
   links.innerHTML=d.l.map(function(x){return '<button type="button" class="g-link" data-go="'+x[0]+'">'+x[1]+'</button>'}).join('');
   var em=$g('g-em');if(em&&email)em.value=email;
@@ -107,6 +110,10 @@ function stored(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.
 function unlock(){gate.hidden=true;setInert(false);body.innerHTML='';email='';otp=''}
 function lock(v){gate.hidden=false;setInert(true);go(v||'in')}
 
+/* ---------- segundo fator: depois da senha (ou do código do e-mail), se a conta usa ---------- */
+async function needMfa(){try{var a=await sb.auth.mfa.getAuthenticatorAssuranceLevel();return !!(a.data&&a.data.nextLevel==='aal2'&&a.data.currentLevel!=='aal2')}catch(e){return false}}
+async function enter(next){if(await needMfa()){afterMfa=next||null;fails=0;if(gate.hidden)lock('mfa');else go('mfa');return}if(next){if(gate.hidden)lock(next);else go(next)}else unlock()}
+
 /* ---------- ações ---------- */
 function val(id){var e=$g(id);return e?e.value:''}
 function readEmail(){var m=val('g-em').trim().toLowerCase();email=m;return m}
@@ -117,7 +124,7 @@ async function submit(){
     if(!m||!pw)return say('Informe e-mail e senha.');
     var wait=until-Date.now();if(wait>0)return say('Aguarde '+Math.ceil(wait/1000)+'s para tentar de novo.');
     var r=await sb.auth.signInWithPassword({email:m,password:pw});
-    if(!r.error){fails=0;unlock();return}
+    if(!r.error){fails=0;await enter();return}
     if(r.error.code==='email_not_confirmed'){otp='signup';go('code');say('Confirme o e-mail antes de entrar. Se o código venceu, peça outro.',true);return}
     fails++;var m0=msgOf(r.error);
     if(fails>=3&&r.error.code==='invalid_credentials'){var w=Math.min(60,(fails-2)*5);until=Date.now()+w*1000;m0+=' Aguarde '+w+'s para tentar de novo.'}
@@ -129,7 +136,7 @@ async function submit(){
     var bad=await pwCheck(a,b,m2);if(bad)return say(bad);
     var r2=await sb.auth.signUp({email:m2,password:a,options:{emailRedirectTo:APPURL}});
     if(r2.error)return say(msgOf(r2.error));
-    if(r2.data&&r2.data.session){unlock();return}
+    if(r2.data&&r2.data.session){await enter();return}
     otp='signup';resendAt=Date.now()+60000;go('code');return;
   }
   if(view==='forgot'){
@@ -143,7 +150,18 @@ async function submit(){
     if(tk.length<6)return say('Digite o código que chegou no e-mail.');
     var r4=await sb.auth.verifyOtp({email:email,token:tk,type:otp==='recovery'?'recovery':'email'});
     if(r4.error)return say(msgOf(r4.error));
-    if(otp==='recovery')go('newpw');else unlock();
+    await enter(otp==='recovery'?'newpw':null);
+    return;
+  }
+  if(view==='mfa'){
+    var mc=val('g-mfa').replace(/\D/g,'');
+    if(mc.length!==6)return say('Digite os 6 dígitos do app autenticador.');
+    var wt=until-Date.now();if(wt>0)return say('Aguarde '+Math.ceil(wt/1000)+'s para tentar de novo.');
+    var fl=await sb.auth.mfa.listFactors(),fac=((fl.data&&fl.data.totp)||[]).filter(function(x){return x.status==='verified'})[0];
+    if(!fac)return unlock();
+    var r6=await sb.auth.mfa.challengeAndVerify({factorId:fac.id,code:mc});
+    if(r6.error){fails++;var w6=fails>=3?Math.min(60,(fails-2)*5):0;if(w6)until=Date.now()+w6*1000;return say(r6.error.status===429?'Muitas tentativas. Aguarde alguns minutos.':'Código incorreto. Confira se o horário do aparelho está certo.'+(w6?' Aguarde '+w6+'s.':''))}
+    fails=0;var nx=afterMfa;afterMfa=null;if(nx)go(nx);else unlock();
     return;
   }
   if(view==='newpw'){
@@ -174,6 +192,7 @@ gate.addEventListener('click',function(e){
   var t=e.target.closest('button');if(!t)return;
   if(t.dataset.eye){var i=$g(t.dataset.eye),sh=i.type==='password';i.type=sh?'text':'password';t.textContent=sh?'Ocultar':'Mostrar';t.setAttribute('aria-pressed',String(sh));t.setAttribute('aria-label',sh?'Ocultar senha':'Mostrar senha');return}
   if(t.dataset.go==='resend'){resend();return}
+  if(t.dataset.go==='out'){afterMfa=null;sb.auth.signOut({scope:'local'});return}
   if(t.dataset.go){var em=$g('g-em');if(em)email=em.value.trim().toLowerCase();go(t.dataset.go)}
 });
 
@@ -187,19 +206,19 @@ async function fromLink(){
   lock('wait');
   var r=await sb.auth.verifyOtp({token_hash:th,type:ty==='signup'?'email':ty});
   if(r.error){go('in');say(msgOf(r.error)==='Código inválido ou expirado. Peça um novo.'?'O link é inválido ou expirou. Entre com sua senha ou peça um novo código.':msgOf(r.error));return true}
-  if(ty==='recovery')go('newpw');else unlock();
+  await enter(ty==='recovery'?'newpw':null);
   return true;
 }
 
 if(sb){
   sb.auth.onAuthStateChange(function(ev){
     if(ev==='SIGNED_OUT')lock('in');
-    else if(ev==='PASSWORD_RECOVERY'){if(view!=='newpw')lock('newpw')}
-    else if(ev==='SIGNED_IN'&&!gate.hidden&&view!=='newpw'&&!(view==='code'&&otp==='recovery'))unlock();
+    else if(ev==='PASSWORD_RECOVERY'){if(view!=='newpw'&&view!=='mfa'&&!busy)enter('newpw')}
+    else if(ev==='SIGNED_IN'&&!gate.hidden&&!busy&&view!=='newpw'&&view!=='mfa'&&!(view==='code'&&otp==='recovery'))enter();
   });
 }
 if(sb&&/token_hash=|error=/.test(location.hash))fromLink();
 else if(location.hash==='#conta-excluida'){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}lock('in');say('Sua conta foi excluída, com todos os dados. Obrigado por ter usado o Prumo.',true)}
-else if(stored())unlock();
+else if(stored()){unlock();if(sb)enter()}
 else lock('in');
 })();

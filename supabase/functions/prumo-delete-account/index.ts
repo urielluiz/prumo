@@ -1,7 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 // Exclui a conta de quem chama: foto no Storage e o usuario (as tabelas prumo_* caem junto por ON DELETE CASCADE).
-// Exige login com senha (ou codigo) nos ultimos 5 minutos, conferido pelo amr do token, que nao muda no refresh.
+// Exige login com senha (ou codigo) nos ultimos 5 minutos, conferido pelo amr do token, que nao muda no refresh,
+// e o segundo fator (aal2) quando a conta usa verificacao em duas etapas.
 const ORIGINS = new Set(["https://urielluiz.github.io"]);
 const FRESH_SECONDS = 300;
 
@@ -39,6 +40,9 @@ Deno.serve(async (req: Request) => {
   const now = Date.now() / 1000;
   const fresh = Array.isArray(amr) && amr.some((m) => (m.method === "password" || m.method === "otp") && typeof m.timestamp === "number" && now - m.timestamp < FRESH_SECONDS);
   if (!fresh) return out(403, { error: "reauth" });
+  // conta com verificacao em duas etapas: o token precisa ter passado pelo codigo (aal2)
+  const mfa = (u.user.factors ?? []).some((f) => f.status === "verified");
+  if (mfa && claims(jwt)?.aal !== "aal2") return out(403, { error: "mfa" });
 
   const id = u.user.id;
   const { data: files, error: le } = await admin.storage.from("avatars").list(id);

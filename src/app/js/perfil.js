@@ -97,6 +97,7 @@ function delSheetHTML(){
   return '<div class="sh-head"><h2 class="h2">Excluir minha conta</h2><button class="ib" data-act="sh-close" aria-label="Fechar">'+ic('x')+'</button></div>'+
     '<p class="hint" style="margin:0">Isso apaga para sempre a sua conta, todas as tarefas, retrôs, histórico de foco e a sua foto, em todos os aparelhos. Não dá para desfazer. Se quiser guardar uma cópia, use antes "Exportar meus dados".</p>'+
     '<div><label class="lab" for="del-pw">Sua senha</label><input id="del-pw" class="inp" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="128"></div>'+
+    (mfaOn?mfaCodeField('del-c'):'')+
     '<label class="chk"><input type="checkbox" id="del-ok"> <span>Entendo que a exclusão é permanente.</span></label>'+
     '<p class="hint" id="del-msg" style="margin:0" aria-live="polite"></p>'+
     '<div class="sh-actions"><button class="btn btn-d" data-act="del-go">Excluir conta</button><button class="btn btn-s" data-act="sh-close">Cancelar</button></div>';
@@ -113,6 +114,7 @@ async function deleteAccount(){
     var u=await SB.auth.getUser(),me=u&&u.data&&u.data.user?u.data.user.email:meEmail;
     var v=await SB.auth.signInWithPassword({email:me,password:pw});
     if(v.error){say(v.error.status===429?'Muitas tentativas. Aguarde alguns minutos.':'Senha incorreta.');return}
+    if(mfaOn){var mc=await mfaVerify(mfaCode('del-c'));if(mc.error){say('Código do app autenticador incorreto.');return}}
     var r=await SB.functions.invoke('prumo-delete-account',{method:'POST',body:{}});
     if(r.error){say('Não consegui excluir agora. Nada foi apagado. Tente de novo.');return}
     try{var reg=await Promise.race([navigator.serviceWorker.ready,new Promise(function(ok){setTimeout(function(){ok(null)},2000)})]);var sub=reg&&await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe()}catch(e){}

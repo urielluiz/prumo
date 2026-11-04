@@ -19,6 +19,7 @@ Abra uma issue **sem detalhes técnicos** pedindo um contato privado, ou use o "
 - Senha: no mínimo 12 caracteres e no máximo 72 bytes (limite do bcrypt, para não haver corte silencioso). Não pode conter o próprio e-mail. É checada contra vazamentos conhecidos pelo método de k-anonimato do Have I Been Pwned: só os 5 primeiros caracteres do hash SHA-1 saem do aparelho, e a resposta vem com preenchimento.
 - Mensagens de login, cadastro e recuperação não revelam se um e-mail tem conta.
 - Espera crescente no aparelho depois de 3 senhas erradas, além do limite do próprio Supabase.
+- Verificação em duas etapas opcional (TOTP, app autenticador), ativada no Perfil depois de confirmar a senha. Com ela ativa, o banco só entrega e aceita dados de sessões que passaram pelo código (`aal2`): policies restritivas em todas as tabelas do app e na foto, pela função `prumo_sec.aal_ok()`, fora do schema exposto pela API. O app não sincroniza antes do código. Trocar a senha, excluir a conta (conferido também na Edge Function) e desativar a verificação pedem o código. Na recuperação de senha, o código do app vem antes da nova senha.
 - Trocar a senha exige a senha atual. Depois de trocar ou recuperar a senha, as outras sessões são encerradas.
 - "Sair de todos os aparelhos" encerra todas as sessões da conta.
 
@@ -38,7 +39,7 @@ Abra uma issue **sem detalhes técnicos** pedindo um contato privado, ou use o "
 - Todo texto vindo do usuário entra na tela escapado ou por `textContent`.
 
 **Testes**
-`src/e2e/auth.js` cobre cadastro, código, recuperação, link do e-mail, isolamento entre contas, sair e voltar sem perder dados, saída com dados pendentes, CSP bloqueando script injetado e o bloqueio de iframe. `src/e2e/profile.js` cobre nome, foto (redimensionada e sem EXIF/GPS), exportação e exclusão de conta.
+`src/e2e/auth.js` cobre cadastro, código, recuperação, link do e-mail, isolamento entre contas, sair e voltar sem perder dados, saída com dados pendentes, CSP bloqueando script injetado e o bloqueio de iframe. `src/e2e/mfa.js` cobre ativar, login com código, bloqueio dos dados antes do código, recuperação e desativar. `src/e2e/profile.js` cobre nome, foto (redimensionada e sem EXIF/GPS), exportação e exclusão de conta.
 
 ## Ajustes no painel do Supabase (não dá para fazer por código)
 

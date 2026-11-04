@@ -79,7 +79,7 @@ function act(a,el){
     case 'sh-del1':{var d1=sh.id;sh=null;renderSheet();dropTask(d1);break}
     case 'sh-delall':{var d2=sh.id;sh=null;renderSheet();endSeries(d2);break}
     case 'help':helpPrev=(sh&&sh.kind==='task')?sh:null;sh={kind:'help'};renderSheet();break;
-    case 'pw-open':sh={kind:'pw'};renderSheet();break;
+    case 'pw-open':sh={kind:'pw'};renderSheet();mfaRefresh();break;
     case 'pw-save':savePw();break;
     case 'sh-ctx':sh.d.ctx=el.dataset.v;renderSheet();break;
     case 'sh-day':sh.d.day=el.dataset.v==='none'?null:el.dataset.v;sh.d.end=null;sh.multi=false;sh.pick=null;if(sh.d.day)sh.mon=(sh.d.day>todayISO()?sh.d.day:todayISO()).slice(0,7);renderSheet();break;
@@ -101,11 +101,16 @@ function act(a,el){
     case 'pip':openPip();break;
     case 'pip-auto':try{localStorage.setItem('prumo.pip',pipAuto()?'off':'on')}catch(e){}render();break;
     case 'notif':try{Notification.requestPermission().then(function(){render()})}catch(e){}break;
-    case 'perfil':if(tab!=='perfil')prevTab=tab;tab='perfil';render();scrollTop();break;
+    case 'perfil':if(tab!=='perfil')prevTab=tab;tab='perfil';render();scrollTop();mfaRefresh();break;
+    case 'mfa-open':sh={kind:'mfa',step:mfaOn?'off':'pw'};renderSheet();break;
+    case 'mfa-start':mfaStart();break;
+    case 'mfa-confirm':mfaConfirm();break;
+    case 'mfa-off':mfaOff();break;
+    case 'mfa-copy':copyText(String(sh&&sh.secret||''),'Chave copiada.');break;
     case 'perfil-back':tab=prevTab||'hoje';render();scrollTop();break;
     case 'photo-del':removePhoto();break;
     case 'export':exportData();break;
-    case 'del-open':sh={kind:'del'};renderSheet();setTimeout(function(){var i=$('#del-pw');if(i)i.focus()},50);break;
+    case 'del-open':sh={kind:'del'};renderSheet();mfaRefresh();setTimeout(function(){var i=$('#del-pw');if(i)i.focus()},50);break;
     case 'del-go':deleteAccount();break;
     case 'lock':logout('local');break;
     case 'lock-all':if(confirm('Encerrar a sessão em todos os aparelhos? Você vai precisar entrar de novo em cada um.'))logout('global');break;
@@ -152,6 +157,7 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Enter'&&e.target&&e.target.id==='f-title'){e.preventDefault();saveTask()}
   if(e.key==='Enter'&&e.target&&e.target.id==='f-step'){e.preventDefault();addStep()}
   if(e.key==='Enter'&&e.target&&e.target.id==='blk'){e.target.blur()}
+  if(e.key==='Enter'&&e.target&&/^mfa-(pw|c)$/.test(e.target.id)){e.preventDefault();act(e.target.id==='mfa-pw'?'mfa-start':(sh&&sh.step==='off'?'mfa-off':'mfa-confirm'),{dataset:{}})}
 });
 document.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='visible'){lock();tick();pullRemote();if(SBU)syncNow(true);rolloverRec()}

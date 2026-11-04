@@ -12,9 +12,12 @@ function emit(ev,s){setTimeout(()=>subs.forEach(cb=>cb(ev,s)),5)}
 function sess(){const t=LS.get(TOK);return t&&t.user?{user:t.user}:null}
 function login(u,email){const s={refresh_token:'x',user:{id:u.id,email}};LS.set(TOK,s);return {user:s.user}}
 const E=(code,status,message)=>({error:{code,status,message:message||code}});
+// verificação em duas etapas: fator por conta em fake-users (.mfa {id,v}); o nível da sessão (aal) fica no token
+const curKey=()=>{const t=LS.get(TOK),us=users();return t&&t.user?Object.keys(us).find(k=>us[k].id===t.user.id):null};
+const mfaLocked=()=>{const t=LS.get(TOK),k=curKey(),u=k&&users()[k];return !!(u&&u.mfa&&u.mfa.v&&(!t||t.aal!=='aal2'))};
 function builder(tbl){const b={};b.select=()=>b;b.order=()=>b;b.range=()=>b;b.limit=()=>b;
  b.upsert=(r,o)=>{b._op='upsert';b._r=r;return b};b.delete=()=>{b._op='delete';return b};b.eq=(k,v)=>{b._eq=[k,v];return b};
- b.then=function(res,rej){return (async()=>{const me=(sess()||{user:{}}).user.id,db=LS.get('fake-db')||{};if(tbl==='prumo_items'&&b._op==='upsert'&&me){(Array.isArray(b._r)?b._r:[b._r]).forEach(r=>{db[me]=db[me]||{};db[me][r.kind+'/'+r.id]=r});LS.set('fake-db',db)}if(tbl==='prumo_items'&&!b._op)return {data:Object.values((db[me])||{}),error:null};if(b._op){window.__calls.push({tbl,op:b._op,row:b._r,eq:b._eq});if(tbl==='prumo_push_subs'&&b._op==='delete')LS.set('fake-pushdel',b._eq);return {error:null}}return {data:[],error:null}})().then(res,rej)};return b}
+ b.then=function(res,rej){return (async()=>{const me=(sess()||{user:{}}).user.id,db=LS.get('fake-db')||{};if(tbl==='prumo_items'&&mfaLocked()){window.__calls.push({tbl,op:b._op||'select',blocked:true});return b._op?{error:{code:'42501',message:'new row violates row-level security policy'}}:{data:[],error:null}}if(tbl==='prumo_items'&&b._op==='upsert'&&me){(Array.isArray(b._r)?b._r:[b._r]).forEach(r=>{db[me]=db[me]||{};db[me][r.kind+'/'+r.id]=r});LS.set('fake-db',db)}if(tbl==='prumo_items'&&!b._op)return {data:Object.values((db[me])||{}),error:null};if(b._op){window.__calls.push({tbl,op:b._op,row:b._r,eq:b._eq});if(tbl==='prumo_push_subs'&&b._op==='delete')LS.set('fake-pushdel',b._eq);return {error:null}}return {data:[],error:null}})().then(res,rej)};return b}
 const STO=()=>LS.get('fake-storage')||{};
 const b64=async b=>{const u=new Uint8Array(await b.arrayBuffer());let s='';for(let i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return btoa(s)};
 const storage={from:bucket=>({
@@ -27,6 +30,16 @@ const functions={async invoke(name,o){const me=(sess()||{user:{}}).user.id;LS.se
   const st=STO();Object.keys(st).forEach(k=>{if(k.indexOf('avatars/'+me+'/')===0)delete st[k]});LS.set('fake-storage',st);return {data:{ok:true},error:null}}};
 window.supabase={createClient(){return {from:t=>builder(t),storage,functions,channel(){const c={on(){return c},subscribe(){return c}};return c},removeChannel(){},
  auth:{
+  mfa:{
+   async getAuthenticatorAssuranceLevel(){const t=LS.get(TOK),k=curKey(),u=k&&users()[k];if(!t||!u)return {data:{currentLevel:null,nextLevel:null},error:null};return {data:{currentLevel:t.aal||'aal1',nextLevel:u.mfa&&u.mfa.v?'aal2':(t.aal||'aal1')},error:null}},
+   async listFactors(){const k=curKey(),u=k&&users()[k],f=u&&u.mfa?[{id:u.mfa.id,factor_type:'totp',status:u.mfa.v?'verified':'unverified'}]:[];return {data:{totp:f,phone:[],all:f},error:null}},
+   async enroll(o){window.__auth.push(['mfa-enroll',o.factorType]);const us=users(),k=curKey();if(!k)return E('not_authenticated',401);if(us[k].mfa&&us[k].mfa.v)return E('mfa_factor_name_conflict',422);us[k].mfa={id:'fac1',v:false};saveUsers(us);
+     return {data:{id:'fac1',type:'totp',totp:{qr_code:'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21"><rect width="21" height="21" fill="#000"/></svg>'),secret:'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP',uri:'otpauth://totp/Prumo:'+k+'?secret=JBSWY3DPEHPK3PXP&issuer=Prumo'}},error:null}},
+   async challengeAndVerify(o){window.__auth.push(['mfa-verify',o.code]);const us=users(),k=curKey();if(!k||!us[k].mfa||us[k].mfa.id!==o.factorId)return E('mfa_factor_not_found',404);if(o.code!=='654321')return E('mfa_verification_failed',422,'Invalid TOTP code entered');
+     us[k].mfa.v=true;saveUsers(us);const t=LS.get(TOK);t.aal='aal2';LS.set(TOK,t);emit('MFA_CHALLENGE_VERIFIED',{user:t.user});return {data:{},error:null}},
+   async unenroll(o){window.__auth.push(['mfa-unenroll',o.factorId]);const us=users(),k=curKey(),t=LS.get(TOK);if(!k||!us[k].mfa)return E('mfa_factor_not_found',404);if(us[k].mfa.v&&t.aal!=='aal2')return E('insufficient_aal',403);delete us[k].mfa;saveUsers(us);return {data:{},error:null}}
+  },
+  async refreshSession(){return {data:{session:sess()},error:null}},
   onAuthStateChange(cb){subs.push(cb);setTimeout(()=>cb('INITIAL_SESSION',sess()),10);return {data:{subscription:{unsubscribe(){}}}}},
   getSession(){return Promise.resolve({data:{session:sess()}})},
   getUser(){const s=sess();return Promise.resolve({data:{user:s&&s.user}})},

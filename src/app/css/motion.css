@@ -222,3 +222,11 @@ html.lock .toast{bottom:auto;top:calc(14px + env(safe-area-inset-top,0px))}
 .est-wk{margin:10px 2px 0;padding:10px 12px;border-radius:12px;background:var(--accent-soft);font-size:.875rem}
 .pf-legal{display:flex;flex-wrap:wrap;gap:4px 18px}
 .pf-legal a{color:var(--accent-text);font-weight:600;font-size:.9375rem;min-height:44px;display:inline-flex;align-items:center;text-underline-offset:3px}
+/* verificação em duas etapas */
+.mfa-on{color:var(--ok)}
+.mfa-steps{margin:-6px 0 0;padding-left:1.2rem;display:grid;gap:6px;font-size:.9375rem}
+.mfa-qr{display:grid;justify-items:center;gap:10px}
+.mfa-qr img{background:#fff;padding:8px;border-radius:12px;max-width:100%}
+.mfa-key{margin:0;font:500 1rem/1.5 var(--mono);letter-spacing:.04em;word-break:break-all;user-select:all;-webkit-user-select:all}
+.mfa-code{font:500 1.375rem/1 var(--mono);letter-spacing:.3em}
+a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
